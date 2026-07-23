@@ -18,6 +18,16 @@ public static class ProjectParser
     public static DiscoveredProject Parse(string projectFilePath, string relativePath)
     {
         XDocument document = XDocument.Load(projectFilePath, LoadOptions.SetLineInfo);
+        return ParseFrom(document, projectFilePath, relativePath);
+    }
+
+    /// <summary>
+    /// Builds the project summary from an already-loaded document. Use this when the
+    /// caller also needs the document (e.g. the rule engine), to avoid parsing twice.
+    /// The document must have been loaded with <see cref="LoadOptions.SetLineInfo"/>.
+    /// </summary>
+    public static DiscoveredProject ParseFrom(XDocument document, string projectFilePath, string relativePath)
+    {
         XElement root = document.Root
             ?? throw new InvalidDataException($"Project file '{relativePath}' has no root element.");
 

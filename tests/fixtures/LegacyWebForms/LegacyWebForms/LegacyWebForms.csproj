@@ -17,8 +17,11 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
+    <!-- Strong-named third-party assembly resolved from the GAC, no HintPath (MIG1005). -->
+    <Reference Include="Telerik.Web.UI, Version=2019.1.115.45, Culture=neutral, PublicKeyToken=121fae78165ba3d4" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppConfig.cs" />
     <Compile Include="Default.aspx.cs">
       <DependentUpon>Default.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -28,6 +31,7 @@
   <ItemGroup>
     <Content Include="Default.aspx" />
     <Content Include="Web.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

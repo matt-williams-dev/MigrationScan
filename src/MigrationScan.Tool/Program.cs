@@ -1,7 +1,6 @@
 using System.CommandLine;
 using MigrationScan.Core.Analysis;
 using MigrationScan.Core.Models;
-using MigrationScan.Core.Rules;
 using MigrationScan.Reporting;
 using MigrationScan.Tool;
 
@@ -69,7 +68,7 @@ rootCommand.SetAction(parseResult =>
 
     try
     {
-        var analyzer = new SolutionAnalyzer(RuleCatalog.LoadDefault());
+        SolutionAnalyzer analyzer = SolutionAnalyzer.CreateDefault();
         AnalysisResult result = analyzer.Analyze(path, target);
         Emit(result, normalizedFormats, output);
         return ExitSuccess;

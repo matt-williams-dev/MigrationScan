@@ -1,31 +1,37 @@
 using System.Xml;
 using MigrationScan.Core.Discovery;
+using MigrationScan.Core.Engine;
 using MigrationScan.Core.Models;
 using MigrationScan.Core.Rules;
 
 namespace MigrationScan.Core.Analysis;
 
 /// <summary>
-/// Runs the analysis: resolve the scan target, parse each project, apply the rules,
-/// and return findings in deterministic order.
+/// Runs the analysis: resolve the scan target, build a context per project, apply the
+/// rule engine, and return findings in deterministic order.
 ///
 /// A project that is missing or unparseable is skipped with a warning rather than
 /// failing the whole scan — large legacy solutions routinely carry stale project
 /// references, and one broken project should not abort the assessment.
-///
-/// Phase 1 walking skeleton — only MIG1001 is wired in. The pluggable rule engine
-/// (spec Phase 2) replaces the direct rule call here.
 /// </summary>
 public sealed class SolutionAnalyzer
 {
-    private readonly RuleCatalog _catalog;
+    private readonly RuleEngine _engine;
 
-    public SolutionAnalyzer(RuleCatalog catalog) => _catalog = catalog;
+    public SolutionAnalyzer(RuleEngine engine) => _engine = engine;
+
+    /// <summary>Builds an analyzer over the given rule catalog and the default package catalog.</summary>
+    public SolutionAnalyzer(RuleCatalog catalog)
+        : this(new RuleEngine(DefaultRules.CreateAll(catalog, PackageCompatibilityCatalog.LoadDefault())))
+    {
+    }
+
+    /// <summary>Builds an analyzer with the full built-in rule set.</summary>
+    public static SolutionAnalyzer CreateDefault() => new(RuleCatalog.LoadDefault());
 
     public AnalysisResult Analyze(string path, string targetFramework)
     {
         ScanInput input = ScanInput.Resolve(path);
-        RuleMetadata mig1001 = _catalog.Get(Mig1001NonSdkProject.RuleId);
 
         List<DiscoveredProject> projects = [];
         List<Finding> findings = [];
@@ -35,22 +41,16 @@ public sealed class SolutionAnalyzer
         {
             string relativePath = PathUtilities.ToRelative(input.RootDirectory, projectFile);
 
-            DiscoveredProject project;
             try
             {
-                project = ProjectParser.Parse(projectFile, relativePath);
+                AnalysisContext context = AnalysisContext.Create(input.RootDirectory, projectFile, targetFramework);
+                IReadOnlyList<Finding> projectFindings = _engine.Analyze(context);
+                projects.Add(context.Project);
+                findings.AddRange(projectFindings);
             }
             catch (Exception ex) when (IsRecoverable(ex))
             {
                 warnings.Add(new ScanWarning($"Skipped '{relativePath}': {Describe(ex)}", relativePath));
-                continue;
-            }
-
-            projects.Add(project);
-
-            if (Mig1001NonSdkProject.Evaluate(project, mig1001) is { } finding)
-            {
-                findings.Add(finding);
             }
         }
 
@@ -80,6 +80,7 @@ public sealed class SolutionAnalyzer
             .OrderBy(f => f.ProjectPath, StringComparer.Ordinal)
             .ThenBy(f => f.Rule.Id, StringComparer.Ordinal)
             .ThenBy(f => f.Line ?? 0)
+            .ThenBy(f => f.FilePath, StringComparer.Ordinal)
             .ThenBy(f => f.Message, StringComparer.Ordinal)
             .ToList();
 

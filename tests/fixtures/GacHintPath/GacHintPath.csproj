@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Empty HintPath still resolves from the GAC — should raise MIG1005. -->
+    <Reference Include="Contoso.Legacy, Version=3.0.0.0, Culture=neutral, PublicKeyToken=aaaabbbbccccdddd">
+      <HintPath></HintPath>
+    </Reference>
+    <!-- Real HintPath points at a checked-in assembly — should NOT raise MIG1005. -->
+    <Reference Include="Contoso.Vendored, Version=3.0.0.0, Culture=neutral, PublicKeyToken=eeeeffff00001111">
+      <HintPath>libs\Contoso.Vendored.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

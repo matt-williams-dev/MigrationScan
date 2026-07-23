@@ -1,0 +1,19 @@
+{
+  "comment": "Curated list of packages with no version that supports modern .NET (cross-platform). Used by MIG2001 in the offline path. Matched by exact package id, case-insensitively. The --online path (Phase 6) supplements this with live nuget.org lookups.",
+  "packages": [
+    { "id": "Microsoft.AspNet.Mvc", "reason": "ASP.NET MVC 5 runs only on .NET Framework.", "replacement": "ASP.NET Core MVC" },
+    { "id": "Microsoft.AspNet.WebApi", "reason": "ASP.NET Web API 2 runs only on .NET Framework.", "replacement": "ASP.NET Core Web API" },
+    { "id": "Microsoft.AspNet.WebApi.Core", "reason": "ASP.NET Web API 2 runs only on .NET Framework.", "replacement": "ASP.NET Core Web API" },
+    { "id": "Microsoft.AspNet.WebApi.WebHost", "reason": "System.Web-hosted Web API runs only on .NET Framework.", "replacement": "ASP.NET Core Web API" },
+    { "id": "Microsoft.AspNet.WebPages", "reason": "ASP.NET Web Pages runs only on .NET Framework.", "replacement": "ASP.NET Core (Razor Pages)" },
+    { "id": "Microsoft.AspNet.Razor", "reason": "The System.Web-era Razor engine runs only on .NET Framework.", "replacement": "ASP.NET Core Razor" },
+    { "id": "Microsoft.AspNet.Web.Optimization", "reason": "System.Web bundling/minification runs only on .NET Framework.", "replacement": "A build-time bundler or ASP.NET Core static asset pipeline" },
+    { "id": "Microsoft.Web.Infrastructure", "reason": "A System.Web infrastructure shim with no modern .NET target.", "replacement": "None required on modern .NET" },
+    { "id": "WebGrease", "reason": "A System.Web bundling dependency with no modern .NET target.", "replacement": "A build-time bundler" },
+    { "id": "Microsoft.Owin.Host.SystemWeb", "reason": "OWIN hosting on System.Web runs only on .NET Framework.", "replacement": "ASP.NET Core hosting" },
+    { "id": "Microsoft.Practices.EnterpriseLibrary.Common", "reason": "Microsoft Enterprise Library is unsupported and Framework-only.", "replacement": "Modern equivalents (e.g. Polly, Microsoft.Extensions.*)" },
+    { "id": "Microsoft.Practices.Unity", "reason": "The legacy Unity container package is Framework-only.", "replacement": "Unity (unitycontainer) or Microsoft.Extensions.DependencyInjection" },
+    { "id": "Elmah", "reason": "Classic ELMAH depends on System.Web and is Framework-only.", "replacement": "ElmahCore or structured logging" },
+    { "id": "Microsoft.ReportViewer.WinForms", "reason": "The WinForms ReportViewer control is Windows/Framework-only.", "replacement": "No supported cross-platform equivalent" }
+  ]
+}
