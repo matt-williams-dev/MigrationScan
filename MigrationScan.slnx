@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MigrationScan.Core/MigrationScan.Core.csproj" />
+    <Project Path="src/MigrationScan.Reporting/MigrationScan.Reporting.csproj" />
+    <Project Path="src/MigrationScan.Tool/MigrationScan.Tool.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MigrationScan.Core.Tests/MigrationScan.Core.Tests.csproj" />
+    <Project Path="tests/MigrationScan.Reporting.Tests/MigrationScan.Reporting.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Markdown, JSON, and SARIF report writers for MigrationScan.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MigrationScan.Core\MigrationScan.Core.csproj" />
+  </ItemGroup>
+
+</Project>

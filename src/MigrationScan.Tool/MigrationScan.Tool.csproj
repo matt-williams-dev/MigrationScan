@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+
+    <!-- Packaged and distributed as a global dotnet tool. -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>migrationscan</ToolCommandName>
+    <PackageId>MigrationScan.Tool</PackageId>
+    <Description>A free, deterministic, offline .NET Framework migration assessment tool.</Description>
+    <PackageTags>dotnet-framework;migration;upgrade;assessment;roslyn;analysis</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MigrationScan.Core\MigrationScan.Core.csproj" />
+    <ProjectReference Include="..\MigrationScan.Reporting\MigrationScan.Reporting.csproj" />
+  </ItemGroup>
+
+</Project>

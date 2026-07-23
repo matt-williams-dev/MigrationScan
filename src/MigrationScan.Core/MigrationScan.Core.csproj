@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Analysis engine, rule abstractions, and models for MigrationScan.</Description>
+  </PropertyGroup>
+
+</Project>
