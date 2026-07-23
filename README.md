@@ -110,7 +110,7 @@ dotnet test
 Development proceeds in ordered phases (see the spec for detail):
 
 - [x] **Phase 0** — Foundation: repo, license, CI on Linux/Windows/macOS, empty solution
-- [ ] **Phase 1** — Walking skeleton: parse `.sln`/`.csproj`, first rule (MIG1001), console + JSON output
+- [x] **Phase 1** — Walking skeleton: parse `.sln`/`.csproj`, first rule (MIG1001), console + JSON output
 - [ ] **Phase 2** — Rule engine and Tier 1 rules
 - [ ] **Phase 3** — Roslyn syntax rules (Tier 2)
 - [ ] **Phase 4** — Effort model and Markdown report

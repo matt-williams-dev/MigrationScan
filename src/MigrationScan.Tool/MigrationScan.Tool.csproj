@@ -21,4 +21,8 @@
     <ProjectReference Include="..\MigrationScan.Reporting\MigrationScan.Reporting.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.10" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,14 @@
+{
+  "rules": [
+    {
+      "id": "MIG1001",
+      "title": "Non-SDK-style project file",
+      "category": "Project and build",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "certain",
+      "remediation": "Convert the project to the SDK style (<Project Sdk=\"Microsoft.NET.Sdk\">). Replace TargetFrameworkVersion with a TargetFramework moniker, move packages.config entries to PackageReference, and let the SDK glob source files instead of listing them. Do this before other migration work: nearly every later step assumes an SDK-style project.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1001.md"
+    }
+  ]
+}
