@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- A nested project. Its files belong to it, not to Outer, and must not be
+       absorbed into Outer's analysis. Inner is not listed in the solution, so it
+       is only reachable by (incorrectly) descending into it from Outer. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+</Project>

@@ -154,7 +154,8 @@ public sealed class AnalysisContext
 
             include = include.Trim();
             string simpleName = include.Split(',', 2)[0].Trim();
-            bool hasHintPath = reference.Element(Namespace + "HintPath") is not null;
+            // An empty or whitespace <HintPath> does not point anywhere — treat it as absent.
+            bool hasHintPath = !string.IsNullOrWhiteSpace(reference.Element(Namespace + "HintPath")?.Value);
             bool isStrongNamed = include.Contains("PublicKeyToken", StringComparison.OrdinalIgnoreCase);
 
             references.Add(new AssemblyReferenceInfo(include, simpleName, hasHintPath, isStrongNamed, LineOf(reference)));
@@ -163,18 +164,44 @@ public sealed class AnalysisContext
         return references;
     }
 
-    private IEnumerable<string> EnumerateProjectFiles() =>
-        Directory.EnumerateFiles(ProjectDirectory, "*", SearchOption.AllDirectories)
-            .Where(path => !IsInBuildOutput(path));
+    // Files belonging to this project: everything under its directory, but not descending
+    // into build output (bin/obj), hidden folders (.git, .vs, …), node_modules, or a nested
+    // project's directory — those files belong to that other project, not this one.
+    private IEnumerable<string> EnumerateProjectFiles() => WalkProjectFiles(ProjectDirectory);
 
-    private bool IsInBuildOutput(string path)
+    private static IEnumerable<string> WalkProjectFiles(string directory)
     {
-        string relative = Path.GetRelativePath(ProjectDirectory, path);
-        return relative
-            .Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-            .Any(segment => segment.Equals("bin", StringComparison.OrdinalIgnoreCase)
-                || segment.Equals("obj", StringComparison.OrdinalIgnoreCase));
+        foreach (string file in Directory.EnumerateFiles(directory))
+        {
+            yield return file;
+        }
+
+        foreach (string subdirectory in Directory.EnumerateDirectories(directory))
+        {
+            string name = Path.GetFileName(subdirectory);
+            if (IsExcludedDirectory(name) || ContainsProjectFile(subdirectory))
+            {
+                continue;
+            }
+
+            foreach (string file in WalkProjectFiles(subdirectory))
+            {
+                yield return file;
+            }
+        }
     }
+
+    private static bool IsExcludedDirectory(string name) =>
+        name.StartsWith('.') // hidden: .git, .vs, .idea, …
+        || name.Equals("bin", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("obj", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("node_modules", StringComparison.OrdinalIgnoreCase);
+
+    // A subdirectory that has its own project file is a separate project; its files are
+    // that project's, and are scanned when that project is analyzed — not absorbed here.
+    private static bool ContainsProjectFile(string directory) =>
+        Directory.EnumerateFiles(directory, "*.csproj").Any()
+        || Directory.EnumerateFiles(directory, "*.vbproj").Any();
 
     private static int? LineOf(XElement element) =>
         element is IXmlLineInfo lineInfo && lineInfo.HasLineInfo() ? lineInfo.LineNumber : null;
