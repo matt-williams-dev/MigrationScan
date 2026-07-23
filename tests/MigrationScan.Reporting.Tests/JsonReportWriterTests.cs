@@ -33,7 +33,7 @@ public class JsonReportWriterTests
             References: ["System.Web"],
             RootElementLine: 2);
 
-        return new AnalysisResult("net10.0", [project], [finding]);
+        return new AnalysisResult("net10.0", [project], [finding], []);
     }
 
     [Fact]
@@ -60,6 +60,10 @@ public class JsonReportWriterTests
         Assert.Equal("small", finding.GetProperty("effort").GetString());
         Assert.Equal("Legacy/Legacy.csproj", finding.GetProperty("project").GetString());
         Assert.Equal(2, finding.GetProperty("line").GetInt32());
+
+        // The warnings array is always present (empty here) for schema stability.
+        Assert.Equal(JsonValueKind.Array, root.GetProperty("warnings").ValueKind);
+        Assert.Empty(root.GetProperty("warnings").EnumerateArray());
     }
 
     [Fact]

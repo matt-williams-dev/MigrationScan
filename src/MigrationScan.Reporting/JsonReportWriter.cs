@@ -40,7 +40,8 @@ public static class JsonReportWriter
                     High: counts[Severity.High],
                     Medium: counts[Severity.Medium],
                     Low: counts[Severity.Low])),
-            Findings: result.Findings.Select(ToDto).ToList());
+            Findings: result.Findings.Select(ToDto).ToList(),
+            Warnings: result.Warnings.Select(w => new ReportWarning(w.Message, w.Path)).ToList());
 
         return JsonSerializer.Serialize(document, SerializerOptions);
     }
@@ -63,7 +64,10 @@ public static class JsonReportWriter
         string SchemaVersion,
         string Target,
         ReportSummary Summary,
-        IReadOnlyList<ReportFinding> Findings);
+        IReadOnlyList<ReportFinding> Findings,
+        IReadOnlyList<ReportWarning> Warnings);
+
+    private sealed record ReportWarning(string Message, string? Path);
 
     private sealed record ReportSummary(
         int ProjectsScanned,

@@ -28,6 +28,16 @@ internal static class ConsoleReporter
             $"Findings by severity:  blocker {counts[Severity.Blocker]} · high {counts[Severity.High]} · " +
             $"medium {counts[Severity.Medium]} · low {counts[Severity.Low]}   ({result.Findings.Count} total)");
 
+        if (result.Warnings.Count > 0)
+        {
+            output.AppendLine();
+            output.AppendLine($"Warnings ({result.Warnings.Count}):");
+            foreach (ScanWarning warning in result.Warnings)
+            {
+                output.AppendLine($"  ! {warning.Message}");
+            }
+        }
+
         if (result.Findings.Count == 0)
         {
             output.AppendLine();
