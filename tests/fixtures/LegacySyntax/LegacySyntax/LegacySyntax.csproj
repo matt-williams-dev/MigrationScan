@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- SDK-style on purpose: isolates the Tier 2 syntax rules from project-file rules,
+       so scanning this fixture yields only the syntax findings. The source below is
+       never compiled by MigrationScan; it is parsed for syntax patterns. -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+</Project>

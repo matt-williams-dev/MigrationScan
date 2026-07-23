@@ -74,9 +74,12 @@ public sealed class SolutionAnalyzer
         _ => ex.Message,
     };
 
-    // Stable ordering so the same input always produces byte-identical output.
+    // Collapse identical findings (same rule, location, and message) — e.g. a rule that
+    // matches two related identifiers on one line — then order stably so the same input
+    // always produces byte-identical output.
     private static IReadOnlyList<Finding> Sort(IEnumerable<Finding> findings) =>
         findings
+            .Distinct()
             .OrderBy(f => f.ProjectPath, StringComparer.Ordinal)
             .ThenBy(f => f.Rule.Id, StringComparer.Ordinal)
             .ThenBy(f => f.Line ?? 0)
