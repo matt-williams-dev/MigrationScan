@@ -3,12 +3,17 @@ name: CI
 on:
   push:
     branches: [main]
+  # Run on PRs to any base branch so stacked/phased PRs are validated too.
   pull_request:
-    branches: [main]
 
 # No network access is required or expected during the build/test path.
 permissions:
   contents: read
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
