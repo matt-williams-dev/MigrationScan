@@ -9,6 +9,66 @@
       "tier": "certain",
       "remediation": "Convert the project to the SDK style (<Project Sdk=\"Microsoft.NET.Sdk\">). Replace TargetFrameworkVersion with a TargetFramework moniker, move packages.config entries to PackageReference, and let the SDK glob source files instead of listing them. Do this before other migration work: nearly every later step assumes an SDK-style project.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1001.md"
+    },
+    {
+      "id": "MIG1002",
+      "title": "packages.config instead of PackageReference",
+      "category": "Project and build",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "certain",
+      "remediation": "Migrate packages.config to PackageReference (Visual Studio offers an in-place migration, or run 'dotnet migrate'-style tooling). PackageReference is required for SDK-style projects and gives transitive restore.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1002.md"
+    },
+    {
+      "id": "MIG1005",
+      "title": "GAC reference (no HintPath)",
+      "category": "Project and build",
+      "severity": "medium",
+      "effort": "medium",
+      "tier": "certain",
+      "remediation": "Replace the GAC reference with a NuGet package or an explicit HintPath to a checked-in assembly. The Global Assembly Cache does not exist on modern .NET, so GAC-resolved dependencies will not load.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1005.md"
+    },
+    {
+      "id": "MIG2001",
+      "title": "Package has no version supporting the target framework",
+      "category": "Dependencies",
+      "severity": "high",
+      "effort": "medium",
+      "tier": "certain",
+      "remediation": "Replace the package with a version or successor that targets modern .NET, or remove the dependency. See the suggested replacement in the finding message.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG2001.md"
+    },
+    {
+      "id": "MIG3001",
+      "title": "ASP.NET WebForms",
+      "category": "Blocking frameworks",
+      "severity": "blocker",
+      "effort": "blocker",
+      "tier": "certain",
+      "remediation": "WebForms has no counterpart on modern .NET. Plan a re-architecture to Razor Pages, MVC, or Blazor. This is an architectural decision, not a mechanical port.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md"
+    },
+    {
+      "id": "MIG3002",
+      "title": "System.Web dependency outside WebForms",
+      "category": "Blocking frameworks",
+      "severity": "high",
+      "effort": "medium",
+      "tier": "certain",
+      "remediation": "System.Web is not available on modern .NET. Replace the dependent code: HttpContext usage moves to Microsoft.AspNetCore.Http, HttpUtility to System.Web.HttpUtility's modern equivalents or System.Net.WebUtility.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3002.md"
+    },
+    {
+      "id": "MIG5001",
+      "title": "ConfigurationManager.AppSettings usage",
+      "category": "Configuration",
+      "severity": "low",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "On modern .NET, either add the System.Configuration.ConfigurationManager package to keep reading app.config, or migrate to Microsoft.Extensions.Configuration (appsettings.json, environment variables, options pattern).",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md"
     }
   ]
 }

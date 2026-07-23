@@ -1,51 +1,47 @@
-using MigrationScan.Core.Analysis;
 using MigrationScan.Core.Models;
-using MigrationScan.Core.Rules;
 
 namespace MigrationScan.Core.Tests;
 
 public class SolutionAnalyzerTests
 {
-    private static SolutionAnalyzer NewAnalyzer() => new(RuleCatalog.LoadDefault());
-
-    [Fact]
-    public void LegacySolutionProducesSingleMig1001Finding()
-    {
-        AnalysisResult result = NewAnalyzer().Analyze(
-            Fixtures.Path("LegacyWebForms", "LegacyWebForms.sln"), "net10.0");
-
-        Finding finding = Assert.Single(result.Findings);
-        Assert.Equal("MIG1001", finding.Rule.Id);
-        Assert.Equal(Severity.Medium, finding.Rule.Severity);
-        Assert.Equal(ConfidenceTier.Certain, finding.Rule.Tier);
-        Assert.Equal("LegacyWebForms/LegacyWebForms.csproj", finding.ProjectPath);
-    }
-
     [Fact]
     public void CleanModernSolutionProducesNoFindings()
     {
-        AnalysisResult result = NewAnalyzer().Analyze(
-            Fixtures.Path("ModernClean", "ModernClean.sln"), "net10.0");
+        AnalysisResult result = AnalysisHelper.AnalyzeFixture("ModernClean", "ModernClean.sln");
 
         Assert.Empty(result.Findings);
         Assert.Single(result.Projects);
     }
 
     [Fact]
-    public void SingleProjectPathIsSupported()
+    public void FindingsAreSortedDeterministically()
     {
-        AnalysisResult result = NewAnalyzer().Analyze(
-            Fixtures.Path("LegacyWebForms", "LegacyWebForms", "LegacyWebForms.csproj"), "net10.0");
+        AnalysisResult first = AnalysisHelper.AnalyzeFixture("LegacyWebForms", "LegacyWebForms.sln");
+        AnalysisResult second = AnalysisHelper.AnalyzeFixture("LegacyWebForms", "LegacyWebForms.sln");
 
-        Assert.Single(result.Findings);
+        Assert.Equal(
+            first.Findings.Select(f => (f.Rule.Id, f.FilePath, f.Line)),
+            second.Findings.Select(f => (f.Rule.Id, f.FilePath, f.Line)));
     }
 
     [Fact]
     public void OutputPathsUseForwardSlashesRegardlessOfHostOs()
     {
-        AnalysisResult result = NewAnalyzer().Analyze(
-            Fixtures.Path("LegacyWebForms", "LegacyWebForms.sln"), "net10.0");
+        AnalysisResult result = AnalysisHelper.AnalyzeFixture("LegacyWebForms", "LegacyWebForms.sln");
 
-        Assert.DoesNotContain('\\', result.Findings[0].ProjectPath);
+        Assert.All(result.Findings, f =>
+        {
+            Assert.DoesNotContain('\\', f.ProjectPath);
+            Assert.DoesNotContain('\\', f.FilePath ?? string.Empty);
+        });
+    }
+
+    [Fact]
+    public void SingleProjectPathIsSupported()
+    {
+        AnalysisResult result = AnalysisHelper.AnalyzeFixture(
+            "LegacyWebForms", "LegacyWebForms", "LegacyWebForms.csproj");
+
+        Assert.Contains("MIG1001", result.RuleIds());
     }
 }

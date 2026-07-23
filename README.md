@@ -52,8 +52,19 @@ MigrationScan parses your `.sln` and `.csproj` files as XML and reads your `.cs`
 
 MigrationScan ships a catalog of stable, never-reused rule IDs grouped by category (project/build, dependencies, blocking frameworks, runtime failures, configuration, serialization/security, data access, globalization). Each rule links to a remediation page under [`/docs/rules`](docs/rules).
 
-<!-- RULES TABLE: full generated table linking to docs/rules pages lands as rules are
-     implemented (Phases 2–3). See spec §6 and §13. -->
+### Implemented rules
+
+| ID | Rule | Severity | Tier |
+| --- | --- | --- | --- |
+| [MIG1001](docs/rules/MIG1001.md) | Non-SDK-style project file | Medium | 1 — Certain |
+| [MIG1002](docs/rules/MIG1002.md) | `packages.config` instead of PackageReference | Medium | 1 — Certain |
+| [MIG1005](docs/rules/MIG1005.md) | GAC reference (no HintPath) | Medium | 1 — Certain |
+| [MIG2001](docs/rules/MIG2001.md) | Package has no version supporting the target framework | High | 1 — Certain |
+| [MIG3001](docs/rules/MIG3001.md) | ASP.NET WebForms | Blocker | 1 — Certain |
+| [MIG3002](docs/rules/MIG3002.md) | `System.Web` dependency outside WebForms | High | 1 — Certain |
+| [MIG5001](docs/rules/MIG5001.md) | `ConfigurationManager.AppSettings` usage | Low | 2 — Probable |
+
+More rules land phase by phase; see the [full catalog in the spec](migrationscan-spec.md#6-rule-catalog).
 
 ## Usage
 
@@ -111,7 +122,7 @@ Development proceeds in ordered phases (see the spec for detail):
 
 - [x] **Phase 0** — Foundation: repo, license, CI on Linux/Windows/macOS, empty solution
 - [x] **Phase 1** — Walking skeleton: parse `.sln`/`.csproj`, first rule (MIG1001), console + JSON output
-- [ ] **Phase 2** — Rule engine and Tier 1 rules
+- [x] **Phase 2** — Rule engine (project-file + Roslyn syntax rules) and the first rule batch
 - [ ] **Phase 3** — Roslyn syntax rules (Tier 2)
 - [ ] **Phase 4** — Effort model and Markdown report
 - [ ] **Phase 5** — CI integration: SARIF, exit codes, baselines
