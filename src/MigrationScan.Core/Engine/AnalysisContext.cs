@@ -2,6 +2,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
 using MigrationScan.Core.Analysis;
 using MigrationScan.Core.Discovery;
 using MigrationScan.Core.Models;
@@ -107,15 +108,26 @@ public sealed class AnalysisContext
 
     private IReadOnlyList<SourceFile> LoadSourceFiles() =>
         EnumerateProjectFiles()
-            .Where(path => Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase))
-            .Select(path => new
-            {
-                Relative = ToRelative(path),
-                Text = File.ReadAllText(path),
-            })
+            .Where(IsSourceFile)
+            .Select(path => new { Relative = ToRelative(path), Path = path })
             .OrderBy(x => x.Relative, StringComparer.Ordinal)
-            .Select(x => new SourceFile(x.Relative, CSharpSyntaxTree.ParseText(x.Text, path: x.Relative)))
+            .Select(x => new SourceFile(x.Relative, ParseSource(x.Path, x.Relative)))
             .ToList();
+
+    private static bool IsSourceFile(string path)
+    {
+        string extension = Path.GetExtension(path);
+        return extension.Equals(".cs", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".vb", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static SyntaxTree ParseSource(string path, string relativePath)
+    {
+        string text = File.ReadAllText(path);
+        return Path.GetExtension(path).Equals(".vb", StringComparison.OrdinalIgnoreCase)
+            ? VisualBasicSyntaxTree.ParseText(text, path: relativePath)
+            : CSharpSyntaxTree.ParseText(text, path: relativePath);
+    }
 
     private IReadOnlyList<PackageReferenceInfo> LoadPackages()
     {

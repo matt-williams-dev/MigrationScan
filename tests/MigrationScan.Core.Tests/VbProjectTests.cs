@@ -3,9 +3,9 @@ using MigrationScan.Core.Models;
 namespace MigrationScan.Core.Tests;
 
 /// <summary>
-/// VB.NET support (Phase 6): <c>.vbproj</c> projects are discovered and scanned for the
-/// language-agnostic project/dependency/framework rules. VB source-level (Tier 2) rules are
-/// a further step, so no syntax findings are produced for VB source yet.
+/// VB.NET support (Phase 6): <c>.vbproj</c> projects are discovered and scanned for both the
+/// project-level rules and the Tier 2 syntax rules (the syntax queries are language-neutral,
+/// so C# and VB source are both analyzed).
 /// </summary>
 public class VbProjectTests
 {
@@ -13,12 +13,6 @@ public class VbProjectTests
         AnalysisHelper.AnalyzeFixture("LegacyVbApp", "LegacyVbApp.sln");
 
     private static readonly IReadOnlySet<string> Rules = Result.RuleIds();
-
-    private static readonly string[] SyntaxRuleIds =
-    [
-        "MIG3004", "MIG3005", "MIG3010", "MIG4001", "MIG4002", "MIG4004",
-        "MIG4008", "MIG5001", "MIG6001", "MIG6004", "MIG7001", "MIG8002", "MIG8003",
-    ];
 
     [Fact]
     public void VbProjectIsDiscovered()
@@ -34,12 +28,20 @@ public class VbProjectTests
     [InlineData("MIG3002")] // System.Web outside WebForms
     public void ProjectLevelRulesApplyToVbProjects(string ruleId) => Assert.Contains(ruleId, Rules);
 
+    [Theory]
+    [InlineData("MIG5001")] // ConfigurationManager.AppSettings
+    [InlineData("MIG4002")] // Registry
+    [InlineData("MIG8002")] // Encoding.Default
+    [InlineData("MIG8003")] // Encoding.GetEncoding(1252)
+    [InlineData("MIG6001")] // BinaryFormatter
+    public void SyntaxRulesApplyToVbSource(string ruleId) => Assert.Contains(ruleId, Rules);
+
     [Fact]
-    public void VbSourceIsNotSyntaxAnalyzedYet()
+    public void VbSyntaxFindingsAnchorToTheVbFile()
     {
-        // Module1.vb calls ConfigurationManager.AppSettings — the C# equivalent would raise
-        // MIG5001, but VB source is not parsed yet, so no syntax rule fires.
-        Assert.Empty(Rules.Intersect(SyntaxRuleIds));
+        Finding mig5001 = Result.Finding("MIG5001");
+        Assert.EndsWith("Module1.vb", mig5001.FilePath);
+        Assert.Equal(ConfidenceTier.Probable, mig5001.Rule.Tier);
     }
 
     [Fact]
@@ -47,5 +49,6 @@ public class VbProjectTests
     {
         AnalysisResult result = AnalysisHelper.AnalyzeFixture("LegacyVbApp", "LegacyVbApp", "LegacyVbApp.vbproj");
         Assert.Contains("MIG1001", result.RuleIds());
+        Assert.Contains("MIG5001", result.RuleIds());
     }
 }

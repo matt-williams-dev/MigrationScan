@@ -1,4 +1,3 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MigrationScan.Core.Engine;
 using MigrationScan.Core.Models;
 
@@ -6,7 +5,7 @@ namespace MigrationScan.Core.Rules;
 
 /// <summary>
 /// MIG8003 — Code-page encoding without provider registration. Tier 2 (probable).
-/// Flags <c>Encoding.GetEncoding(...)</c> for a code page; Unicode names are ignored.
+/// Flags <c>Encoding.GetEncoding(...)</c> for a code page; Unicode names/numbers are ignored.
 /// </summary>
 public sealed class Mig8003CodePageEncoding : SyntaxRule
 {
@@ -29,10 +28,9 @@ public sealed class Mig8003CodePageEncoding : SyntaxRule
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
         var root = source.SyntaxTree.GetRoot();
-        foreach (InvocationExpressionSyntax invocation in SyntaxScan.InvocationsOf(root, "Encoding", "GetEncoding"))
+        foreach ((int line, object? literal) in SyntaxScan.InvocationsWithLiteralArg(root, "Encoding", "GetEncoding"))
         {
-            ArgumentSyntax? argument = invocation.ArgumentList.Arguments.FirstOrDefault();
-            if (argument is null || IsAlwaysAvailableName(argument.Expression))
+            if (IsAlwaysAvailable(literal))
             {
                 continue;
             }
@@ -42,19 +40,17 @@ public sealed class Mig8003CodePageEncoding : SyntaxRule
                 source,
                 "Calls Encoding.GetEncoding for a code page. Modern .NET does not register code-page encodings " +
                 "by default; register CodePagesEncodingProvider.Instance first or the call throws.",
-                SyntaxScan.LineOf(invocation));
+                line);
         }
     }
 
-    // A literal argument for an encoding that is available without the code-page provider —
-    // by name ("utf-8") or by code-page number (65001). Non-literal args are not classified
-    // here (they fall through and are flagged to be safe).
-    private static bool IsAlwaysAvailableName(ExpressionSyntax expression) =>
-        expression is LiteralExpressionSyntax literal
-        && literal.Token.Value switch
-        {
-            string name => AlwaysAvailableNames.Contains(name.Trim()),
-            int codePage => AlwaysAvailableCodePages.Contains(codePage),
-            _ => false,
-        };
+    // A literal argument for an always-available encoding — by name ("utf-8") or code-page
+    // number (65001). A non-literal argument (null) is not classified and is flagged to be safe.
+    private static bool IsAlwaysAvailable(object? literal) => literal switch
+    {
+        string name => AlwaysAvailableNames.Contains(name.Trim()),
+        int codePage => AlwaysAvailableCodePages.Contains(codePage),
+        long codePage => AlwaysAvailableCodePages.Contains((int)codePage),
+        _ => false,
+    };
 }
