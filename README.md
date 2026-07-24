@@ -45,7 +45,7 @@ MigrationScan parses your `.sln`, `.csproj`, and `.vbproj` files as XML and read
 | --- | --- | --- |
 | 1 | Certain | Project files, `packages.config`, `app.config`, `web.config`, `.sln` (XML, no ambiguity) |
 | 2 | Probable | Roslyn syntax trees without a resolved compilation (good recall, some false positives) |
-| 3 | Verified | Semantic model or compiled assemblies via Cecil (post-v1) |
+| 3 | Verified | Read from compiled assemblies via Cecil — see [binary analysis](#scanning-compiled-binaries) |
 
 ## Rules
 
@@ -57,22 +57,30 @@ MigrationScan ships a catalog of stable, never-reused rule IDs grouped by catego
 | --- | --- | --- | --- |
 | [MIG1001](docs/rules/MIG1001.md) | Non-SDK-style project file | Medium | 1 — Certain |
 | [MIG1002](docs/rules/MIG1002.md) | `packages.config` instead of PackageReference | Medium | 1 — Certain |
+| [MIG1003](docs/rules/MIG1003.md) | Target framework below 4.6.2 | Medium | 1 — Certain |
 | [MIG1005](docs/rules/MIG1005.md) | GAC reference (no HintPath) | Medium | 1 — Certain |
 | [MIG2001](docs/rules/MIG2001.md) | Package has no version supporting the target framework | High | 1 — Certain |
 | [MIG2002](docs/rules/MIG2002.md) | Package marked deprecated on nuget.org (`--online`) | Medium | 1 — Certain |
 | [MIG3001](docs/rules/MIG3001.md) | ASP.NET WebForms | Blocker | 1 — Certain |
 | [MIG3002](docs/rules/MIG3002.md) | `System.Web` dependency outside WebForms | High | 1 — Certain |
+| [MIG3003](docs/rules/MIG3003.md) | ASMX web service | High | 1 — Certain |
 | [MIG3004](docs/rules/MIG3004.md) | WCF service host (server side) | High | 2 — Probable |
 | [MIG3005](docs/rules/MIG3005.md) | .NET Remoting | Blocker | 2 — Probable |
+| [MIG3009](docs/rules/MIG3009.md) | MSMQ (`System.Messaging`) | High | 2 — Probable |
 | [MIG3010](docs/rules/MIG3010.md) | ASP.NET MVC 5 (`System.Web.Mvc`) | High | 2 — Probable |
 | [MIG4001](docs/rules/MIG4001.md) | `System.Drawing.Common` on non-Windows | High | 2 — Probable |
 | [MIG4002](docs/rules/MIG4002.md) | Windows Registry access | High | 2 — Probable |
+| [MIG4003](docs/rules/MIG4003.md) | `System.Management` / WMI | High | 2 — Probable |
 | [MIG4004](docs/rules/MIG4004.md) | `System.DirectoryServices` / Active Directory | High | 2 — Probable |
+| [MIG4005](docs/rules/MIG4005.md) | `EventLog` | Medium | 2 — Probable |
 | [MIG4008](docs/rules/MIG4008.md) | `Thread.Abort` | Medium | 2 — Probable |
 | [MIG5001](docs/rules/MIG5001.md) | `ConfigurationManager.AppSettings` usage | Low | 2 — Probable |
 | [MIG6001](docs/rules/MIG6001.md) | `BinaryFormatter` (removed in .NET 9) | Blocker | 2 — Probable |
 | [MIG6004](docs/rules/MIG6004.md) | Code Access Security attributes | Medium | 2 — Probable |
+| [MIG6005](docs/rules/MIG6005.md) | Obsolete cryptography types | Medium | 2 — Probable |
 | [MIG7001](docs/rules/MIG7001.md) | `System.Data.SqlClient` | Medium | 2 — Probable |
+| [MIG7003](docs/rules/MIG7003.md) | `System.Data.OleDb` on non-Windows | Medium | 2 — Probable |
+| [MIG7006](docs/rules/MIG7006.md) | LINQ to SQL (`System.Data.Linq`) | High | 2 — Probable |
 | [MIG8002](docs/rules/MIG8002.md) | `Encoding.Default` behavior change | Medium | 2 — Probable |
 | [MIG8003](docs/rules/MIG8003.md) | Code-page encoding without provider registration | Medium | 2 — Probable |
 
@@ -83,7 +91,7 @@ More rules land phase by phase; see the [full catalog in the spec](migrationscan
 ```
 migrationscan <path> [options]
 
-  <path>                  .sln, .csproj, .vbproj, or directory to scan recursively
+  <path>                  .sln, .csproj, .vbproj, .dll/.exe, or directory to scan
 
   --target <tfm>          Target framework (default: net10.0)
   --format <fmt>          console | markdown | json | sarif (repeatable)
@@ -123,6 +131,21 @@ migrationscan . --online
 Because these findings reflect live nuget.org state, they are not part of the deterministic
 default path. If a lookup fails (offline, rate-limited), the scan degrades gracefully — it
 prints a warning and continues without package status rather than failing.
+
+### Scanning compiled binaries
+
+When you don't have the source — a third-party component, or an early look at a client's
+build output — point MigrationScan at a compiled assembly:
+
+```console
+migrationscan path/to/YourApp.dll
+```
+
+It reads the assembly with Mono.Cecil and flags references to assemblies that aren't available
+on modern .NET (`System.Web`, `System.Drawing`, `System.Management`, `System.Messaging`, …).
+These are **Tier 3 — Verified** findings: read from the compiled metadata rather than inferred
+from syntax. Source-based scanning (a `.sln`/`.csproj`) remains richer; binary analysis is the
+fallback for when source isn't on hand.
 
 ## Continuous integration
 
@@ -195,7 +218,7 @@ figures are heuristic planning aids, not a quote — apply your own rates and ju
 Static analysis without resolved references cannot see everything, and MigrationScan is honest about that rather than pretending to certainty:
 
 - **Tier 2 findings can be false positives.** A reference to a type named `Registry` might be your own class, not `Microsoft.Win32.Registry`. These are reported as *probable*, never certain.
-- **No semantic guarantees without compilation.** Full verification (Tier 3) requires resolved references or compiled binaries, which is post-v1 work.
+- **Source scanning has no resolved compilation.** Tier 2 findings come from syntax alone. For extra confidence you can also scan compiled binaries (Tier 3, via `migrationscan YourApp.dll`), which reads referenced assemblies from the assembly metadata.
 - **Effort figures are heuristic.** They are planning aids derived from static analysis, not a quote.
 - **Architectural decisions are yours.** MigrationScan flags what blocks a migration; it does not decide how to redesign around it.
 
@@ -220,7 +243,7 @@ Development proceeds in ordered phases (see the spec for detail):
 - [x] **Phase 3** — Roslyn syntax rules (Tier 2): 12 runtime/blocking-framework detectors
 - [x] **Phase 4** — Effort model and Markdown report (golden-file tested)
 - [x] **Phase 5** — CI integration: SARIF, `--fail-on` exit codes, `--baseline`
-- [ ] **Phase 6** — Post-v1 (in progress): `--online` NuGet deprecation lookups ✅; VB.NET support (projects + source) ✅; binary analysis and remaining rules to come
+- [x] **Phase 6** — Post-v1: `--online` NuGet deprecation lookups, VB.NET support (projects + source), Mono.Cecil binary analysis, and an expanded rule catalog (28 rules). Further catalog rules land as needed.
 
 ## Open questions
 
