@@ -10,6 +10,7 @@ using MigrationScan.Tool;
 //   2  analysis error
 //  64  bad usage
 const int ExitSuccess = 0;
+const int ExitFindingsAboveThreshold = 1;
 const int ExitAnalysisError = 2;
 const int ExitBadUsage = 64;
 
@@ -26,15 +27,25 @@ var targetOption = new Option<string>("--target")
 
 var formatOption = new Option<string[]>("--format", "-f")
 {
-    Description = "Output format(s): console | json | markdown. Repeatable.",
+    Description = "Output format(s): console | json | markdown | sarif. Repeatable.",
     DefaultValueFactory = _ => ["console"],
     AllowMultipleArgumentsPerToken = true,
 };
 
 var outputOption = new Option<string?>("--output", "-o")
 {
-    Description = "Write file-based formats (json, markdown) here instead of stdout. A directory "
+    Description = "Write file-based formats (json, markdown, sarif) here instead of stdout. A directory "
         + "receives report.<ext>; with multiple formats a file path is disambiguated by extension.",
+};
+
+var failOnOption = new Option<string?>("--fail-on")
+{
+    Description = "Exit with code 1 if any finding is at least this severe: blocker | high | medium | low.",
+};
+
+var baselineOption = new Option<string?>("--baseline")
+{
+    Description = "Suppress findings present in a baseline (a JSON report captured earlier).",
 };
 
 var rootCommand = new RootCommand(
@@ -44,6 +55,8 @@ var rootCommand = new RootCommand(
     targetOption,
     formatOption,
     outputOption,
+    failOnOption,
+    baselineOption,
 };
 
 rootCommand.SetAction(parseResult =>
@@ -52,13 +65,27 @@ rootCommand.SetAction(parseResult =>
     string target = parseResult.GetValue(targetOption)!;
     string[] formats = parseResult.GetValue(formatOption) ?? ["console"];
     string? output = parseResult.GetValue(outputOption);
+    string? failOnValue = parseResult.GetValue(failOnOption);
+    string? baselinePath = parseResult.GetValue(baselineOption);
 
     string[] normalizedFormats = formats.Select(f => f.ToLowerInvariant()).Distinct().ToArray();
-    string[] unknownFormats = normalizedFormats.Where(f => f is not ("console" or "json" or "markdown")).ToArray();
+    string[] unknownFormats = normalizedFormats.Where(f => f is not ("console" or "json" or "markdown" or "sarif")).ToArray();
     if (unknownFormats.Length > 0)
     {
-        Console.Error.WriteLine($"Unknown format(s): {string.Join(", ", unknownFormats)}. Expected: console | json | markdown.");
+        Console.Error.WriteLine($"Unknown format(s): {string.Join(", ", unknownFormats)}. Expected: console | json | markdown | sarif.");
         return ExitBadUsage;
+    }
+
+    Severity? failOn = null;
+    if (failOnValue is not null)
+    {
+        if (!TryParseSeverity(failOnValue, out Severity parsed))
+        {
+            Console.Error.WriteLine($"Invalid --fail-on value '{failOnValue}'. Expected: blocker | high | medium | low.");
+            return ExitBadUsage;
+        }
+
+        failOn = parsed;
     }
 
     if (!File.Exists(path) && !Directory.Exists(path))
@@ -67,12 +94,27 @@ rootCommand.SetAction(parseResult =>
         return ExitBadUsage;
     }
 
+    if (baselinePath is not null && !File.Exists(baselinePath))
+    {
+        Console.Error.WriteLine($"Baseline file not found: {baselinePath}");
+        return ExitBadUsage;
+    }
+
     try
     {
         SolutionAnalyzer analyzer = SolutionAnalyzer.CreateDefault();
         AnalysisResult result = analyzer.Analyze(path, target);
+
+        if (baselinePath is not null)
+        {
+            result = ApplyBaseline(result, baselinePath);
+        }
+
         Emit(result, normalizedFormats, output);
-        return ExitSuccess;
+
+        return failOn is { } threshold && result.FailsThreshold(threshold)
+            ? ExitFindingsAboveThreshold
+            : ExitSuccess;
     }
     catch (Exception ex)
     {
@@ -95,6 +137,7 @@ static void Emit(AnalysisResult result, string[] formats, string? outputPath)
     [
         ("json", "json", () => JsonReportWriter.Write(result)),
         ("markdown", "md", () => MarkdownReportWriter.Write(result)),
+        ("sarif", "sarif", () => SarifReportWriter.Write(result)),
     ];
 
     string[] requested = fileFormats.Select(f => f.Name).Where(formats.Contains).ToArray();
@@ -142,4 +185,22 @@ static string? FileDestination(string? outputPath, string extension, int fileFor
 
     string directory = Path.GetDirectoryName(outputPath) is { Length: > 0 } dir ? dir : ".";
     return Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(outputPath)}.{extension}");
+}
+
+static bool TryParseSeverity(string value, out Severity severity) =>
+    Enum.TryParse(value, ignoreCase: true, out severity) && Enum.IsDefined(severity);
+
+// Drops findings whose fingerprint is recorded in the baseline report.
+static AnalysisResult ApplyBaseline(AnalysisResult result, string baselinePath)
+{
+    IReadOnlySet<string> baseline = BaselineReader.LoadFingerprints(baselinePath);
+    List<Finding> kept = result.Findings.Where(f => !baseline.Contains(Fingerprints.Of(f))).ToList();
+
+    int suppressed = result.Findings.Count - kept.Count;
+    if (suppressed > 0)
+    {
+        Console.Error.WriteLine($"Suppressed {suppressed} finding(s) present in the baseline.");
+    }
+
+    return result with { Findings = kept };
 }

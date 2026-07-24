@@ -109,8 +109,63 @@ its own extension so they don't overwrite each other.
 | 2 | Analysis error |
 | 64 | Bad usage |
 
-<!-- CI USAGE EXAMPLE: a GitHub Actions snippet using SARIF output + --fail-on lands in
-     Phase 5. See spec §13. -->
+## Continuous integration
+
+MigrationScan is built for CI: machine-readable output, meaningful [exit codes](#exit-codes),
+and no interactive prompts.
+
+### GitHub code scanning
+
+Emit SARIF and upload it — findings show up inline on the **Security → Code scanning** tab
+and as annotations on pull requests:
+
+```yaml
+name: Migration scan
+on: [push, pull_request]
+
+permissions:
+  contents: read
+  security-events: write   # required to upload SARIF
+
+jobs:
+  migrationscan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet tool install -g MigrationScan.Tool
+      - run: migrationscan . --format sarif --output migrationscan.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: migrationscan.sarif
+```
+
+> SARIF file paths are relative to the scan root (the directory or solution you point at), so
+> run the scan from the repository root for the annotations to line up with your files.
+
+### Failing the build on regressions
+
+Use `--fail-on` to return exit code `1` when a finding is at least as severe as the threshold:
+
+```console
+migrationscan . --fail-on high        # fail on any high or blocker finding
+```
+
+### Baselining an existing estate
+
+Adopt the tool on a large legacy codebase without failing on day one: capture a baseline, then
+fail only on **new** findings.
+
+```console
+migrationscan . --format json --output migrationscan-baseline.json   # once, committed to the repo
+migrationscan . --baseline migrationscan-baseline.json --fail-on high # in CI: only new findings count
+```
+
+A baseline is just a JSON report captured earlier; findings whose rule, file, and message match
+one in the baseline are suppressed. (Line numbers are ignored, so baselined findings survive
+unrelated edits that shift lines.)
 
 ## Limitations
 
@@ -141,7 +196,7 @@ Development proceeds in ordered phases (see the spec for detail):
 - [x] **Phase 2** — Rule engine (project-file + Roslyn syntax rules) and the first rule batch
 - [x] **Phase 3** — Roslyn syntax rules (Tier 2): 12 runtime/blocking-framework detectors
 - [x] **Phase 4** — Effort model and Markdown report (golden-file tested)
-- [ ] **Phase 5** — CI integration: SARIF, exit codes, baselines
+- [x] **Phase 5** — CI integration: SARIF, `--fail-on` exit codes, `--baseline`
 - [ ] **Phase 6** — Post-v1: `--online` lookups, binary analysis, VB.NET, remaining rules
 
 ## Open questions
