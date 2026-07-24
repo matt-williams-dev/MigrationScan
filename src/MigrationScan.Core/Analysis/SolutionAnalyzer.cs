@@ -18,16 +18,18 @@ public sealed class SolutionAnalyzer
 {
     private readonly RuleEngine _engine;
     private readonly IPackageRegistry _packageRegistry;
+    private readonly RuleCatalog _catalog;
 
-    public SolutionAnalyzer(RuleEngine engine, IPackageRegistry? packageRegistry = null)
+    public SolutionAnalyzer(RuleEngine engine, IPackageRegistry? packageRegistry = null, RuleCatalog? catalog = null)
     {
         _engine = engine;
         _packageRegistry = packageRegistry ?? EmptyPackageRegistry.Instance;
+        _catalog = catalog ?? RuleCatalog.LoadDefault();
     }
 
     /// <summary>Builds an analyzer over the given rule catalog and the default package catalog.</summary>
     public SolutionAnalyzer(RuleCatalog catalog, IPackageRegistry? packageRegistry = null)
-        : this(new RuleEngine(DefaultRules.CreateAll(catalog, PackageCompatibilityCatalog.LoadDefault())), packageRegistry)
+        : this(new RuleEngine(DefaultRules.CreateAll(catalog, PackageCompatibilityCatalog.LoadDefault())), packageRegistry, catalog)
     {
     }
 
@@ -73,6 +75,13 @@ public sealed class SolutionAnalyzer
                 warnings.Add(new ScanWarning($"Skipped '{relativePath}': {Describe(ex)}", relativePath));
             }
         }
+
+        // Non-C#/VB projects the solution also references (SSRS/SSIS/setup -> MIG1007; the rest
+        // become "not assessed" warnings so coverage isn't silently overstated).
+        (IReadOnlyList<Finding> otherFindings, IReadOnlyList<ScanWarning> otherWarnings) =
+            SolutionProjectAnalyzer.Analyze(input.OtherProjects, input.RootDirectory, _catalog);
+        findings.AddRange(otherFindings);
+        warnings.AddRange(otherWarnings);
 
         return new AnalysisResult(targetFramework, projects, Sort(findings), SortWarnings(warnings));
     }
