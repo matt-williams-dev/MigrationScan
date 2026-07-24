@@ -9,11 +9,15 @@ and estimating tools) should consume this rather than parsing the console or Mar
 - **Versioned.** `schemaVersion` follows semver-style rules: additive, backward-compatible
   changes bump the minor version; a breaking change would bump the major.
 
-## Current version: `1.1`
+## Current version: `1.2`
 
-`1.1` added the effort rollup (`summary.effort` and the `projects` array) over `1.0`. It is
-additive — consumers written against `1.0` (which read `summary` counts, `findings`, and
-`warnings`) keep working unchanged.
+Each version is additive and backward-compatible:
+
+- `1.1` — added the effort rollup (`summary.effort` and the `projects` array).
+- `1.2` — added `summary.projectsNotAssessed` and the `notAssessed` array (non-C#/VB projects
+  the scan could not analyze, which still need migration planning).
+
+Consumers written against an earlier version keep working unchanged.
 
 ## Shape
 
@@ -30,7 +34,8 @@ additive — consumers written against `1.0` (which read `summary` counts, `find
       "maxDays": 22,                   // engineer-days, high end
       "needsDecision": 1               // blocking issues excluded from the day range;
                                        // they need an architectural decision first
-    }
+    },
+    "projectsNotAssessed": 1           // count of non-C#/VB projects not analyzed
   },
   "projects": [                        // per-project rollup, ordered by path
     {
@@ -53,6 +58,14 @@ additive — consumers written against `1.0` (which read `summary` counts, `find
       "line": 2,                          // omitted when not line-specific
       "remediation": "Re-architect to Razor Pages, MVC, or Blazor.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md"
+    }
+  ],
+  "notAssessed": [                     // non-C#/VB projects the scan could not analyze
+    {
+      "name": "Shop.Database",
+      "path": "Shop.Database/Shop.Database.sqlproj",
+      "projectType": "SQL Server database project",
+      "reason": "Not a C#/VB project; its contents were not analyzed and must be scoped separately."
     }
   ],
   "warnings": [                        // always present (may be empty)

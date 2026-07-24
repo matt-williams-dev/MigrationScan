@@ -11,6 +11,12 @@ public sealed record AnalysisResult(
     IReadOnlyList<Finding> Findings,
     IReadOnlyList<ScanWarning> Warnings)
 {
+    /// <summary>
+    /// Projects the scan could not analyze (non-C#/VB, e.g. SQL or deployment projects). Not
+    /// findings — explicit scoping inputs, surfaced so coverage isn't silently overstated.
+    /// </summary>
+    public IReadOnlyList<NotAssessedProject> NotAssessed { get; init; } = [];
+
     /// <summary>Count of findings at each severity, including zero-count severities.</summary>
     public IReadOnlyDictionary<Severity, int> CountsBySeverity()
     {

@@ -3,8 +3,8 @@ using System.Text.RegularExpressions;
 namespace MigrationScan.Core.Discovery;
 
 /// <summary>
-/// Hand-rolled <c>.sln</c> parser (spec §3: no MSBuild dependency). Extracts the
-/// project file references from the classic solution format without evaluating anything.
+/// Hand-rolled <c>.sln</c> parser (spec §3: no MSBuild dependency). Extracts the project
+/// references from the classic solution format without evaluating anything.
 /// </summary>
 public static partial class SolutionParser
 {
@@ -17,15 +17,15 @@ public static partial class SolutionParser
     private static partial Regex ProjectLine();
 
     /// <summary>
-    /// Returns absolute paths to the project files referenced by the solution, in the
-    /// order they appear. Solution folders are skipped.
+    /// Returns every project referenced by the solution (in order), with its type GUID —
+    /// including non-C#/VB projects. Solution folders are skipped.
     /// </summary>
-    public static IReadOnlyList<string> GetProjectPaths(string solutionFilePath)
+    public static IReadOnlyList<SolutionProjectEntry> GetProjects(string solutionFilePath)
     {
         string solutionDirectory = Path.GetDirectoryName(Path.GetFullPath(solutionFilePath))
             ?? throw new ArgumentException($"Could not determine directory for '{solutionFilePath}'.", nameof(solutionFilePath));
 
-        List<string> projectPaths = [];
+        List<SolutionProjectEntry> projects = [];
 
         foreach (string line in File.ReadLines(solutionFilePath))
         {
@@ -35,15 +35,20 @@ public static partial class SolutionParser
                 continue;
             }
 
-            if (string.Equals(match.Groups["type"].Value, SolutionFolderTypeGuid, StringComparison.OrdinalIgnoreCase))
+            string typeGuid = match.Groups["type"].Value;
+            if (string.Equals(typeGuid, SolutionFolderTypeGuid, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            string relativePath = match.Groups["path"].Value;
-            projectPaths.Add(PathUtilities.ResolveFromSolution(solutionDirectory, relativePath));
+            string absolutePath = PathUtilities.ResolveFromSolution(solutionDirectory, match.Groups["path"].Value);
+            projects.Add(new SolutionProjectEntry(match.Groups["name"].Value, absolutePath, typeGuid));
         }
 
-        return projectPaths;
+        return projects;
     }
+
+    /// <summary>Absolute paths to the project files referenced by the solution, in order.</summary>
+    public static IReadOnlyList<string> GetProjectPaths(string solutionFilePath) =>
+        GetProjects(solutionFilePath).Select(p => p.AbsolutePath).ToList();
 }

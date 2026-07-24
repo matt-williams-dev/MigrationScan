@@ -4,15 +4,17 @@ namespace MigrationScan.Core.Analysis;
 
 /// <summary>
 /// Resolves a scan target (a <c>.sln</c>, a <c>.csproj</c>/<c>.vbproj</c>, or a directory)
-/// into the set of project files to analyze and the root directory that output paths are
-/// reported relative to.
+/// into the set of project files to analyze, any non-C#/VB projects the solution also
+/// contains, and the root directory that output paths are reported relative to.
 /// </summary>
 /// <param name="RootDirectory">Absolute directory that output paths are relative to.</param>
-/// <param name="ProjectFiles">Absolute paths to the projects to analyze, ordered.</param>
-public sealed record ScanInput(string RootDirectory, IReadOnlyList<string> ProjectFiles)
+/// <param name="ProjectFiles">Absolute paths to the C#/VB projects to analyze, ordered.</param>
+/// <param name="OtherProjects">Non-C#/VB projects the solution references (empty otherwise).</param>
+public sealed record ScanInput(
+    string RootDirectory,
+    IReadOnlyList<string> ProjectFiles,
+    IReadOnlyList<SolutionProjectEntry> OtherProjects)
 {
-    // C# and VB projects are both supported. (VB source-level rules are a further step; VB
-    // projects are still scanned for the language-agnostic project/dependency/framework rules.)
     private static readonly string[] ProjectExtensions = [".csproj", ".vbproj"];
 
     /// <summary>
@@ -28,7 +30,7 @@ public sealed record ScanInput(string RootDirectory, IReadOnlyList<string> Proje
             IReadOnlyList<string> projects = ProjectExtensions
                 .SelectMany(ext => Directory.EnumerateFiles(fullPath, $"*{ext}", SearchOption.AllDirectories))
                 .ToList();
-            return new ScanInput(fullPath, Order(projects, fullPath));
+            return new ScanInput(fullPath, Order(projects, fullPath), []);
         }
 
         if (!File.Exists(fullPath))
@@ -41,15 +43,15 @@ public sealed record ScanInput(string RootDirectory, IReadOnlyList<string> Proje
         if (extension.Equals(".sln", StringComparison.OrdinalIgnoreCase))
         {
             string root = Path.GetDirectoryName(fullPath)!;
-            IReadOnlyList<string> projects = SolutionParser.GetProjectPaths(fullPath)
-                .Where(IsProjectFile)
-                .ToList();
-            return new ScanInput(root, Order(projects, root));
+            IReadOnlyList<SolutionProjectEntry> entries = SolutionParser.GetProjects(fullPath);
+            IReadOnlyList<string> analyzable = entries.Where(e => e.IsAnalyzable).Select(e => e.AbsolutePath).ToList();
+            IReadOnlyList<SolutionProjectEntry> others = entries.Where(e => !e.IsAnalyzable).ToList();
+            return new ScanInput(root, Order(analyzable, root), others);
         }
 
         if (IsProjectFile(fullPath))
         {
-            return new ScanInput(Path.GetDirectoryName(fullPath)!, [fullPath]);
+            return new ScanInput(Path.GetDirectoryName(fullPath)!, [fullPath], []);
         }
 
         throw new ArgumentException(

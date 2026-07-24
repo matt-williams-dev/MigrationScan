@@ -267,6 +267,19 @@
             }
           ]
         }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "toolExecutionNotifications": [
+            {
+              "message": {
+                "text": "Not assessed: 'Shop.Database' (SQL Server database project) at Shop.Database/Shop.Database.sqlproj. Not a C#/VB project; its contents were not analyzed and must be scoped separately."
+              },
+              "level": "note"
+            }
+          ]
+        }
       ]
     }
   ]

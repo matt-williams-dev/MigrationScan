@@ -33,7 +33,14 @@ public class JsonReportWriterTests
             References: ["System.Web"],
             RootElementLine: 2);
 
-        return new AnalysisResult("net10.0", [project], [finding], []);
+        return new AnalysisResult("net10.0", [project], [finding], [])
+        {
+            NotAssessed =
+            [
+                new NotAssessedProject("Shop.Database", "Shop.Database/Shop.Database.sqlproj",
+                    "SQL Server database project", "Not a C#/VB project; must be scoped separately."),
+            ],
+        };
     }
 
     [Fact]
@@ -44,7 +51,7 @@ public class JsonReportWriterTests
         using JsonDocument document = JsonDocument.Parse(json);
         JsonElement root = document.RootElement;
 
-        Assert.Equal("1.1", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("1.2", root.GetProperty("schemaVersion").GetString());
         Assert.Equal("net10.0", root.GetProperty("target").GetString());
 
         JsonElement summary = root.GetProperty("summary");
@@ -71,6 +78,13 @@ public class JsonReportWriterTests
         Assert.Equal("small", finding.GetProperty("effort").GetString());
         Assert.Equal("Legacy/Legacy.csproj", finding.GetProperty("project").GetString());
         Assert.Equal(2, finding.GetProperty("line").GetInt32());
+
+        // Not-assessed projects (schema 1.2): structured entry + a summary count.
+        Assert.Equal(1, summary.GetProperty("projectsNotAssessed").GetInt32());
+        JsonElement notAssessed = Assert.Single(root.GetProperty("notAssessed").EnumerateArray().ToList());
+        Assert.Equal("Shop.Database", notAssessed.GetProperty("name").GetString());
+        Assert.Equal("SQL Server database project", notAssessed.GetProperty("projectType").GetString());
+        Assert.EndsWith(".sqlproj", notAssessed.GetProperty("path").GetString());
 
         // The warnings array is always present (empty here) for schema stability.
         Assert.Equal(JsonValueKind.Array, root.GetProperty("warnings").ValueKind);

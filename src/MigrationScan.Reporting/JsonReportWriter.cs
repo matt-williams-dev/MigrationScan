@@ -13,10 +13,10 @@ namespace MigrationScan.Reporting;
 public static class JsonReportWriter
 {
     /// <summary>
-    /// Schema version. 1.1 added the effort rollup (`summary.effort` and the `projects`
-    /// array); this is an additive, backward-compatible change over 1.0.
+    /// Schema version. 1.1 added the effort rollup; 1.2 added the `notAssessed` array and
+    /// `summary.projectsNotAssessed`. All additive, backward-compatible over 1.0.
     /// </summary>
-    public const string SchemaVersion = "1.1";
+    public const string SchemaVersion = "1.2";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -44,7 +44,8 @@ public static class JsonReportWriter
                     High: counts[Severity.High],
                     Medium: counts[Severity.Medium],
                     Low: counts[Severity.Low]),
-                Effort: ToEffort(EffortModel.ForSolution(result))),
+                Effort: ToEffort(EffortModel.ForSolution(result)),
+                ProjectsNotAssessed: result.NotAssessed.Count),
             Projects: result.Projects
                 .OrderBy(p => p.Path, StringComparer.Ordinal)
                 .Select(p => new ReportProject(
@@ -53,6 +54,9 @@ public static class JsonReportWriter
                     Effort: ToEffort(EffortModel.ForProject(result, p.Path))))
                 .ToList(),
             Findings: result.Findings.Select(ToDto).ToList(),
+            NotAssessed: result.NotAssessed
+                .Select(p => new ReportNotAssessed(p.Name, p.Path, p.ProjectType, p.Reason))
+                .ToList(),
             Warnings: result.Warnings.Select(w => new ReportWarning(w.Message, w.Path)).ToList());
 
         // Normalize indentation newlines to LF for byte-identical output across operating
@@ -88,15 +92,19 @@ public static class JsonReportWriter
         ReportSummary Summary,
         IReadOnlyList<ReportProject> Projects,
         IReadOnlyList<ReportFinding> Findings,
+        IReadOnlyList<ReportNotAssessed> NotAssessed,
         IReadOnlyList<ReportWarning> Warnings);
 
     private sealed record ReportWarning(string Message, string? Path);
+
+    private sealed record ReportNotAssessed(string Name, string Path, string ProjectType, string Reason);
 
     private sealed record ReportSummary(
         int ProjectsScanned,
         int TotalFindings,
         SeverityCounts FindingsBySeverity,
-        ReportEffort Effort);
+        ReportEffort Effort,
+        int ProjectsNotAssessed);
 
     private sealed record ReportProject(string Path, int FindingCount, ReportEffort Effort);
 

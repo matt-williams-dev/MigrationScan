@@ -59,6 +59,7 @@ MigrationScan ships a catalog of stable, never-reused rule IDs grouped by catego
 | [MIG1002](docs/rules/MIG1002.md) | `packages.config` instead of PackageReference | Medium | 1 — Certain |
 | [MIG1003](docs/rules/MIG1003.md) | Target framework below 4.6.2 | Medium | 1 — Certain |
 | [MIG1005](docs/rules/MIG1005.md) | GAC reference (no HintPath) | Medium | 1 — Certain |
+| [MIG1007](docs/rules/MIG1007.md) | Legacy project type (SSRS, SSIS, setup, Silverlight, Web Site) | High | 1 — Certain |
 | [MIG2001](docs/rules/MIG2001.md) | Package has no version supporting the target framework | High | 1 — Certain |
 | [MIG2002](docs/rules/MIG2002.md) | Package marked deprecated on nuget.org (`--online`) | Medium | 1 — Certain |
 | [MIG3001](docs/rules/MIG3001.md) | ASP.NET WebForms | Blocker | 1 — Certain |
@@ -211,8 +212,10 @@ unrelated edits that shift lines.)
 The JSON is a stable, versioned, deterministic feed meant to be consumed by other tools —
 dashboards, portfolio rollups, or your own scoping/estimating layer. Alongside the findings it
 carries an effort rollup (`summary.effort` and a per-`projects` breakdown, in engineer-day
-ranges). See the [output schema](docs/schema) for the full shape and consumer notes. Effort
-figures are heuristic planning aids, not a quote — apply your own rates and judgment downstream.
+ranges) and a `notAssessed` list of non-C#/VB projects (SQL, deployment, …) that need planning
+of their own — so coverage gaps are explicit, not silent. See the
+[output schema](docs/schema) for the full shape and consumer notes. Effort figures are
+heuristic planning aids, not a quote — apply your own rates and judgment downstream.
 
 ## Limitations
 
