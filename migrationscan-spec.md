@@ -72,6 +72,12 @@ Every finding carries a confidence level derived from how it was detected.
 
 Report the tier on every finding. A Tier 2 finding that says "probable" and turns out wrong costs you nothing. A Tier 2 finding presented as certain costs you the user's trust.
 
+### 5a. Portability awareness
+
+Not every finding is a problem for every migration. Modern .NET can target Windows (`net10.0-windows`), where COM interop, P/Invoke to Win32, the Registry, WMI, and similar continue to work. These are **Windows lock-in**: only migration cost if the app must also leave Windows. That is distinct from **gone-everywhere** APIs — WebForms, `BinaryFormatter`, .NET Remoting, MVC 5 — which are removed on modern .NET regardless of target.
+
+Each rule declares a `platform`: `any` (the default — gone everywhere) or `windows` (a Windows lock-in). When the scan `--target` is a Windows TFM, `windows` findings are **satisfied**: still reported (so scope isn't hidden), but excluded from the severity counts, the effort estimate, and `--fail-on`. This lets one codebase yield two honest numbers — "modernize, stay on Windows" vs. "go cross-platform" — instead of overstating cost for the many teams that are Windows-only. When we can't statically prove an API works on `net-windows` (e.g. a vendored assembly of unknown provenance), the rule stays `any` rather than giving false comfort.
+
 ## 6. Rule catalog
 
 Rule IDs are stable and never reused. Each rule declares: ID, title, category, severity, effort band, tier, remediation guidance, and a docs link.

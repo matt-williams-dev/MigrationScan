@@ -94,14 +94,27 @@ public static class SarifReportWriter
     private static SarifResult ToResult(Finding finding, IReadOnlyDictionary<string, int> ruleIndex) => new(
         RuleId: finding.Rule.Id,
         RuleIndex: ruleIndex[finding.Rule.Id],
-        Level: Level(finding.Rule.Severity),
+        // A satisfied lock-in finding is downgraded to "note" and marked suppressed below, so
+        // code-scanning surfaces it without failing the gate.
+        Level: finding.SatisfiedByTarget ? "note" : Level(finding.Rule.Severity),
         Message: new SarifText(finding.Message),
         Locations:
         [
             new SarifLocation(new SarifPhysicalLocation(
                 ArtifactLocation: new SarifArtifactLocation(finding.FilePath ?? finding.ProjectPath),
                 Region: finding.Line is { } line ? new SarifRegion(line) : null)),
-        ]);
+        ],
+        // SARIF-correct way to say "acknowledged, not an active problem": an external
+        // suppression. Here the suppressor is the Windows target framework.
+        Suppressions: finding.SatisfiedByTarget
+            ?
+            [
+                new SarifSuppression(
+                    Kind: "external",
+                    Justification: "Windows lock-in supported on the target Windows framework; " +
+                        "not migration cost unless moving off Windows."),
+            ]
+            : null);
 
     // --- SARIF DTOs (a minimal, valid subset of the 2.1.0 schema) ---
 
@@ -150,7 +163,10 @@ public static class SarifReportWriter
         int RuleIndex,
         string Level,
         SarifText Message,
-        IReadOnlyList<SarifLocation> Locations);
+        IReadOnlyList<SarifLocation> Locations,
+        IReadOnlyList<SarifSuppression>? Suppressions);
+
+    private sealed record SarifSuppression(string Kind, string Justification);
 
     private sealed record SarifLocation(SarifPhysicalLocation PhysicalLocation);
 

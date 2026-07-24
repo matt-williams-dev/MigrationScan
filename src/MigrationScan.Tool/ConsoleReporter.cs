@@ -25,9 +25,18 @@ internal static class ConsoleReporter
         output.AppendLine();
 
         IReadOnlyDictionary<Severity, int> counts = result.CountsBySeverity();
+        int activeCount = result.ActiveFindings.Count();
         output.AppendLine(
             $"Findings by severity:  blocker {counts[Severity.Blocker]} · high {counts[Severity.High]} · " +
-            $"medium {counts[Severity.Medium]} · low {counts[Severity.Low]}   ({result.Findings.Count} total)");
+            $"medium {counts[Severity.Medium]} · low {counts[Severity.Low]}   ({activeCount} total)");
+
+        int satisfiedCount = result.SatisfiedFindings.Count();
+        if (satisfiedCount > 0)
+        {
+            output.AppendLine(
+                $"Windows lock-in satisfied by target {result.Target}: {satisfiedCount} " +
+                $"(supported on this target — listed below, not counted above)");
+        }
 
         if (result.NotAssessed.Count > 0)
         {
@@ -49,7 +58,7 @@ internal static class ConsoleReporter
             }
         }
 
-        if (result.Findings.Count == 0 && result.NotAssessed.Count == 0)
+        if (activeCount == 0 && satisfiedCount == 0 && result.NotAssessed.Count == 0)
         {
             output.AppendLine();
             output.AppendLine("No findings. Nothing here blocks a move off .NET Framework.");
@@ -58,8 +67,9 @@ internal static class ConsoleReporter
 
         // Group repeated findings of one rule so a rule that fires many times (e.g. a config
         // API used across a codebase) doesn't bury the structural findings under duplicated
-        // remediation text. Most-severe rules first.
-        var groups = result.Findings
+        // remediation text. Most-severe rules first. Findings satisfied by the target are
+        // handled in their own section below, so they don't inflate the main list.
+        var groups = result.ActiveFindings
             .GroupBy(f => f.Rule.Id)
             .Select(g => (Rule: g.First().Rule, Items: g.ToList()))
             .OrderBy(g => g.Rule.Severity)
@@ -101,9 +111,43 @@ internal static class ConsoleReporter
             output.AppendLine($"  → {rule.Remediation}");
         }
 
+        WriteSatisfiedByTarget(output, result);
+
         output.AppendLine();
         output.AppendLine(Disclaimer);
         return output.ToString();
+    }
+
+    // Windows lock-in findings that this (Windows) target satisfies: shown so the scope is
+    // complete, but clearly marked as not migration cost for this target.
+    private static void WriteSatisfiedByTarget(StringBuilder output, AnalysisResult result)
+    {
+        List<Finding> satisfied = result.SatisfiedFindings.ToList();
+        if (satisfied.Count == 0)
+        {
+            return;
+        }
+
+        output.AppendLine();
+        output.AppendLine(
+            $"Satisfied by target {result.Target} — Windows lock-in, supported on this target ({satisfied.Count}):");
+        output.AppendLine(
+            "  These would be migration cost only if you moved off Windows. Not counted above.");
+
+        var groups = satisfied
+            .GroupBy(f => f.Rule.Id)
+            .Select(g => (Rule: g.First().Rule, Items: g.OrderBy(f => f.FilePath ?? f.ProjectPath, StringComparer.Ordinal).ThenBy(f => f.Line ?? 0).ToList()))
+            .OrderBy(g => g.Rule.Id, StringComparer.Ordinal);
+
+        foreach ((RuleMetadata rule, List<Finding> items) in groups)
+        {
+            string occurrences = items.Count == 1 ? string.Empty : $"  ({items.Count} occurrences)";
+            output.AppendLine($"  • {rule.Id} {rule.Title}{occurrences}");
+            foreach (Finding item in items)
+            {
+                output.AppendLine($"      {Location(item)}");
+            }
+        }
     }
 
     private static string Location(Finding finding)

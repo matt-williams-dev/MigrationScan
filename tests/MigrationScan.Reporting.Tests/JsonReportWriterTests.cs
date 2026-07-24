@@ -51,7 +51,7 @@ public class JsonReportWriterTests
         using JsonDocument document = JsonDocument.Parse(json);
         JsonElement root = document.RootElement;
 
-        Assert.Equal("1.2", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("1.3", root.GetProperty("schemaVersion").GetString());
         Assert.Equal("net10.0", root.GetProperty("target").GetString());
 
         JsonElement summary = root.GetProperty("summary");

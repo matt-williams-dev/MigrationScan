@@ -98,7 +98,8 @@ migrationscan <path> [options]
 
   <path>                  .sln, .csproj, .vbproj, .dll/.exe, or directory to scan
 
-  --target <tfm>          Target framework (default: net10.0)
+  --target <tfm>          Target framework (default: net10.0). A -windows TFM
+                          (net10.0-windows) treats Windows lock-in findings as satisfied.
   --format <fmt>          console | markdown | json | sarif (repeatable)
   --output <path>         Output file or directory
   --rules <ids>           Include only these rule IDs
@@ -113,6 +114,29 @@ migrationscan <path> [options]
 (written as-is for a single format) or a **directory** (receives `report.json` /
 `report.md`). When several file formats share one `--output` file path, each is written with
 its own extension so they don't overwrite each other.
+
+### Cross-platform vs. staying on Windows (`--target`)
+
+Modern .NET can still target Windows (`net10.0-windows`), where COM interop, P/Invoke to
+Win32, the Registry, WMI, and similar continue to work. Those APIs are **Windows lock-in** —
+they are only migration cost if you also need to leave Windows. MigrationScan reflects that in
+the target:
+
+```console
+migrationscan MyApp.sln                          # cross-platform (net10.0) — the loud default
+migrationscan MyApp.sln --target net10.0-windows # staying on Windows
+```
+
+On a `-windows` target, the Windows lock-in findings are **downgraded**: still listed (under a
+"satisfied by target" section, and flagged `satisfiedByTarget` in JSON / suppressed in SARIF),
+but excluded from the severity counts, the effort estimate, and `--fail-on`. Gone-everywhere
+findings — WebForms, `BinaryFormatter`, Remoting, MVC 5, and the rest — stay at full severity
+regardless of target. Run it both ways to see exactly what portability costs:
+
+```console
+migrationscan MyApp.sln --format json -o cross-platform.json
+migrationscan MyApp.sln --target net10.0-windows --format json -o windows.json
+```
 
 ### Exit codes
 

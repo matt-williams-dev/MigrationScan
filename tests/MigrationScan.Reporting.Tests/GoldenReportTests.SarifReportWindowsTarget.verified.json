@@ -1,0 +1,228 @@
+﻿{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "MigrationScan",
+          "informationUri": "https://github.com/matt-williams-dev/MigrationScan",
+          "rules": [
+            {
+              "id": "MIG1006",
+              "name": "COM reference or interop assembly",
+              "shortDescription": {
+                "text": "COM reference or interop assembly"
+              },
+              "fullDescription": {
+                "text": "Supported on net-windows; replace only if going cross-platform."
+              },
+              "helpUri": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1006.md",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "Project and build",
+                "severity": "medium",
+                "tier": "certain",
+                "effort": "medium",
+                "tags": [
+                  "Project and build"
+                ]
+              }
+            },
+            {
+              "id": "MIG3001",
+              "name": "ASP.NET WebForms",
+              "shortDescription": {
+                "text": "ASP.NET WebForms"
+              },
+              "fullDescription": {
+                "text": "Re-architect to Razor Pages, MVC, or Blazor."
+              },
+              "helpUri": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "category": "Blocking frameworks",
+                "severity": "blocker",
+                "tier": "certain",
+                "effort": "blocker",
+                "tags": [
+                  "Blocking frameworks"
+                ]
+              }
+            },
+            {
+              "id": "MIG4002",
+              "name": "Windows Registry access",
+              "shortDescription": {
+                "text": "Windows Registry access"
+              },
+              "fullDescription": {
+                "text": "Move registry state to a cross-platform store; on Windows-only deployments it is fine."
+              },
+              "helpUri": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "category": "Runtime failures",
+                "severity": "high",
+                "tier": "probable",
+                "effort": "small",
+                "tags": [
+                  "Runtime failures"
+                ]
+              }
+            },
+            {
+              "id": "MIG7001",
+              "name": "System.Data.SqlClient",
+              "shortDescription": {
+                "text": "System.Data.SqlClient"
+              },
+              "fullDescription": {
+                "text": "Switch to Microsoft.Data.SqlClient."
+              },
+              "helpUri": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "Data access",
+                "severity": "medium",
+                "tier": "probable",
+                "effort": "small",
+                "tags": [
+                  "Data access"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "MIG1006",
+          "ruleIndex": 0,
+          "level": "note",
+          "message": {
+            "text": "Project 'Scan.App' has a COM reference ('RANGERLib')."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Scan.App/Scan.App.csproj"
+                },
+                "region": {
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "suppressions": [
+            {
+              "kind": "external",
+              "justification": "Windows lock-in supported on the target Windows framework; not migration cost unless moving off Windows."
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG3001",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "Project 'Scan.App' is an ASP.NET WebForms application (.aspx present)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Scan.App/Scan.App.csproj"
+                },
+                "region": {
+                  "startLine": 2
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG4002",
+          "ruleIndex": 2,
+          "level": "note",
+          "message": {
+            "text": "Uses Microsoft.Win32.Registry."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Scan.App/Settings.cs"
+                },
+                "region": {
+                  "startLine": 8
+                }
+              }
+            }
+          ],
+          "suppressions": [
+            {
+              "kind": "external",
+              "justification": "Windows lock-in supported on the target Windows framework; not migration cost unless moving off Windows."
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG4002",
+          "ruleIndex": 2,
+          "level": "note",
+          "message": {
+            "text": "Uses Microsoft.Win32.Registry."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Scan.App/Startup.cs"
+                },
+                "region": {
+                  "startLine": 19
+                }
+              }
+            }
+          ],
+          "suppressions": [
+            {
+              "kind": "external",
+              "justification": "Windows lock-in supported on the target Windows framework; not migration cost unless moving off Windows."
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG7001",
+          "ruleIndex": 3,
+          "level": "warning",
+          "message": {
+            "text": "Uses System.Data.SqlClient, which is in maintenance mode."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Scan.App/Db.cs"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

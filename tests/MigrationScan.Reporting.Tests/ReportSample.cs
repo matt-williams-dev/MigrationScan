@@ -67,6 +67,48 @@ internal static class ReportSample
         return new AnalysisResult("net10.0", [web, core], findings, warnings) { NotAssessed = notAssessed };
     }
 
+    /// <summary>
+    /// A result scanned with a Windows target (<c>net10.0-windows</c>) that mixes gone-everywhere
+    /// findings (still active) with Windows lock-in findings the target satisfies (downgraded).
+    /// Exercises the "satisfied by target" report sections and the active-only counts/effort.
+    /// </summary>
+    public static AnalysisResult BuildWindowsTarget()
+    {
+        RuleMetadata mig3001 = Rule("MIG3001", "ASP.NET WebForms", "Blocking frameworks",
+            Severity.Blocker, EffortBand.Blocker, ConfidenceTier.Certain,
+            "Re-architect to Razor Pages, MVC, or Blazor.");
+        RuleMetadata mig7001 = Rule("MIG7001", "System.Data.SqlClient", "Data access",
+            Severity.Medium, EffortBand.Small, ConfidenceTier.Probable,
+            "Switch to Microsoft.Data.SqlClient.");
+        // Windows lock-in rules (platform = windows).
+        RuleMetadata mig4002 = Rule("MIG4002", "Windows Registry access", "Runtime failures",
+            Severity.High, EffortBand.Small, ConfidenceTier.Probable,
+            "Move registry state to a cross-platform store; on Windows-only deployments it is fine.")
+            with { Platform = RulePlatform.Windows };
+        RuleMetadata mig1006 = Rule("MIG1006", "COM reference or interop assembly", "Project and build",
+            Severity.Medium, EffortBand.Medium, ConfidenceTier.Certain,
+            "Supported on net-windows; replace only if going cross-platform.")
+            with { Platform = RulePlatform.Windows };
+
+        DiscoveredProject app = new("Scan.App/Scan.App.csproj", "Scan.App", false, "v4.7.2", [], 2);
+
+        Finding[] findings =
+        [
+            new(mig1006, "Project 'Scan.App' has a COM reference ('RANGERLib').",
+                "Scan.App/Scan.App.csproj", "Scan.App/Scan.App.csproj", 12) { SatisfiedByTarget = true },
+            new(mig3001, "Project 'Scan.App' is an ASP.NET WebForms application (.aspx present).",
+                "Scan.App/Scan.App.csproj", "Scan.App/Scan.App.csproj", 2),
+            new(mig4002, "Uses Microsoft.Win32.Registry.",
+                "Scan.App/Scan.App.csproj", "Scan.App/Settings.cs", 8) { SatisfiedByTarget = true },
+            new(mig4002, "Uses Microsoft.Win32.Registry.",
+                "Scan.App/Scan.App.csproj", "Scan.App/Startup.cs", 19) { SatisfiedByTarget = true },
+            new(mig7001, "Uses System.Data.SqlClient, which is in maintenance mode.",
+                "Scan.App/Scan.App.csproj", "Scan.App/Db.cs", 5),
+        ];
+
+        return new AnalysisResult("net10.0-windows", [app], findings, []);
+    }
+
     private static RuleMetadata Rule(
         string id, string title, string category,
         Severity severity, EffortBand effort, ConfidenceTier tier, string remediation) =>

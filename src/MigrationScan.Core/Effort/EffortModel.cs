@@ -36,13 +36,18 @@ public static class EffortModel
         _ => 3.0,
     };
 
-    /// <summary>Estimate for one project's findings.</summary>
+    /// <summary>
+    /// Estimate for one project's findings. Findings satisfied by a Windows target are not
+    /// migration cost and are excluded from the estimate.
+    /// </summary>
     public static EffortEstimate ForFindings(IEnumerable<Finding> findings)
     {
         EffortEstimate estimate = EffortEstimate.Zero;
 
         // Group by rule: the occurrence factor applies per rule, and a blocking rule counts once.
-        foreach (IGrouping<string, Finding> group in findings.GroupBy(f => f.Rule.Id))
+        foreach (IGrouping<string, Finding> group in findings
+            .Where(f => !f.SatisfiedByTarget)
+            .GroupBy(f => f.Rule.Id))
         {
             EffortBand band = group.First().Rule.Effort;
             if (band == EffortBand.Blocker)
