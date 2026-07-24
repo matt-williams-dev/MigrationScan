@@ -40,5 +40,6 @@ public static class DefaultRules
         new Mig6005ObsoleteCrypto(catalog.Get(Mig6005ObsoleteCrypto.Id)),
         new Mig7003OleDb(catalog.Get(Mig7003OleDb.Id)),
         new Mig7006LinqToSql(catalog.Get(Mig7006LinqToSql.Id)),
+        new Mig3015WcfClient(catalog.Get(Mig3015WcfClient.Id)),
     ];
 }

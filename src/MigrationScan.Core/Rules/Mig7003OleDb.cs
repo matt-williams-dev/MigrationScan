@@ -15,7 +15,7 @@ public sealed class Mig7003OleDb : SyntaxRule
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
         var root = source.SyntaxTree.GetRoot();
-        foreach (int line in SyntaxScan.NamespaceUsageLines(root, "System.Data.OleDb"))
+        if (SyntaxScan.FirstNamespaceUsageLine(root, "System.Data.OleDb") is int line)
         {
             yield return Report(
                 context,
