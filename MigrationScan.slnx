@@ -7,5 +7,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/MigrationScan.Core.Tests/MigrationScan.Core.Tests.csproj" />
     <Project Path="tests/MigrationScan.Reporting.Tests/MigrationScan.Reporting.Tests.csproj" />
+    <Project Path="tests/MigrationScan.Tool.Tests/MigrationScan.Tool.Tests.csproj" />
   </Folder>
 </Solution>
