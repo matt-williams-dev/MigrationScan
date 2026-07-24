@@ -15,7 +15,7 @@ public sealed class Mig3005Remoting : SyntaxRule
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
         var root = source.SyntaxTree.GetRoot();
-        foreach (int line in SyntaxScan.UsingNamespaceLines(root, "System.Runtime.Remoting"))
+        foreach (int line in SyntaxScan.NamespaceUsageLines(root, "System.Runtime.Remoting"))
         {
             yield return Report(
                 context,

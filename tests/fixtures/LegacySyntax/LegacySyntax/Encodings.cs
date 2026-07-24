@@ -12,5 +12,8 @@ namespace LegacySyntax
 
         // Not flagged: a Unicode name is always available.
         public Encoding Utf8() => Encoding.GetEncoding("utf-8");
+
+        // Not flagged: 65001 is UTF-8 by code-page number (always available).
+        public Encoding Utf8ByNumber() => Encoding.GetEncoding(65001);
     }
 }

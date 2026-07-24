@@ -15,7 +15,7 @@ public sealed class Mig7001SystemDataSqlClient : SyntaxRule
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
         var root = source.SyntaxTree.GetRoot();
-        foreach (int line in SyntaxScan.UsingNamespaceLines(root, "System.Data.SqlClient"))
+        foreach (int line in SyntaxScan.NamespaceUsageLines(root, "System.Data.SqlClient"))
         {
             yield return Report(
                 context,

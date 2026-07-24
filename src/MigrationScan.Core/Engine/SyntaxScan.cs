@@ -34,6 +34,27 @@ public static class SyntaxScan
         }
     }
 
+    /// <summary>
+    /// Lines that reference one of the given namespaces, whether via a <c>using</c> directive
+    /// or a fully-qualified name (e.g. <c>new System.Data.SqlClient.SqlConnection()</c>).
+    /// </summary>
+    public static IEnumerable<int> NamespaceUsageLines(SyntaxNode root, params string[] namespaces)
+    {
+        foreach (int line in UsingNamespaceLines(root, namespaces))
+        {
+            yield return line;
+        }
+
+        foreach (QualifiedNameSyntax qualified in root.DescendantNodes().OfType<QualifiedNameSyntax>())
+        {
+            string text = qualified.ToString();
+            if (namespaces.Any(n => text.StartsWith(n + ".", StringComparison.Ordinal)))
+            {
+                yield return LineOf(qualified);
+            }
+        }
+    }
+
     /// <summary>Lines where an identifier with one of the given names appears (type or value use).</summary>
     public static IEnumerable<int> IdentifierLines(SyntaxNode root, params string[] names)
     {

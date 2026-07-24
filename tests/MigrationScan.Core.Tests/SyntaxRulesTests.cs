@@ -38,12 +38,24 @@ public class SyntaxRulesTests
     }
 
     [Fact]
-    public void CodePageRuleIgnoresUnicodeEncodingNames()
+    public void CodePageRuleIgnoresUnicodeEncodings()
     {
         AnalysisResult result = AnalysisHelper.AnalyzeFixture("LegacySyntax", "LegacySyntax.sln");
 
-        // Encodings.cs calls GetEncoding(1252) and GetEncoding("utf-8"); only the code page is flagged.
+        // Encodings.cs calls GetEncoding(1252), GetEncoding("utf-8"), and GetEncoding(65001).
+        // Only the 1252 code page is flagged — the Unicode name and the 65001 number are ignored.
         Assert.Single(result.Findings, f => f.Rule.Id == "MIG8003");
+    }
+
+    [Fact]
+    public void NamespaceRulesMatchFullyQualifiedReferencesWithoutAUsing()
+    {
+        AnalysisResult result = AnalysisHelper.AnalyzeFixture("LegacySyntax", "LegacySyntax.sln");
+
+        // QualifiedUsage.cs uses System.Data.SqlClient.SqlConnection with no `using`.
+        Assert.Contains(
+            result.Findings,
+            f => f.Rule.Id == "MIG7001" && (f.FilePath?.EndsWith("QualifiedUsage.cs") ?? false));
     }
 
     [Fact]

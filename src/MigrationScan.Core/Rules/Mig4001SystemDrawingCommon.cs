@@ -15,7 +15,7 @@ public sealed class Mig4001SystemDrawingCommon : SyntaxRule
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
         var root = source.SyntaxTree.GetRoot();
-        foreach (int line in SyntaxScan.UsingNamespaceLines(root, "System.Drawing"))
+        foreach (int line in SyntaxScan.NamespaceUsageLines(root, "System.Drawing"))
         {
             yield return Report(
                 context,

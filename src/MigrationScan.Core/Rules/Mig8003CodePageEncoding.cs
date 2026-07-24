@@ -12,11 +12,15 @@ public sealed class Mig8003CodePageEncoding : SyntaxRule
 {
     public const string Id = "MIG8003";
 
-    // Encodings available on modern .NET without CodePagesEncodingProvider.
-    private static readonly HashSet<string> AlwaysAvailable = new(StringComparer.OrdinalIgnoreCase)
+    // Encodings available on modern .NET without CodePagesEncodingProvider, by name...
+    private static readonly HashSet<string> AlwaysAvailableNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "utf-8", "utf8", "utf-16", "utf-16le", "utf-16be", "unicode", "utf-32", "us-ascii", "ascii",
     };
+
+    // ...and by code-page number (utf-16, utf-16BE, utf-32, utf-32BE, us-ascii, latin1, utf-8).
+    private static readonly HashSet<int> AlwaysAvailableCodePages =
+        [1200, 1201, 12000, 12001, 20127, 28591, 65001];
 
     public Mig8003CodePageEncoding(RuleMetadata metadata) : base(metadata)
     {
@@ -42,7 +46,15 @@ public sealed class Mig8003CodePageEncoding : SyntaxRule
         }
     }
 
+    // A literal argument for an encoding that is available without the code-page provider —
+    // by name ("utf-8") or by code-page number (65001). Non-literal args are not classified
+    // here (they fall through and are flagged to be safe).
     private static bool IsAlwaysAvailableName(ExpressionSyntax expression) =>
-        expression is LiteralExpressionSyntax { Token.Value: string name }
-        && AlwaysAvailable.Contains(name.Trim());
+        expression is LiteralExpressionSyntax literal
+        && literal.Token.Value switch
+        {
+            string name => AlwaysAvailableNames.Contains(name.Trim()),
+            int codePage => AlwaysAvailableCodePages.Contains(codePage),
+            _ => false,
+        };
 }
