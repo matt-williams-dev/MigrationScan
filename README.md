@@ -11,8 +11,7 @@ migrationscan path/to/YourSolution.sln
 
 > **Status: pre-release / under active development.** The foundation is in place (Phase 0). Rules, reports, and the CLI surface are being built out phase by phase — see [Roadmap](#roadmap). The install command above will work once the first release is published to NuGet.
 
-<!-- ABOVE-THE-FOLD SAMPLE REPORT: a sample Markdown report renders here once the
-     Markdown writer lands in Phase 4. See spec §13. -->
+📄 **[See a sample Markdown report →](docs/sample-report.md)** — the shareable artifact an engineering manager forwards to a CTO: executive summary, blockers, findings by project, an effort breakdown, and remediation guidance.
 
 ## Why this exists
 
@@ -96,6 +95,11 @@ migrationscan <path> [options]
   --verbosity <level>     quiet | normal | detailed
 ```
 
+`console` always writes to stdout. For `json`/`markdown`, `--output` may be a **file**
+(written as-is for a single format) or a **directory** (receives `report.json` /
+`report.md`). When several file formats share one `--output` file path, each is written with
+its own extension so they don't overwrite each other.
+
 ### Exit codes
 
 | Code | Meaning |
@@ -136,7 +140,7 @@ Development proceeds in ordered phases (see the spec for detail):
 - [x] **Phase 1** — Walking skeleton: parse `.sln`/`.csproj`, first rule (MIG1001), console + JSON output
 - [x] **Phase 2** — Rule engine (project-file + Roslyn syntax rules) and the first rule batch
 - [x] **Phase 3** — Roslyn syntax rules (Tier 2): 12 runtime/blocking-framework detectors
-- [ ] **Phase 4** — Effort model and Markdown report
+- [x] **Phase 4** — Effort model and Markdown report (golden-file tested)
 - [ ] **Phase 5** — CI integration: SARIF, exit codes, baselines
 - [ ] **Phase 6** — Post-v1: `--online` lookups, binary analysis, VB.NET, remaining rules
 
