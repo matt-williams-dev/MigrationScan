@@ -199,6 +199,86 @@
       "tier": "probable",
       "remediation": "Modern .NET does not register legacy code-page encodings by default. Call Encoding.RegisterProvider(CodePagesEncodingProvider.Instance) at startup, or the Encoding.GetEncoding call throws for non-Unicode code pages.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG8003.md"
+    },
+    {
+      "id": "MIG1003",
+      "title": "Target framework below 4.6.2",
+      "category": "Project and build",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "certain",
+      "remediation": "Retarget the project to at least .NET Framework 4.6.2 before migrating. Versions below 4.6.2 lack full .NET Standard 2.0 support, which the migration path relies on. This is usually a low-risk retarget-and-rebuild step.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1003.md"
+    },
+    {
+      "id": "MIG3003",
+      "title": "ASMX web service",
+      "category": "Blocking frameworks",
+      "severity": "high",
+      "effort": "large",
+      "tier": "certain",
+      "remediation": "ASMX web services have no counterpart on modern .NET. Re-implement the service as an ASP.NET Core Web API (or gRPC). Clients that consumed the ASMX endpoint need updating too.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3003.md"
+    },
+    {
+      "id": "MIG3009",
+      "title": "MSMQ (System.Messaging)",
+      "category": "Blocking frameworks",
+      "severity": "high",
+      "effort": "large",
+      "tier": "probable",
+      "remediation": "System.Messaging (MSMQ) is not available on modern .NET. Move to a supported message queue such as Azure Service Bus or RabbitMQ, or a third-party MSMQ-compatible library.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3009.md"
+    },
+    {
+      "id": "MIG4003",
+      "title": "System.Management / WMI",
+      "category": "Runtime failures",
+      "severity": "high",
+      "effort": "medium",
+      "tier": "probable",
+      "remediation": "WMI (System.Management) is Windows-only on modern .NET and throws PlatformNotSupportedException elsewhere. If the app must run cross-platform, replace WMI queries with platform-appropriate APIs.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4003.md"
+    },
+    {
+      "id": "MIG4005",
+      "title": "EventLog",
+      "category": "Runtime failures",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "System.Diagnostics.EventLog is Windows-only on modern .NET. Use a cross-platform logging framework (e.g. Microsoft.Extensions.Logging with a suitable sink) instead of writing to the Windows Event Log.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4005.md"
+    },
+    {
+      "id": "MIG6005",
+      "title": "Obsolete cryptography types",
+      "category": "Serialization and security",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "The concrete *CryptoServiceProvider / *Managed types are obsolete on modern .NET. Create algorithms via base-class factories (SHA256.Create(), Aes.Create(), RandomNumberGenerator), and drop weak algorithms (MD5, SHA1, DES) entirely.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6005.md"
+    },
+    {
+      "id": "MIG7003",
+      "title": "System.Data.OleDb on non-Windows",
+      "category": "Data access",
+      "severity": "medium",
+      "effort": "medium",
+      "tier": "probable",
+      "remediation": "The OLE DB provider (System.Data.OleDb) is Windows-only on modern .NET. Use a native, cross-platform provider (e.g. Microsoft.Data.SqlClient, Npgsql) where possible.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7003.md"
+    },
+    {
+      "id": "MIG7006",
+      "title": "LINQ to SQL (System.Data.Linq)",
+      "category": "Data access",
+      "severity": "high",
+      "effort": "large",
+      "tier": "probable",
+      "remediation": "LINQ to SQL (System.Data.Linq) is not available on modern .NET. Migrate the data layer to Entity Framework Core or another supported ORM.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7006.md"
     }
   ]
 }

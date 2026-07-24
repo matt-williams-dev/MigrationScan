@@ -18,6 +18,8 @@ public class SyntaxRulesTests
     [
         "MIG3004", "MIG3005", "MIG3010", "MIG4001", "MIG4002", "MIG4004",
         "MIG4008", "MIG6001", "MIG6004", "MIG7001", "MIG8002", "MIG8003",
+        // Added in the later catalog batch:
+        "MIG3009", "MIG4003", "MIG4005", "MIG6005", "MIG7003", "MIG7006",
     ];
 
     [Theory]

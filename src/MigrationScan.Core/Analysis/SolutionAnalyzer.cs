@@ -40,6 +40,16 @@ public sealed class SolutionAnalyzer
 
     public AnalysisResult Analyze(string path, string targetFramework)
     {
+        // A compiled assembly target (no source) is analyzed with Cecil instead (Tier 3).
+        string extension = Path.GetExtension(path);
+        if (File.Exists(path) && (extension.Equals(".dll", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".exe", StringComparison.OrdinalIgnoreCase)))
+        {
+            string root = Path.GetDirectoryName(Path.GetFullPath(path))!;
+            (DiscoveredProject project, IReadOnlyList<Finding> binaryFindings) = BinaryAnalyzer.Analyze(path, root);
+            return new AnalysisResult(targetFramework, [project], Sort(binaryFindings), []);
+        }
+
         ScanInput input = ScanInput.Resolve(path);
 
         List<DiscoveredProject> projects = [];

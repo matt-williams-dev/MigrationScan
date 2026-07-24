@@ -32,5 +32,13 @@ public static class DefaultRules
         new Mig7001SystemDataSqlClient(catalog.Get(Mig7001SystemDataSqlClient.Id)),
         new Mig8002EncodingDefault(catalog.Get(Mig8002EncodingDefault.Id)),
         new Mig8003CodePageEncoding(catalog.Get(Mig8003CodePageEncoding.Id)),
+        new Mig1003OldTargetFramework(catalog.Get(Mig1003OldTargetFramework.Id)),
+        new Mig3003Asmx(catalog.Get(Mig3003Asmx.Id)),
+        new Mig3009Msmq(catalog.Get(Mig3009Msmq.Id)),
+        new Mig4003Wmi(catalog.Get(Mig4003Wmi.Id)),
+        new Mig4005EventLog(catalog.Get(Mig4005EventLog.Id)),
+        new Mig6005ObsoleteCrypto(catalog.Get(Mig6005ObsoleteCrypto.Id)),
+        new Mig7003OleDb(catalog.Get(Mig7003OleDb.Id)),
+        new Mig7006LinqToSql(catalog.Get(Mig7006LinqToSql.Id)),
     ];
 }
