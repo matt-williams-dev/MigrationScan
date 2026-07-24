@@ -39,7 +39,7 @@ MigrationScan deliberately does **not**:
 
 ## How it works
 
-MigrationScan parses your `.sln`, `.csproj`, and `.vbproj` files as XML and reads your `.cs` files with Roslyn — no MSBuild registration and no Visual Studio required, so it runs the same on Windows, Linux, and macOS. Every finding carries a **confidence tier** so the report is honest about what static analysis can and cannot prove:
+MigrationScan parses your `.sln`, `.csproj`, and `.vbproj` files as XML and reads your `.cs` and `.vb` source with Roslyn — no MSBuild registration and no Visual Studio required, so it runs the same on Windows, Linux, and macOS. Every finding carries a **confidence tier** so the report is honest about what static analysis can and cannot prove:
 
 | Tier | Name | Source |
 | --- | --- | --- |
@@ -196,7 +196,6 @@ Static analysis without resolved references cannot see everything, and Migration
 
 - **Tier 2 findings can be false positives.** A reference to a type named `Registry` might be your own class, not `Microsoft.Win32.Registry`. These are reported as *probable*, never certain.
 - **No semantic guarantees without compilation.** Full verification (Tier 3) requires resolved references or compiled binaries, which is post-v1 work.
-- **VB source isn't syntax-checked yet.** `.vbproj` projects get the project-level, dependency, and framework rules, but the source-level (Tier 2) rules currently run on C# only — a VB project's `.vb` files aren't yet checked for the runtime-failure rules.
 - **Effort figures are heuristic.** They are planning aids derived from static analysis, not a quote.
 - **Architectural decisions are yours.** MigrationScan flags what blocks a migration; it does not decide how to redesign around it.
 
@@ -221,13 +220,13 @@ Development proceeds in ordered phases (see the spec for detail):
 - [x] **Phase 3** — Roslyn syntax rules (Tier 2): 12 runtime/blocking-framework detectors
 - [x] **Phase 4** — Effort model and Markdown report (golden-file tested)
 - [x] **Phase 5** — CI integration: SARIF, `--fail-on` exit codes, `--baseline`
-- [ ] **Phase 6** — Post-v1 (in progress): `--online` NuGet deprecation lookups ✅; VB.NET project scanning ✅; binary analysis, VB source-level rules, and remaining rules to come
+- [ ] **Phase 6** — Post-v1 (in progress): `--online` NuGet deprecation lookups ✅; VB.NET support (projects + source) ✅; binary analysis and remaining rules to come
 
 ## Open questions
 
 A few decisions from the spec are still open and will be resolved before v1:
 
-- **VB.NET support** — `.vbproj` projects are now discovered and scanned for the project-level, dependency, and framework rules (Tier 1). Source-level (Tier 2) rules for VB syntax are still to come, so a VB project's `.vb` files aren't yet checked for the runtime-failure rules that C# files get.
+- **VB.NET support** — `.vbproj` projects are discovered and their `.vb` source is analyzed by the same rules as C#: the syntax queries are language-neutral, so VB gets the runtime-failure (Tier 2) rules too, honouring VB's case-insensitive matching.
 - **Default target framework** — pinned to `net10.0` (LTS) for now; may float to whatever is current LTS.
 - **Schema distribution** — ship a `--json-schema` command vs. publish the schema as a static file.
 

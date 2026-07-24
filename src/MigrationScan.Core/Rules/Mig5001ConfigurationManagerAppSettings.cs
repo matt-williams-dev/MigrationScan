@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MigrationScan.Core.Engine;
 using MigrationScan.Core.Models;
 
@@ -23,21 +21,12 @@ public sealed class Mig5001ConfigurationManagerAppSettings : SyntaxRule
 
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
-        SyntaxNode root = source.SyntaxTree.GetRoot();
+        var root = source.SyntaxTree.GetRoot();
 
-        foreach (MemberAccessExpressionSyntax access in root.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
+        // Matches `ConfigurationManager.AppSettings` and `...Configuration.ConfigurationManager.AppSettings`
+        // (the member-access receiver's simple name is what's compared).
+        foreach (int line in SyntaxScan.MemberAccessLines(root, "ConfigurationManager", "AppSettings"))
         {
-            if (access.Name.Identifier.ValueText != "AppSettings")
-            {
-                continue;
-            }
-
-            if (!ReferencesConfigurationManager(access.Expression))
-            {
-                continue;
-            }
-
-            int line = access.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
             yield return Report(
                 context,
                 source,
@@ -46,12 +35,4 @@ public sealed class Mig5001ConfigurationManagerAppSettings : SyntaxRule
                 line);
         }
     }
-
-    // Matches `ConfigurationManager` and `...Configuration.ConfigurationManager`.
-    private static bool ReferencesConfigurationManager(ExpressionSyntax expression) => expression switch
-    {
-        IdentifierNameSyntax identifier => identifier.Identifier.ValueText == "ConfigurationManager",
-        MemberAccessExpressionSyntax member => member.Name.Identifier.ValueText == "ConfigurationManager",
-        _ => false,
-    };
 }

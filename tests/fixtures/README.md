@@ -23,8 +23,9 @@ Phase 1.
   against absorbing files that belong to neither (must yield zero findings).
 - **GacHintPath** — empty vs. real `<HintPath>` edge case for MIG1005.
 - **StaleReference** — solution referencing a missing project (skipped with a warning).
-- **LegacyVbApp** — non-SDK **VB.NET** console app (`.vbproj`) with `System.Web` and a
-  `packages.config`. Exercises `.vbproj` discovery and the language-agnostic project-level
-  rules (MIG1001/1002/2001/3002); its `.vb` source is not yet syntax-analyzed.
+- **LegacyVbApp** — non-SDK **VB.NET** console app (`.vbproj`) with `System.Web`, a
+  `packages.config`, and a `Module1.vb` that uses ConfigurationManager, the Registry,
+  BinaryFormatter, and encodings. Exercises `.vbproj` discovery, the project-level rules
+  (MIG1001/1002/2001/3002), and the VB **syntax** rules (MIG5001/4002/6001/8002/8003).
 - **ModernClean** — clean SDK-style app. Must produce **zero** findings; this is the
   false-positive guard (spec §12).
