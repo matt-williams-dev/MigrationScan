@@ -55,6 +55,21 @@ public static class SyntaxScan
         }
     }
 
+    /// <summary>
+    /// The first line that references one of the given namespaces, or null. Namespace rules use
+    /// this to report once per file rather than once per occurrence (a heavily-qualified file
+    /// would otherwise produce hundreds of identical findings).
+    /// </summary>
+    public static int? FirstNamespaceUsageLine(SyntaxNode root, params string[] namespaces)
+    {
+        foreach (int line in NamespaceUsageLines(root, namespaces))
+        {
+            return line;
+        }
+
+        return null;
+    }
+
     /// <summary>Lines where an identifier with one of the given names appears (type or value use).</summary>
     public static IEnumerable<int> IdentifierLines(SyntaxNode root, params string[] names)
     {

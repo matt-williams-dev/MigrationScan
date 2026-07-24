@@ -15,7 +15,7 @@ public sealed class Mig7006LinqToSql : SyntaxRule
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
         var root = source.SyntaxTree.GetRoot();
-        foreach (int line in SyntaxScan.NamespaceUsageLines(root, "System.Data.Linq"))
+        if (SyntaxScan.FirstNamespaceUsageLine(root, "System.Data.Linq") is int line)
         {
             yield return Report(
                 context,

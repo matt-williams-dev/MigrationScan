@@ -15,7 +15,7 @@ public sealed class Mig3010AspNetMvc5 : SyntaxRule
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
         var root = source.SyntaxTree.GetRoot();
-        foreach (int line in SyntaxScan.NamespaceUsageLines(root, "System.Web.Mvc"))
+        if (SyntaxScan.FirstNamespaceUsageLine(root, "System.Web.Mvc") is int line)
         {
             yield return Report(
                 context,

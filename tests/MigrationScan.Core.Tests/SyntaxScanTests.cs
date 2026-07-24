@@ -86,6 +86,18 @@ public class SyntaxScanTests
     }
 
     [Fact]
+    public void FirstNamespaceUsageLineCollapsesManyReferencesToOne()
+    {
+        // A file that fully-qualifies a namespace many times (like a generated proxy) would
+        // otherwise produce a finding per occurrence.
+        SyntaxNode root = Cs(
+            "using System.ServiceModel; class C { System.ServiceModel.ChannelFactory a; System.ServiceModel.ClientBase b; }");
+
+        Assert.True(SyntaxScan.NamespaceUsageLines(root, "System.ServiceModel").Count() > 1);
+        Assert.NotNull(SyntaxScan.FirstNamespaceUsageLine(root, "System.ServiceModel"));
+    }
+
+    [Fact]
     public void CodePageInvocationLiteralIsExtractedInBothLanguages()
     {
         (int, object?) csHit = Assert.Single(

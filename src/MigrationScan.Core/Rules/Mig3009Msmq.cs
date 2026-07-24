@@ -15,7 +15,7 @@ public sealed class Mig3009Msmq : SyntaxRule
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
         var root = source.SyntaxTree.GetRoot();
-        foreach (int line in SyntaxScan.NamespaceUsageLines(root, "System.Messaging"))
+        if (SyntaxScan.FirstNamespaceUsageLine(root, "System.Messaging") is int line)
         {
             yield return Report(
                 context,

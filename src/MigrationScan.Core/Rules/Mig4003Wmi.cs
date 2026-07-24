@@ -15,7 +15,7 @@ public sealed class Mig4003Wmi : SyntaxRule
     protected override IEnumerable<Finding> AnalyzeSource(SourceFile source, AnalysisContext context)
     {
         var root = source.SyntaxTree.GetRoot();
-        foreach (int line in SyntaxScan.NamespaceUsageLines(root, "System.Management"))
+        if (SyntaxScan.FirstNamespaceUsageLine(root, "System.Management") is int line)
         {
             yield return Report(
                 context,

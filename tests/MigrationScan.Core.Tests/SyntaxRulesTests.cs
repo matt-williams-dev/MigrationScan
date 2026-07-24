@@ -20,6 +20,8 @@ public class SyntaxRulesTests
         "MIG4008", "MIG6001", "MIG6004", "MIG7001", "MIG8002", "MIG8003",
         // Added in the later catalog batch:
         "MIG3009", "MIG4003", "MIG4005", "MIG6005", "MIG7003", "MIG7006",
+        // WCF client (companion to MIG3004); WcfHost.cs imports System.ServiceModel.
+        "MIG3015",
     ];
 
     [Theory]

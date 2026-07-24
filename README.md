@@ -68,6 +68,7 @@ MigrationScan ships a catalog of stable, never-reused rule IDs grouped by catego
 | [MIG3005](docs/rules/MIG3005.md) | .NET Remoting | Blocker | 2 — Probable |
 | [MIG3009](docs/rules/MIG3009.md) | MSMQ (`System.Messaging`) | High | 2 — Probable |
 | [MIG3010](docs/rules/MIG3010.md) | ASP.NET MVC 5 (`System.Web.Mvc`) | High | 2 — Probable |
+| [MIG3015](docs/rules/MIG3015.md) | WCF client (`System.ServiceModel`) | Medium | 2 — Probable |
 | [MIG4001](docs/rules/MIG4001.md) | `System.Drawing.Common` on non-Windows | High | 2 — Probable |
 | [MIG4002](docs/rules/MIG4002.md) | Windows Registry access | High | 2 — Probable |
 | [MIG4003](docs/rules/MIG4003.md) | `System.Management` / WMI | High | 2 — Probable |

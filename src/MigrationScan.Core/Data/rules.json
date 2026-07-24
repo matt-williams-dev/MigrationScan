@@ -279,6 +279,16 @@
       "tier": "probable",
       "remediation": "LINQ to SQL (System.Data.Linq) is not available on modern .NET. Migrate the data layer to Entity Framework Core or another supported ORM.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7006.md"
+    },
+    {
+      "id": "MIG3015",
+      "title": "WCF client (System.ServiceModel)",
+      "category": "Blocking frameworks",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "WCF client usage is supported on modern .NET via the System.ServiceModel.* packages (System.ServiceModel.Http, .NetTcp, .Primitives). Add them, regenerate the service reference, and move config-based endpoint/binding settings to code. Server-side hosting is not supported and needs CoreWCF (see MIG3004).",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3015.md"
     }
   ]
 }
