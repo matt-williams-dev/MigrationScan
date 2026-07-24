@@ -29,4 +29,12 @@ public sealed record AnalysisResult(
 
         return counts;
     }
+
+    /// <summary>
+    /// True if any finding is at least as severe as <paramref name="threshold"/>. Drives the
+    /// <c>--fail-on</c> exit code. Severity is ordered most-severe-first, so "at or above" is
+    /// a numeric &lt;= comparison.
+    /// </summary>
+    public bool FailsThreshold(Severity threshold) =>
+        Findings.Any(f => f.Rule.Severity <= threshold);
 }

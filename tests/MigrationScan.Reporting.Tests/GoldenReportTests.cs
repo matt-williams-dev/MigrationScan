@@ -21,4 +21,12 @@ public class GoldenReportTests
         string json = JsonReportWriter.Write(ReportSample.Build());
         return Verify(new Target("json", json));
     }
+
+    [Fact]
+    public Task SarifReport()
+    {
+        // SARIF is JSON; snapshot with the json extension (Verify treats .sarif as binary).
+        string sarif = SarifReportWriter.Write(ReportSample.Build());
+        return Verify(new Target("json", sarif));
+    }
 }

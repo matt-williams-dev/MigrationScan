@@ -1,0 +1,273 @@
+﻿{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "MigrationScan",
+          "informationUri": "https://github.com/matt-williams-dev/MigrationScan",
+          "rules": [
+            {
+              "id": "MIG1001",
+              "name": "Non-SDK-style project file",
+              "shortDescription": {
+                "text": "Non-SDK-style project file"
+              },
+              "fullDescription": {
+                "text": "Convert the project to the SDK style."
+              },
+              "helpUri": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1001.md",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "Project and build",
+                "severity": "medium",
+                "tier": "certain",
+                "effort": "small",
+                "tags": [
+                  "Project and build"
+                ]
+              }
+            },
+            {
+              "id": "MIG3001",
+              "name": "ASP.NET WebForms",
+              "shortDescription": {
+                "text": "ASP.NET WebForms"
+              },
+              "fullDescription": {
+                "text": "Re-architect to Razor Pages, MVC, or Blazor."
+              },
+              "helpUri": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "category": "Blocking frameworks",
+                "severity": "blocker",
+                "tier": "certain",
+                "effort": "blocker",
+                "tags": [
+                  "Blocking frameworks"
+                ]
+              }
+            },
+            {
+              "id": "MIG5001",
+              "name": "ConfigurationManager.AppSettings usage",
+              "shortDescription": {
+                "text": "ConfigurationManager.AppSettings usage"
+              },
+              "fullDescription": {
+                "text": "Add System.Configuration.ConfigurationManager or migrate to Microsoft.Extensions.Configuration."
+              },
+              "helpUri": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "category": "Configuration",
+                "severity": "low",
+                "tier": "probable",
+                "effort": "small",
+                "tags": [
+                  "Configuration"
+                ]
+              }
+            },
+            {
+              "id": "MIG6001",
+              "name": "BinaryFormatter",
+              "shortDescription": {
+                "text": "BinaryFormatter"
+              },
+              "fullDescription": {
+                "text": "Replace with a safe serializer such as System.Text.Json."
+              },
+              "helpUri": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6001.md",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "category": "Serialization and security",
+                "severity": "blocker",
+                "tier": "probable",
+                "effort": "large",
+                "tags": [
+                  "Serialization and security"
+                ]
+              }
+            },
+            {
+              "id": "MIG7001",
+              "name": "System.Data.SqlClient",
+              "shortDescription": {
+                "text": "System.Data.SqlClient"
+              },
+              "fullDescription": {
+                "text": "Switch to Microsoft.Data.SqlClient."
+              },
+              "helpUri": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "Data access",
+                "severity": "medium",
+                "tier": "probable",
+                "effort": "small",
+                "tags": [
+                  "Data access"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "MIG1001",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Project 'Shop.Web' uses the legacy non-SDK project format."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Shop.Web/Shop.Web.csproj"
+                },
+                "region": {
+                  "startLine": 2
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG3001",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "Project 'Shop.Web' is an ASP.NET WebForms application (.aspx present)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Shop.Web/Shop.Web.csproj"
+                },
+                "region": {
+                  "startLine": 2
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG5001",
+          "ruleIndex": 2,
+          "level": "note",
+          "message": {
+            "text": "Reads configuration via ConfigurationManager.AppSettings."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Shop.Web/Default.aspx.cs"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG5001",
+          "ruleIndex": 2,
+          "level": "note",
+          "message": {
+            "text": "Reads configuration via ConfigurationManager.AppSettings."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Shop.Web/Global.asax.cs"
+                },
+                "region": {
+                  "startLine": 20
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG5001",
+          "ruleIndex": 2,
+          "level": "note",
+          "message": {
+            "text": "Reads configuration via ConfigurationManager.AppSettings."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Shop.Web/Settings.cs"
+                },
+                "region": {
+                  "startLine": 8
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG6001",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "Uses BinaryFormatter, which is removed in .NET 9."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Shop.Core/Cache.cs"
+                },
+                "region": {
+                  "startLine": 33
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "MIG7001",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Uses System.Data.SqlClient, which is in maintenance mode."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Shop.Core/Db.cs"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
