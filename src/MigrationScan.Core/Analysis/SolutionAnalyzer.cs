@@ -17,17 +17,26 @@ namespace MigrationScan.Core.Analysis;
 public sealed class SolutionAnalyzer
 {
     private readonly RuleEngine _engine;
+    private readonly IPackageRegistry _packageRegistry;
 
-    public SolutionAnalyzer(RuleEngine engine) => _engine = engine;
+    public SolutionAnalyzer(RuleEngine engine, IPackageRegistry? packageRegistry = null)
+    {
+        _engine = engine;
+        _packageRegistry = packageRegistry ?? EmptyPackageRegistry.Instance;
+    }
 
     /// <summary>Builds an analyzer over the given rule catalog and the default package catalog.</summary>
-    public SolutionAnalyzer(RuleCatalog catalog)
-        : this(new RuleEngine(DefaultRules.CreateAll(catalog, PackageCompatibilityCatalog.LoadDefault())))
+    public SolutionAnalyzer(RuleCatalog catalog, IPackageRegistry? packageRegistry = null)
+        : this(new RuleEngine(DefaultRules.CreateAll(catalog, PackageCompatibilityCatalog.LoadDefault())), packageRegistry)
     {
     }
 
-    /// <summary>Builds an analyzer with the full built-in rule set.</summary>
-    public static SolutionAnalyzer CreateDefault() => new(RuleCatalog.LoadDefault());
+    /// <summary>
+    /// Builds an analyzer with the full built-in rule set. Pass a package registry to enable
+    /// online lookups (<c>--online</c>); the default is offline and reaches no network.
+    /// </summary>
+    public static SolutionAnalyzer CreateDefault(IPackageRegistry? packageRegistry = null) =>
+        new(RuleCatalog.LoadDefault(), packageRegistry);
 
     public AnalysisResult Analyze(string path, string targetFramework)
     {
@@ -43,7 +52,8 @@ public sealed class SolutionAnalyzer
 
             try
             {
-                AnalysisContext context = AnalysisContext.Create(input.RootDirectory, projectFile, targetFramework);
+                AnalysisContext context = AnalysisContext.Create(
+                    input.RootDirectory, projectFile, targetFramework, _packageRegistry);
                 IReadOnlyList<Finding> projectFindings = _engine.Analyze(context);
                 projects.Add(context.Project);
                 findings.AddRange(projectFindings);

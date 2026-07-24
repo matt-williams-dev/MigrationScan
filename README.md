@@ -59,6 +59,7 @@ MigrationScan ships a catalog of stable, never-reused rule IDs grouped by catego
 | [MIG1002](docs/rules/MIG1002.md) | `packages.config` instead of PackageReference | Medium | 1 — Certain |
 | [MIG1005](docs/rules/MIG1005.md) | GAC reference (no HintPath) | Medium | 1 — Certain |
 | [MIG2001](docs/rules/MIG2001.md) | Package has no version supporting the target framework | High | 1 — Certain |
+| [MIG2002](docs/rules/MIG2002.md) | Package marked deprecated on nuget.org (`--online`) | Medium | 1 — Certain |
 | [MIG3001](docs/rules/MIG3001.md) | ASP.NET WebForms | Blocker | 1 — Certain |
 | [MIG3002](docs/rules/MIG3002.md) | `System.Web` dependency outside WebForms | High | 1 — Certain |
 | [MIG3004](docs/rules/MIG3004.md) | WCF service host (server side) | High | 2 — Probable |
@@ -108,6 +109,20 @@ its own extension so they don't overwrite each other.
 | 1 | Findings above `--fail-on` threshold |
 | 2 | Analysis error |
 | 64 | Bad usage |
+
+### Online package checks (`--online`)
+
+By default MigrationScan makes **no network calls** and the output is fully deterministic.
+Passing `--online` opts in to nuget.org lookups for package status — currently flagging
+packages the maintainers have marked **deprecated** ([MIG2002](docs/rules/MIG2002.md)):
+
+```console
+migrationscan . --online
+```
+
+Because these findings reflect live nuget.org state, they are not part of the deterministic
+default path. If a lookup fails (offline, rate-limited), the scan degrades gracefully — it
+prints a warning and continues without package status rather than failing.
 
 ## Continuous integration
 
@@ -205,7 +220,7 @@ Development proceeds in ordered phases (see the spec for detail):
 - [x] **Phase 3** — Roslyn syntax rules (Tier 2): 12 runtime/blocking-framework detectors
 - [x] **Phase 4** — Effort model and Markdown report (golden-file tested)
 - [x] **Phase 5** — CI integration: SARIF, `--fail-on` exit codes, `--baseline`
-- [ ] **Phase 6** — Post-v1: `--online` lookups, binary analysis, VB.NET, remaining rules
+- [ ] **Phase 6** — Post-v1 (in progress): `--online` NuGet deprecation lookups ✅; binary analysis, VB.NET, and remaining rules to come
 
 ## Open questions
 
