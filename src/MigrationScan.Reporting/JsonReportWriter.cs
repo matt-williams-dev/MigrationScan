@@ -43,7 +43,10 @@ public static class JsonReportWriter
             Findings: result.Findings.Select(ToDto).ToList(),
             Warnings: result.Warnings.Select(w => new ReportWarning(w.Message, w.Path)).ToList());
 
-        return JsonSerializer.Serialize(document, SerializerOptions);
+        // Normalize indentation newlines to LF for byte-identical output across operating
+        // systems. Newlines inside string values are escaped by the serializer, so only
+        // formatting newlines are affected.
+        return JsonSerializer.Serialize(document, SerializerOptions).Replace("\r\n", "\n");
     }
 
     private static ReportFinding ToDto(Finding finding) => new(

@@ -26,7 +26,7 @@ var targetOption = new Option<string>("--target")
 
 var formatOption = new Option<string[]>("--format", "-f")
 {
-    Description = "Output format(s): console | json. Repeatable.",
+    Description = "Output format(s): console | json | markdown. Repeatable.",
     DefaultValueFactory = _ => ["console"],
     AllowMultipleArgumentsPerToken = true,
 };
@@ -53,10 +53,10 @@ rootCommand.SetAction(parseResult =>
     string? output = parseResult.GetValue(outputOption);
 
     string[] normalizedFormats = formats.Select(f => f.ToLowerInvariant()).Distinct().ToArray();
-    string[] unknownFormats = normalizedFormats.Where(f => f is not ("console" or "json")).ToArray();
+    string[] unknownFormats = normalizedFormats.Where(f => f is not ("console" or "json" or "markdown")).ToArray();
     if (unknownFormats.Length > 0)
     {
-        Console.Error.WriteLine($"Unknown format(s): {string.Join(", ", unknownFormats)}. Expected: console | json.");
+        Console.Error.WriteLine($"Unknown format(s): {string.Join(", ", unknownFormats)}. Expected: console | json | markdown.");
         return ExitBadUsage;
     }
 
@@ -89,17 +89,56 @@ static void Emit(AnalysisResult result, string[] formats, string? outputPath)
         Console.Out.Write(ConsoleReporter.Render(result));
     }
 
-    if (formats.Contains("json"))
+    // File-producing formats: emitted to a file when --output is set, otherwise to stdout.
+    (string Name, string Extension, Func<string> Render)[] fileFormats =
+    [
+        ("json", "json", () => JsonReportWriter.Write(result)),
+        ("markdown", "md", () => MarkdownReportWriter.Write(result)),
+    ];
+
+    string[] requested = fileFormats.Select(f => f.Name).Where(formats.Contains).ToArray();
+
+    foreach ((string name, string extension, Func<string> render) in fileFormats)
     {
-        string json = JsonReportWriter.Write(result);
-        if (outputPath is not null)
+        if (!formats.Contains(name))
         {
-            File.WriteAllText(outputPath, json);
-            Console.Out.WriteLine($"Wrote JSON report to {outputPath}");
+            continue;
+        }
+
+        string content = render();
+        string? destination = FileDestination(outputPath, extension, requested.Length);
+        if (destination is null)
+        {
+            Console.Out.WriteLine(content);
         }
         else
         {
-            Console.Out.WriteLine(json);
+            File.WriteAllText(destination, content);
+            Console.Out.WriteLine($"Wrote {name} report to {destination}");
         }
     }
+}
+
+// Resolves where a file-format's output goes. null means stdout.
+static string? FileDestination(string? outputPath, string extension, int fileFormatCount)
+{
+    if (outputPath is null)
+    {
+        return null;
+    }
+
+    if (Directory.Exists(outputPath))
+    {
+        return Path.Combine(outputPath, $"report.{extension}");
+    }
+
+    // A single format writes to the given path as-is; multiple formats sharing one path
+    // are disambiguated by extension so they don't overwrite each other.
+    if (fileFormatCount == 1)
+    {
+        return outputPath;
+    }
+
+    string directory = Path.GetDirectoryName(outputPath) is { Length: > 0 } dir ? dir : ".";
+    return Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(outputPath)}.{extension}");
 }

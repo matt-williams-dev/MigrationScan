@@ -1,0 +1,120 @@
+﻿{
+  "schemaVersion": "1.0",
+  "target": "net10.0",
+  "summary": {
+    "projectsScanned": 2,
+    "totalFindings": 7,
+    "findingsBySeverity": {
+      "blocker": 2,
+      "high": 0,
+      "medium": 2,
+      "low": 3
+    }
+  },
+  "findings": [
+    {
+      "ruleId": "MIG1001",
+      "title": "Non-SDK-style project file",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "small",
+      "message": "Project 'Shop.Web' uses the legacy non-SDK project format.",
+      "project": "Shop.Web/Shop.Web.csproj",
+      "file": "Shop.Web/Shop.Web.csproj",
+      "line": 2,
+      "remediation": "Convert the project to the SDK style.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1001.md"
+    },
+    {
+      "ruleId": "MIG3001",
+      "title": "ASP.NET WebForms",
+      "category": "Blocking frameworks",
+      "severity": "blocker",
+      "tier": "certain",
+      "effort": "blocker",
+      "message": "Project 'Shop.Web' is an ASP.NET WebForms application (.aspx present).",
+      "project": "Shop.Web/Shop.Web.csproj",
+      "file": "Shop.Web/Shop.Web.csproj",
+      "line": 2,
+      "remediation": "Re-architect to Razor Pages, MVC, or Blazor.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md"
+    },
+    {
+      "ruleId": "MIG5001",
+      "title": "ConfigurationManager.AppSettings usage",
+      "category": "Configuration",
+      "severity": "low",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Reads configuration via ConfigurationManager.AppSettings.",
+      "project": "Shop.Web/Shop.Web.csproj",
+      "file": "Shop.Web/Default.aspx.cs",
+      "line": 14,
+      "remediation": "Add System.Configuration.ConfigurationManager or migrate to Microsoft.Extensions.Configuration.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md"
+    },
+    {
+      "ruleId": "MIG5001",
+      "title": "ConfigurationManager.AppSettings usage",
+      "category": "Configuration",
+      "severity": "low",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Reads configuration via ConfigurationManager.AppSettings.",
+      "project": "Shop.Web/Shop.Web.csproj",
+      "file": "Shop.Web/Global.asax.cs",
+      "line": 20,
+      "remediation": "Add System.Configuration.ConfigurationManager or migrate to Microsoft.Extensions.Configuration.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md"
+    },
+    {
+      "ruleId": "MIG5001",
+      "title": "ConfigurationManager.AppSettings usage",
+      "category": "Configuration",
+      "severity": "low",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Reads configuration via ConfigurationManager.AppSettings.",
+      "project": "Shop.Web/Shop.Web.csproj",
+      "file": "Shop.Web/Settings.cs",
+      "line": 8,
+      "remediation": "Add System.Configuration.ConfigurationManager or migrate to Microsoft.Extensions.Configuration.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md"
+    },
+    {
+      "ruleId": "MIG6001",
+      "title": "BinaryFormatter",
+      "category": "Serialization and security",
+      "severity": "blocker",
+      "tier": "probable",
+      "effort": "large",
+      "message": "Uses BinaryFormatter, which is removed in .NET 9.",
+      "project": "Shop.Core/Shop.Core.csproj",
+      "file": "Shop.Core/Cache.cs",
+      "line": 33,
+      "remediation": "Replace with a safe serializer such as System.Text.Json.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6001.md"
+    },
+    {
+      "ruleId": "MIG7001",
+      "title": "System.Data.SqlClient",
+      "category": "Data access",
+      "severity": "medium",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Uses System.Data.SqlClient, which is in maintenance mode.",
+      "project": "Shop.Core/Shop.Core.csproj",
+      "file": "Shop.Core/Db.cs",
+      "line": 5,
+      "remediation": "Switch to Microsoft.Data.SqlClient.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md"
+    }
+  ],
+  "warnings": [
+    {
+      "message": "Skipped 'Shop.Legacy/Shop.Legacy.csproj': project file not found (referenced by the solution but missing on disk).",
+      "path": "Shop.Legacy/Shop.Legacy.csproj"
+    }
+  ]
+}
