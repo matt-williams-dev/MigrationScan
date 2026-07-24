@@ -13,4 +13,13 @@ public sealed record RuleMetadata(
     EffortBand Effort,
     ConfidenceTier Tier,
     string Remediation,
-    string DocsUrl);
+    string DocsUrl)
+{
+    /// <summary>
+    /// Whether this rule's findings are a problem on any target or only when moving off
+    /// Windows. Defaults to <see cref="RulePlatform.Any"/>; set to <see cref="RulePlatform.Windows"/>
+    /// in the catalog for Windows lock-in rules. Init-only with a default so it is optional in
+    /// the JSON catalog and existing construction sites keep compiling.
+    /// </summary>
+    public RulePlatform Platform { get; init; } = RulePlatform.Any;
+}

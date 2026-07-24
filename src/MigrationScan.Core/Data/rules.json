@@ -118,7 +118,8 @@
       "effort": "medium",
       "tier": "probable",
       "remediation": "System.Drawing.Common is Windows-only on modern .NET and throws PlatformNotSupportedException elsewhere. If the app must run on Linux, switch to a cross-platform imaging library such as ImageSharp or SkiaSharp.",
-      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4001.md"
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4001.md",
+      "platform": "windows"
     },
     {
       "id": "MIG4002",
@@ -128,7 +129,8 @@
       "effort": "small",
       "tier": "probable",
       "remediation": "The Windows Registry does not exist on other platforms; Microsoft.Win32.Registry throws PlatformNotSupportedException there. Move configuration/state to a cross-platform store (config files, environment variables, a database).",
-      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md"
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md",
+      "platform": "windows"
     },
     {
       "id": "MIG4004",
@@ -138,7 +140,8 @@
       "effort": "medium",
       "tier": "probable",
       "remediation": "System.DirectoryServices is Windows-only on modern .NET. For cross-platform directory access use System.DirectoryServices.Protocols (LDAP), which is supported on Linux, or an identity provider.",
-      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4004.md"
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4004.md",
+      "platform": "windows"
     },
     {
       "id": "MIG4008",
@@ -238,7 +241,8 @@
       "effort": "medium",
       "tier": "probable",
       "remediation": "WMI (System.Management) is Windows-only on modern .NET and throws PlatformNotSupportedException elsewhere. If the app must run cross-platform, replace WMI queries with platform-appropriate APIs.",
-      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4003.md"
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4003.md",
+      "platform": "windows"
     },
     {
       "id": "MIG4005",
@@ -248,7 +252,8 @@
       "effort": "small",
       "tier": "probable",
       "remediation": "System.Diagnostics.EventLog is Windows-only on modern .NET. Use a cross-platform logging framework (e.g. Microsoft.Extensions.Logging with a suitable sink) instead of writing to the Windows Event Log.",
-      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4005.md"
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4005.md",
+      "platform": "windows"
     },
     {
       "id": "MIG6005",
@@ -268,7 +273,8 @@
       "effort": "medium",
       "tier": "probable",
       "remediation": "The OLE DB provider (System.Data.OleDb) is Windows-only on modern .NET. Use a native, cross-platform provider (e.g. Microsoft.Data.SqlClient, Npgsql) where possible.",
-      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7003.md"
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7003.md",
+      "platform": "windows"
     },
     {
       "id": "MIG7006",
@@ -308,7 +314,8 @@
       "effort": "medium",
       "tier": "certain",
       "remediation": "COM interop is supported on modern .NET only when targeting Windows (net-windows) — regenerate the interop assembly there. It is a Windows lock-in: if the app must run cross-platform there is no COM support off Windows, so the component must be replaced. Very old or ActiveX components may also need updating even on Windows.",
-      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1006.md"
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1006.md",
+      "platform": "windows"
     },
     {
       "id": "MIG1010",
@@ -328,7 +335,8 @@
       "effort": "small",
       "tier": "probable",
       "remediation": "P/Invoke to a Windows system library (kernel32/user32/advapi32/...) works on modern .NET when targeting Windows (net-windows). It is a Windows lock-in: for cross-platform, guard the call with OperatingSystem.IsWindows() and provide a non-Windows path, or replace it with a cross-platform .NET API.",
-      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4013.md"
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4013.md",
+      "platform": "windows"
     }
   ]
 }

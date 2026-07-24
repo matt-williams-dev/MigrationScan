@@ -1,0 +1,112 @@
+﻿{
+  "schemaVersion": "1.3",
+  "target": "net10.0-windows",
+  "summary": {
+    "projectsScanned": 1,
+    "totalFindings": 2,
+    "findingsBySeverity": {
+      "blocker": 1,
+      "high": 0,
+      "medium": 1,
+      "low": 0
+    },
+    "effort": {
+      "minDays": 0.5,
+      "maxDays": 2,
+      "needsDecision": 1
+    },
+    "projectsNotAssessed": 0,
+    "windowsLockInSatisfied": 3
+  },
+  "projects": [
+    {
+      "path": "Scan.App/Scan.App.csproj",
+      "findingCount": 2,
+      "effort": {
+        "minDays": 0.5,
+        "maxDays": 2,
+        "needsDecision": 1
+      }
+    }
+  ],
+  "findings": [
+    {
+      "ruleId": "MIG1006",
+      "title": "COM reference or interop assembly",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "medium",
+      "message": "Project 'Scan.App' has a COM reference ('RANGERLib').",
+      "project": "Scan.App/Scan.App.csproj",
+      "file": "Scan.App/Scan.App.csproj",
+      "line": 12,
+      "remediation": "Supported on net-windows; replace only if going cross-platform.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1006.md",
+      "platform": "windows",
+      "satisfiedByTarget": true
+    },
+    {
+      "ruleId": "MIG3001",
+      "title": "ASP.NET WebForms",
+      "category": "Blocking frameworks",
+      "severity": "blocker",
+      "tier": "certain",
+      "effort": "blocker",
+      "message": "Project 'Scan.App' is an ASP.NET WebForms application (.aspx present).",
+      "project": "Scan.App/Scan.App.csproj",
+      "file": "Scan.App/Scan.App.csproj",
+      "line": 2,
+      "remediation": "Re-architect to Razor Pages, MVC, or Blazor.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md"
+    },
+    {
+      "ruleId": "MIG4002",
+      "title": "Windows Registry access",
+      "category": "Runtime failures",
+      "severity": "high",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Uses Microsoft.Win32.Registry.",
+      "project": "Scan.App/Scan.App.csproj",
+      "file": "Scan.App/Settings.cs",
+      "line": 8,
+      "remediation": "Move registry state to a cross-platform store; on Windows-only deployments it is fine.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md",
+      "platform": "windows",
+      "satisfiedByTarget": true
+    },
+    {
+      "ruleId": "MIG4002",
+      "title": "Windows Registry access",
+      "category": "Runtime failures",
+      "severity": "high",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Uses Microsoft.Win32.Registry.",
+      "project": "Scan.App/Scan.App.csproj",
+      "file": "Scan.App/Startup.cs",
+      "line": 19,
+      "remediation": "Move registry state to a cross-platform store; on Windows-only deployments it is fine.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md",
+      "platform": "windows",
+      "satisfiedByTarget": true
+    },
+    {
+      "ruleId": "MIG7001",
+      "title": "System.Data.SqlClient",
+      "category": "Data access",
+      "severity": "medium",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Uses System.Data.SqlClient, which is in maintenance mode.",
+      "project": "Scan.App/Scan.App.csproj",
+      "file": "Scan.App/Db.cs",
+      "line": 5,
+      "remediation": "Switch to Microsoft.Data.SqlClient.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md"
+    }
+  ],
+  "notAssessed": [],
+  "warnings": []
+}

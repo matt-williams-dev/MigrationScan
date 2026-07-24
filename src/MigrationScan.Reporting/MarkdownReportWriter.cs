@@ -22,6 +22,7 @@ public static class MarkdownReportWriter
         WriteHeader(md, result);
         WriteExecutiveSummary(md, result);
         WriteNotAssessed(md, result);
+        WriteSatisfiedByTarget(md, result);
         WriteWarnings(md, result);
         WriteBlockers(md, result);
         WriteFindingsByProject(md, result);
@@ -52,10 +53,18 @@ public static class MarkdownReportWriter
         md.AppendLine();
         md.AppendLine($"- **Projects scanned:** {result.Projects.Count}");
         md.AppendLine(
-            $"- **Findings:** {result.Findings.Count} " +
+            $"- **Findings:** {result.ActiveFindings.Count()} " +
             $"(blocker {counts[Severity.Blocker]} · high {counts[Severity.High]} · " +
             $"medium {counts[Severity.Medium]} · low {counts[Severity.Low]})");
         md.AppendLine($"- **Estimated effort:** {FormatEffort(effort)}");
+        int satisfiedCount = result.SatisfiedFindings.Count();
+        if (satisfiedCount > 0)
+        {
+            md.AppendLine(
+                $"- **Windows lock-in satisfied by `{result.Target}`:** {satisfiedCount} " +
+                "(supported on this target — see below, not counted or estimated)");
+        }
+
         if (result.NotAssessed.Count > 0)
         {
             md.AppendLine($"- **Projects not assessed:** {result.NotAssessed.Count} (see below — scope separately)");
@@ -108,9 +117,37 @@ public static class MarkdownReportWriter
         md.AppendLine();
     }
 
+    // Windows lock-in findings the current (Windows) target satisfies. Listed for completeness
+    // so the scope isn't hidden, but explicitly out of the counts and effort.
+    private static void WriteSatisfiedByTarget(StringBuilder md, AnalysisResult result)
+    {
+        List<Finding> satisfied = result.SatisfiedFindings.ToList();
+        if (satisfied.Count == 0)
+        {
+            return;
+        }
+
+        md.AppendLine($"## Satisfied by target `{result.Target}`");
+        md.AppendLine();
+        md.AppendLine(
+            "These are Windows lock-in APIs (COM, P/Invoke, Registry, WMI, …). They are fully " +
+            $"supported when targeting `{result.Target}`, so they are **not** migration cost here and " +
+            "are excluded from the findings, counts, and effort below. They would become work only if " +
+            "the migration also had to run off Windows:");
+        md.AppendLine();
+        md.AppendLine("| Rule | Location | Detail |");
+        md.AppendLine("| --- | --- | --- |");
+        foreach (Finding finding in satisfied)
+        {
+            md.AppendLine($"| {RuleLink(finding.Rule)} | `{Location(finding)}` | {EscapeCell(finding.Message)} |");
+        }
+
+        md.AppendLine();
+    }
+
     private static void WriteBlockers(StringBuilder md, AnalysisResult result)
     {
-        List<Finding> blockers = result.Findings.Where(f => f.Rule.Severity == Severity.Blocker).ToList();
+        List<Finding> blockers = result.ActiveFindings.Where(f => f.Rule.Severity == Severity.Blocker).ToList();
 
         md.AppendLine("## Blockers");
         md.AppendLine();
@@ -143,7 +180,7 @@ public static class MarkdownReportWriter
 
         foreach (string projectPath in projectPaths)
         {
-            List<Finding> findings = result.Findings.Where(f => f.ProjectPath == projectPath).ToList();
+            List<Finding> findings = result.ActiveFindings.Where(f => f.ProjectPath == projectPath).ToList();
 
             md.AppendLine($"### `{projectPath}`");
             md.AppendLine();
@@ -179,13 +216,13 @@ public static class MarkdownReportWriter
 
         foreach (string projectPath in result.Projects.Select(p => p.Path).OrderBy(p => p, StringComparer.Ordinal))
         {
-            int findingCount = result.Findings.Count(f => f.ProjectPath == projectPath);
+            int findingCount = result.ActiveFindings.Count(f => f.ProjectPath == projectPath);
             EffortEstimate effort = EffortModel.ForProject(result, projectPath);
             md.AppendLine($"| `{projectPath}` | {findingCount} | {FormatDays(effort)} | {effort.BlockerCount} |");
         }
 
         EffortEstimate total = EffortModel.ForSolution(result);
-        md.AppendLine($"| **Total** | **{result.Findings.Count}** | **{FormatDays(total)}** | **{total.BlockerCount}** |");
+        md.AppendLine($"| **Total** | **{result.ActiveFindings.Count()}** | **{FormatDays(total)}** | **{total.BlockerCount}** |");
         md.AppendLine();
         md.AppendLine($"_{Disclaimer}_");
         md.AppendLine();
@@ -193,7 +230,7 @@ public static class MarkdownReportWriter
 
     private static void WriteRemediation(StringBuilder md, AnalysisResult result)
     {
-        List<RuleMetadata> rules = result.Findings
+        List<RuleMetadata> rules = result.ActiveFindings
             .Select(f => f.Rule)
             .DistinctBy(r => r.Id)
             .OrderBy(r => r.Id, StringComparer.Ordinal)

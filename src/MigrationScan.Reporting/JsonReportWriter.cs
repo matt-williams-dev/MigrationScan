@@ -14,9 +14,12 @@ public static class JsonReportWriter
 {
     /// <summary>
     /// Schema version. 1.1 added the effort rollup; 1.2 added the `notAssessed` array and
-    /// `summary.projectsNotAssessed`. All additive, backward-compatible over 1.0.
+    /// `summary.projectsNotAssessed`; 1.3 added portability awareness — `finding.platform`,
+    /// `finding.satisfiedByTarget`, and `summary.windowsLockInSatisfied`. `summary.totalFindings`
+    /// and `project.findingCount` count only active findings (a Windows target's satisfied
+    /// lock-in findings are excluded). All additive, backward-compatible over 1.0.
     /// </summary>
-    public const string SchemaVersion = "1.2";
+    public const string SchemaVersion = "1.3";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -32,25 +35,28 @@ public static class JsonReportWriter
     public static string Write(AnalysisResult result)
     {
         IReadOnlyDictionary<Severity, int> counts = result.CountsBySeverity();
+        int satisfiedCount = result.SatisfiedFindings.Count();
 
         ReportDocument document = new(
             SchemaVersion: SchemaVersion,
             Target: result.Target,
             Summary: new ReportSummary(
                 ProjectsScanned: result.Projects.Count,
-                TotalFindings: result.Findings.Count,
+                TotalFindings: result.ActiveFindings.Count(),
                 FindingsBySeverity: new SeverityCounts(
                     Blocker: counts[Severity.Blocker],
                     High: counts[Severity.High],
                     Medium: counts[Severity.Medium],
                     Low: counts[Severity.Low]),
                 Effort: ToEffort(EffortModel.ForSolution(result)),
-                ProjectsNotAssessed: result.NotAssessed.Count),
+                ProjectsNotAssessed: result.NotAssessed.Count,
+                // Omitted entirely on a cross-platform target (nothing is satisfied).
+                WindowsLockInSatisfied: satisfiedCount == 0 ? null : satisfiedCount),
             Projects: result.Projects
                 .OrderBy(p => p.Path, StringComparer.Ordinal)
                 .Select(p => new ReportProject(
                     Path: p.Path,
-                    FindingCount: result.Findings.Count(f => f.ProjectPath == p.Path),
+                    FindingCount: result.ActiveFindings.Count(f => f.ProjectPath == p.Path),
                     Effort: ToEffort(EffortModel.ForProject(result, p.Path))))
                 .ToList(),
             Findings: result.Findings.Select(ToDto).ToList(),
@@ -84,7 +90,11 @@ public static class JsonReportWriter
         File: finding.FilePath,
         Line: finding.Line,
         Remediation: finding.Rule.Remediation,
-        DocsUrl: finding.Rule.DocsUrl);
+        DocsUrl: finding.Rule.DocsUrl,
+        // Emitted only for Windows lock-in rules; omitted for the ordinary "any" case.
+        Platform: finding.Rule.Platform == RulePlatform.Windows ? "windows" : null,
+        // True only when a Windows target satisfies this lock-in finding; otherwise omitted.
+        SatisfiedByTarget: finding.SatisfiedByTarget ? true : null);
 
     private sealed record ReportDocument(
         string SchemaVersion,
@@ -104,7 +114,8 @@ public static class JsonReportWriter
         int TotalFindings,
         SeverityCounts FindingsBySeverity,
         ReportEffort Effort,
-        int ProjectsNotAssessed);
+        int ProjectsNotAssessed,
+        int? WindowsLockInSatisfied);
 
     private sealed record ReportProject(string Path, int FindingCount, ReportEffort Effort);
 
@@ -124,5 +135,7 @@ public static class JsonReportWriter
         string? File,
         int? Line,
         string Remediation,
-        string DocsUrl);
+        string DocsUrl,
+        string? Platform,
+        bool? SatisfiedByTarget);
 }

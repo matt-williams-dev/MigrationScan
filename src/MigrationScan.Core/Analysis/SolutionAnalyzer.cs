@@ -49,7 +49,7 @@ public sealed class SolutionAnalyzer
         {
             string root = Path.GetDirectoryName(Path.GetFullPath(path))!;
             (DiscoveredProject project, IReadOnlyList<Finding> binaryFindings) = BinaryAnalyzer.Analyze(path, root);
-            return new AnalysisResult(targetFramework, [project], Sort(binaryFindings), []);
+            return new AnalysisResult(targetFramework, [project], Sort(binaryFindings, targetFramework), []);
         }
 
         ScanInput input = ScanInput.Resolve(path);
@@ -82,7 +82,7 @@ public sealed class SolutionAnalyzer
             SolutionProjectAnalyzer.Analyze(input.OtherProjects, input.RootDirectory, _catalog);
         findings.AddRange(otherFindings);
 
-        return new AnalysisResult(targetFramework, projects, Sort(findings), SortWarnings(warnings))
+        return new AnalysisResult(targetFramework, projects, Sort(findings, targetFramework), SortWarnings(warnings))
         {
             NotAssessed = notAssessed.OrderBy(p => p.Path, StringComparer.Ordinal).ToList(),
         };
@@ -107,16 +107,23 @@ public sealed class SolutionAnalyzer
 
     // Collapse identical findings (same rule, location, and message) — e.g. a rule that
     // matches two related identifiers on one line — then order stably so the same input
-    // always produces byte-identical output.
-    private static IReadOnlyList<Finding> Sort(IEnumerable<Finding> findings) =>
-        findings
+    // always produces byte-identical output. Windows lock-in findings are marked "satisfied"
+    // when the target is a Windows TFM, so the reports downgrade rather than count them.
+    private static IReadOnlyList<Finding> Sort(IEnumerable<Finding> findings, string targetFramework)
+    {
+        bool targetIsWindows = TargetPlatform.IsWindows(targetFramework);
+        return findings
             .Distinct()
             .OrderBy(f => f.ProjectPath, StringComparer.Ordinal)
             .ThenBy(f => f.Rule.Id, StringComparer.Ordinal)
             .ThenBy(f => f.Line ?? 0)
             .ThenBy(f => f.FilePath, StringComparer.Ordinal)
             .ThenBy(f => f.Message, StringComparer.Ordinal)
+            .Select(f => targetIsWindows && f.Rule.Platform == RulePlatform.Windows
+                ? f with { SatisfiedByTarget = true }
+                : f)
             .ToList();
+    }
 
     private static IReadOnlyList<ScanWarning> SortWarnings(IEnumerable<ScanWarning> warnings) =>
         warnings
