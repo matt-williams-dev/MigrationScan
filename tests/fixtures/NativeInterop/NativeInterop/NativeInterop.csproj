@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- COM interop — Windows lock-in (MIG1006). -->
+    <COMReference Include="RANGERLib">
+      <Guid>{8b3a1e60-0000-0000-0000-000000000001}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>false</Isolated>
+    </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Vendored assembly from a checked-in path, not a NuGet package (MIG1010). -->
+    <Reference Include="AxRANGERLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>libs\AxRANGERLib.dll</HintPath>
+    </Reference>
+    <!-- Restored from the NuGet cache — a normal package, NOT vendored (no MIG1010). -->
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

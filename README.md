@@ -59,7 +59,9 @@ MigrationScan ships a catalog of stable, never-reused rule IDs grouped by catego
 | [MIG1002](docs/rules/MIG1002.md) | `packages.config` instead of PackageReference | Medium | 1 — Certain |
 | [MIG1003](docs/rules/MIG1003.md) | Target framework below 4.6.2 | Medium | 1 — Certain |
 | [MIG1005](docs/rules/MIG1005.md) | GAC reference (no HintPath) | Medium | 1 — Certain |
+| [MIG1006](docs/rules/MIG1006.md) | COM reference or interop assembly (Windows lock-in) | Medium | 1 — Certain |
 | [MIG1007](docs/rules/MIG1007.md) | Legacy project type (SSRS, SSIS, setup, Silverlight, Web Site) | High | 1 — Certain |
+| [MIG1010](docs/rules/MIG1010.md) | Vendored DLL with no source and no NuGet equivalent | High | 1 — Certain |
 | [MIG2001](docs/rules/MIG2001.md) | Package has no version supporting the target framework | High | 1 — Certain |
 | [MIG2002](docs/rules/MIG2002.md) | Package marked deprecated on nuget.org (`--online`) | Medium | 1 — Certain |
 | [MIG3001](docs/rules/MIG3001.md) | ASP.NET WebForms | Blocker | 1 — Certain |
@@ -76,6 +78,7 @@ MigrationScan ships a catalog of stable, never-reused rule IDs grouped by catego
 | [MIG4004](docs/rules/MIG4004.md) | `System.DirectoryServices` / Active Directory | High | 2 — Probable |
 | [MIG4005](docs/rules/MIG4005.md) | `EventLog` | Medium | 2 — Probable |
 | [MIG4008](docs/rules/MIG4008.md) | `Thread.Abort` | Medium | 2 — Probable |
+| [MIG4013](docs/rules/MIG4013.md) | P/Invoke to a Windows system DLL (Windows lock-in) | Medium | 2 — Probable |
 | [MIG5001](docs/rules/MIG5001.md) | `ConfigurationManager.AppSettings` usage | Low | 2 — Probable |
 | [MIG6001](docs/rules/MIG6001.md) | `BinaryFormatter` (removed in .NET 9) | Blocker | 2 — Probable |
 | [MIG6004](docs/rules/MIG6004.md) | Code Access Security attributes | Medium | 2 — Probable |

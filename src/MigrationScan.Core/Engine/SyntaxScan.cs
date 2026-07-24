@@ -130,6 +130,24 @@ public static class SyntaxScan
     }
 
     /// <summary>
+    /// Attribute usages named <paramref name="attributeName"/> (ignoring namespace and the
+    /// <c>Attribute</c> suffix), yielding each one's line and the value of its first argument
+    /// if that argument is a string literal (e.g. the DLL name in <c>[DllImport("kernel32.dll")]</c>).
+    /// </summary>
+    public static IEnumerable<(int Line, string? FirstStringArgument)> AttributesWithStringArg(
+        SyntaxNode root, string attributeName)
+    {
+        StringComparison cmp = Casing(root);
+        foreach (SyntaxNode node in root.DescendantNodes())
+        {
+            if (AttributeWithArg(node) is { Name: { } name, FirstStringArg: var arg } && name.Equals(attributeName, cmp))
+            {
+                yield return (LineOf(node), arg);
+            }
+        }
+    }
+
+    /// <summary>
     /// Lines of attribute usages whose simple name (ignoring namespace and the
     /// <c>Attribute</c> suffix) is one of the given names.
     /// </summary>
@@ -225,6 +243,31 @@ public static class SyntaxScan
         VB.AttributeSyntax a => SimpleAttributeName(a.Name.ToString()),
         _ => null,
     };
+
+    private static (string? Name, string? FirstStringArg)? AttributeWithArg(SyntaxNode node)
+    {
+        switch (node)
+        {
+            case CS.AttributeSyntax a:
+            {
+                string? arg = a.ArgumentList?.Arguments.FirstOrDefault()?.Expression is CS.LiteralExpressionSyntax { Token.Value: string s }
+                    ? s
+                    : null;
+                return (SimpleAttributeName(a.Name.ToString()), arg);
+            }
+
+            case VB.AttributeSyntax a:
+            {
+                string? arg = a.ArgumentList?.Arguments.FirstOrDefault() is VB.SimpleArgumentSyntax { Expression: VB.LiteralExpressionSyntax { Token.Value: string s } }
+                    ? s
+                    : null;
+                return (SimpleAttributeName(a.Name.ToString()), arg);
+            }
+
+            default:
+                return null;
+        }
+    }
 
     private static string SimpleAttributeName(string name)
     {
