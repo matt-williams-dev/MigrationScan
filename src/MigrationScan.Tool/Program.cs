@@ -33,7 +33,8 @@ var formatOption = new Option<string[]>("--format", "-f")
 
 var outputOption = new Option<string?>("--output", "-o")
 {
-    Description = "Write file-based formats (e.g. json) to this path instead of stdout.",
+    Description = "Write file-based formats (json, markdown) here instead of stdout. A directory "
+        + "receives report.<ext>; with multiple formats a file path is disambiguated by extension.",
 };
 
 var rootCommand = new RootCommand(

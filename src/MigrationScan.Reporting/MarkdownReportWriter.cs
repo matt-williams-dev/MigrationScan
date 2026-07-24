@@ -145,7 +145,7 @@ public static class MarkdownReportWriter
     {
         md.AppendLine("## Effort breakdown");
         md.AppendLine();
-        md.AppendLine("| Project | Findings | Estimated days | Blockers |");
+        md.AppendLine("| Project | Findings | Estimated days | Needs decision |");
         md.AppendLine("| --- | --- | --- | --- |");
 
         foreach (string projectPath in result.Projects.Select(p => p.Path).OrderBy(p => p, StringComparer.Ordinal))
@@ -200,8 +200,11 @@ public static class MarkdownReportWriter
         md.AppendLine();
         md.AppendLine(
             "Effort figures apply a per-rule range and a flattening occurrence factor, aggregated per project " +
-            "and across the solution. Blocking issues are counted separately because they need an architectural " +
-            "decision before they can be estimated.");
+            "and across the solution. Two things are tracked separately and can differ: **severity** (the " +
+            "*Blockers* section lists the highest-impact findings) and **estimability** (the *Needs decision* " +
+            "count is the subset whose effort is unbounded until an architectural decision is made). A finding " +
+            "can be a severity blocker yet still estimable — for example replacing `BinaryFormatter` is high " +
+            "impact but a bounded change.");
         md.AppendLine();
         md.AppendLine($"_{Disclaimer}_");
     }
@@ -216,11 +219,13 @@ public static class MarkdownReportWriter
             return $"{days} engineer-days";
         }
 
-        string blockers = $"{effort.BlockerCount} blocking issue{(effort.BlockerCount == 1 ? "" : "s")} " +
-            "requiring an architectural decision (not estimated)";
+        // Deliberately avoids the word "blocker" here: this is the *estimability* dimension
+        // (effort band), distinct from severity-Blocker findings listed under "## Blockers".
+        string decisions = $"{effort.BlockerCount} item{(effort.BlockerCount == 1 ? "" : "s")} " +
+            "requiring an architectural decision before they can be estimated";
         return effort is { MinDays: 0, MaxDays: 0 }
-            ? blockers
-            : $"{days} engineer-days, plus {blockers}";
+            ? decisions
+            : $"{days} engineer-days, plus {decisions}";
     }
 
     private static string FormatDays(EffortEstimate effort)

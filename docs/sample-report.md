@@ -6,7 +6,7 @@ Static analysis of a solution's readiness to move to `net10.0`, produced by Migr
 
 - **Projects scanned:** 1
 - **Findings:** 6 (blocker 1 · high 1 · medium 3 · low 1)
-- **Estimated effort:** 5.5–16 engineer-days, plus 1 blocking issue requiring an architectural decision (not estimated)
+- **Estimated effort:** 5.5–16 engineer-days, plus 1 item requiring an architectural decision before they can be estimated
 
 > These figures are heuristic planning aids derived from static analysis and are not a quote.
 
@@ -20,7 +20,7 @@ These need an architectural decision before migration can proceed:
 
 ### `LegacyWebForms/LegacyWebForms.csproj`
 
-Estimated effort: 5.5–16 engineer-days, plus 1 blocking issue requiring an architectural decision (not estimated)
+Estimated effort: 5.5–16 engineer-days, plus 1 item requiring an architectural decision before they can be estimated
 
 | Rule | Severity | Tier | Effort | Location | Issue |
 | --- | --- | --- | --- | --- | --- |
@@ -33,7 +33,7 @@ Estimated effort: 5.5–16 engineer-days, plus 1 blocking issue requiring an arc
 
 ## Effort breakdown
 
-| Project | Findings | Estimated days | Blockers |
+| Project | Findings | Estimated days | Needs decision |
 | --- | --- | --- | --- |
 | `LegacyWebForms/LegacyWebForms.csproj` | 6 | 5.5–16 | 1 |
 | **Total** | **6** | **5.5–16** | **1** |
@@ -73,6 +73,6 @@ MigrationScan parses `.sln` and `.csproj` files as XML and reads `.cs` files wit
 - **Tier 1 — Certain:** read directly from project, config, or solution files.
 - **Tier 2 — Probable:** matched on the syntax tree without a resolved compilation, so some may be false positives.
 
-Effort figures apply a per-rule range and a flattening occurrence factor, aggregated per project and across the solution. Blocking issues are counted separately because they need an architectural decision before they can be estimated.
+Effort figures apply a per-rule range and a flattening occurrence factor, aggregated per project and across the solution. Two things are tracked separately and can differ: **severity** (the *Blockers* section lists the highest-impact findings) and **estimability** (the *Needs decision* count is the subset whose effort is unbounded until an architectural decision is made). A finding can be a severity blocker yet still estimable — for example replacing `BinaryFormatter` is high impact but a bounded change.
 
 _These figures are heuristic planning aids derived from static analysis and are not a quote._

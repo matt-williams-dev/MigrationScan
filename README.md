@@ -95,6 +95,11 @@ migrationscan <path> [options]
   --verbosity <level>     quiet | normal | detailed
 ```
 
+`console` always writes to stdout. For `json`/`markdown`, `--output` may be a **file**
+(written as-is for a single format) or a **directory** (receives `report.json` /
+`report.md`). When several file formats share one `--output` file path, each is written with
+its own extension so they don't overwrite each other.
+
 ### Exit codes
 
 | Code | Meaning |
