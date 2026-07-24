@@ -69,6 +69,126 @@
       "tier": "probable",
       "remediation": "On modern .NET, either add the System.Configuration.ConfigurationManager package to keep reading app.config, or migrate to Microsoft.Extensions.Configuration (appsettings.json, environment variables, options pattern).",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md"
+    },
+    {
+      "id": "MIG3004",
+      "title": "WCF service host (server side)",
+      "category": "Blocking frameworks",
+      "severity": "high",
+      "effort": "large",
+      "tier": "probable",
+      "remediation": "Server-side WCF (ServiceHost) is not part of modern .NET. Migrate the service to CoreWCF, or re-implement it as gRPC or a minimal/Web API. WCF client usage is separately supported via the System.ServiceModel.* client packages.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3004.md"
+    },
+    {
+      "id": "MIG3005",
+      "title": ".NET Remoting",
+      "category": "Blocking frameworks",
+      "severity": "blocker",
+      "effort": "blocker",
+      "tier": "probable",
+      "remediation": ".NET Remoting was removed entirely and has no modern equivalent. Replace it with a supported transport: gRPC, WCF on CoreWCF, or an HTTP API. This needs an architectural decision.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3005.md"
+    },
+    {
+      "id": "MIG3010",
+      "title": "ASP.NET MVC 5 (System.Web.Mvc)",
+      "category": "Blocking frameworks",
+      "severity": "high",
+      "effort": "large",
+      "tier": "probable",
+      "remediation": "ASP.NET MVC 5 (System.Web.Mvc) runs only on .NET Framework. Migrate to ASP.NET Core MVC (Microsoft.AspNetCore.Mvc). Controllers and views port with edits; routing, filters, and DI wiring change.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3010.md"
+    },
+    {
+      "id": "MIG4001",
+      "title": "System.Drawing.Common on non-Windows",
+      "category": "Runtime failures",
+      "severity": "high",
+      "effort": "medium",
+      "tier": "probable",
+      "remediation": "System.Drawing.Common is Windows-only on modern .NET and throws PlatformNotSupportedException elsewhere. If the app must run on Linux, switch to a cross-platform imaging library such as ImageSharp or SkiaSharp.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4001.md"
+    },
+    {
+      "id": "MIG4002",
+      "title": "Windows Registry access",
+      "category": "Runtime failures",
+      "severity": "high",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "The Windows Registry does not exist on other platforms; Microsoft.Win32.Registry throws PlatformNotSupportedException there. Move configuration/state to a cross-platform store (config files, environment variables, a database).",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md"
+    },
+    {
+      "id": "MIG4004",
+      "title": "System.DirectoryServices / Active Directory",
+      "category": "Runtime failures",
+      "severity": "high",
+      "effort": "medium",
+      "tier": "probable",
+      "remediation": "System.DirectoryServices is Windows-only on modern .NET. For cross-platform directory access use System.DirectoryServices.Protocols (LDAP), which is supported on Linux, or an identity provider.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4004.md"
+    },
+    {
+      "id": "MIG4008",
+      "title": "Thread.Abort",
+      "category": "Runtime failures",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "Thread.Abort is not supported on modern .NET and throws PlatformNotSupportedException. Replace it with cooperative cancellation using CancellationToken.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4008.md"
+    },
+    {
+      "id": "MIG6001",
+      "title": "BinaryFormatter",
+      "category": "Serialization and security",
+      "severity": "blocker",
+      "effort": "large",
+      "tier": "probable",
+      "remediation": "BinaryFormatter is removed in .NET 9 and throws when invoked (it was also a well-known security risk). Replace it with a safe serializer: System.Text.Json, MessagePack, or protobuf. Changing serialization format may require a data migration.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6001.md"
+    },
+    {
+      "id": "MIG6004",
+      "title": "Code Access Security attributes",
+      "category": "Serialization and security",
+      "severity": "medium",
+      "effort": "medium",
+      "tier": "probable",
+      "remediation": "Code Access Security is not honored on modern .NET. Remove CAS attributes (SecurityPermission, PermissionSet, PrincipalPermission) and enforce authorization at the application layer instead.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6004.md"
+    },
+    {
+      "id": "MIG7001",
+      "title": "System.Data.SqlClient",
+      "category": "Data access",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "System.Data.SqlClient is in maintenance mode. Switch to Microsoft.Data.SqlClient, and review the Encrypt=true default change in 4.0+ that can break existing connection strings (see MIG7002).",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md"
+    },
+    {
+      "id": "MIG8002",
+      "title": "Encoding.Default behavior change",
+      "category": "Globalization and encoding",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "Encoding.Default is the system ANSI code page on .NET Framework but always UTF-8 on modern .NET. Make the intended encoding explicit (e.g. Encoding.UTF8 or a specific code page) wherever bytes cross a boundary.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG8002.md"
+    },
+    {
+      "id": "MIG8003",
+      "title": "Code-page encoding without provider registration",
+      "category": "Globalization and encoding",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "Modern .NET does not register legacy code-page encodings by default. Call Encoding.RegisterProvider(CodePagesEncodingProvider.Instance) at startup, or the Encoding.GetEncoding call throws for non-Unicode code pages.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG8003.md"
     }
   ]
 }

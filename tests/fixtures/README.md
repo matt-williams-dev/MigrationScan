@@ -16,5 +16,12 @@ Phase 1.
   MIG3001 (WebForms), and MIG5001 (`ConfigurationManager.AppSettings`).
 - **LegacyLibrary** — non-SDK class library referencing `System.Web` with no WebForms
   markup. Triggers MIG1001 and MIG3002 (System.Web outside WebForms).
+- **LegacySyntax** — SDK-style project whose `.cs` files exercise each Tier 2 syntax rule
+  (MIG3004/3005/3010, MIG4001/4002/4004/4008, MIG6001/6004, MIG7001, MIG8002/8003). SDK-style
+  on purpose, so only the syntax findings appear.
+- **NestedProjects** — a project wrapping a nested project and a `.hidden` folder; guards
+  against absorbing files that belong to neither (must yield zero findings).
+- **GacHintPath** — empty vs. real `<HintPath>` edge case for MIG1005.
+- **StaleReference** — solution referencing a missing project (skipped with a warning).
 - **ModernClean** — clean SDK-style app. Must produce **zero** findings; this is the
   false-positive guard (spec §12).

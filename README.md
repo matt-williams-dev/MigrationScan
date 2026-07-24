@@ -62,7 +62,19 @@ MigrationScan ships a catalog of stable, never-reused rule IDs grouped by catego
 | [MIG2001](docs/rules/MIG2001.md) | Package has no version supporting the target framework | High | 1 — Certain |
 | [MIG3001](docs/rules/MIG3001.md) | ASP.NET WebForms | Blocker | 1 — Certain |
 | [MIG3002](docs/rules/MIG3002.md) | `System.Web` dependency outside WebForms | High | 1 — Certain |
+| [MIG3004](docs/rules/MIG3004.md) | WCF service host (server side) | High | 2 — Probable |
+| [MIG3005](docs/rules/MIG3005.md) | .NET Remoting | Blocker | 2 — Probable |
+| [MIG3010](docs/rules/MIG3010.md) | ASP.NET MVC 5 (`System.Web.Mvc`) | High | 2 — Probable |
+| [MIG4001](docs/rules/MIG4001.md) | `System.Drawing.Common` on non-Windows | High | 2 — Probable |
+| [MIG4002](docs/rules/MIG4002.md) | Windows Registry access | High | 2 — Probable |
+| [MIG4004](docs/rules/MIG4004.md) | `System.DirectoryServices` / Active Directory | High | 2 — Probable |
+| [MIG4008](docs/rules/MIG4008.md) | `Thread.Abort` | Medium | 2 — Probable |
 | [MIG5001](docs/rules/MIG5001.md) | `ConfigurationManager.AppSettings` usage | Low | 2 — Probable |
+| [MIG6001](docs/rules/MIG6001.md) | `BinaryFormatter` (removed in .NET 9) | Blocker | 2 — Probable |
+| [MIG6004](docs/rules/MIG6004.md) | Code Access Security attributes | Medium | 2 — Probable |
+| [MIG7001](docs/rules/MIG7001.md) | `System.Data.SqlClient` | Medium | 2 — Probable |
+| [MIG8002](docs/rules/MIG8002.md) | `Encoding.Default` behavior change | Medium | 2 — Probable |
+| [MIG8003](docs/rules/MIG8003.md) | Code-page encoding without provider registration | Medium | 2 — Probable |
 
 More rules land phase by phase; see the [full catalog in the spec](migrationscan-spec.md#6-rule-catalog).
 
@@ -123,7 +135,7 @@ Development proceeds in ordered phases (see the spec for detail):
 - [x] **Phase 0** — Foundation: repo, license, CI on Linux/Windows/macOS, empty solution
 - [x] **Phase 1** — Walking skeleton: parse `.sln`/`.csproj`, first rule (MIG1001), console + JSON output
 - [x] **Phase 2** — Rule engine (project-file + Roslyn syntax rules) and the first rule batch
-- [ ] **Phase 3** — Roslyn syntax rules (Tier 2)
+- [x] **Phase 3** — Roslyn syntax rules (Tier 2): 12 runtime/blocking-framework detectors
 - [ ] **Phase 4** — Effort model and Markdown report
 - [ ] **Phase 5** — CI integration: SARIF, exit codes, baselines
 - [ ] **Phase 6** — Post-v1: `--online` lookups, binary analysis, VB.NET, remaining rules
