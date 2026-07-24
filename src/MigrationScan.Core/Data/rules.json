@@ -41,6 +41,16 @@
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG2001.md"
     },
     {
+      "id": "MIG2002",
+      "title": "Package marked deprecated on nuget.org",
+      "category": "Dependencies",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "certain",
+      "remediation": "The package is deprecated by its maintainers. Move to the suggested replacement (named in the finding when nuget.org provides one) or an actively-maintained alternative. Deprecated packages stop receiving fixes and are a migration risk even when they still run.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG2002.md"
+    },
+    {
       "id": "MIG3001",
       "title": "ASP.NET WebForms",
       "category": "Blocking frameworks",

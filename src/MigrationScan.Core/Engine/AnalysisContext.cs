@@ -2,6 +2,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using MigrationScan.Core.Analysis;
 using MigrationScan.Core.Discovery;
 using MigrationScan.Core.Models;
 
@@ -25,7 +26,8 @@ public sealed class AnalysisContext
         string projectAbsolutePath,
         string targetFramework,
         XDocument document,
-        DiscoveredProject project)
+        DiscoveredProject project,
+        IPackageRegistry packageRegistry)
     {
         _rootDirectory = rootDirectory;
         ProjectAbsolutePath = projectAbsolutePath;
@@ -34,6 +36,7 @@ public sealed class AnalysisContext
         Document = document;
         Namespace = document.Root!.GetDefaultNamespace();
         Project = project;
+        PackageRegistry = packageRegistry;
 
         _sourceFiles = new Lazy<IReadOnlyList<SourceFile>>(LoadSourceFiles);
         _packages = new Lazy<IReadOnlyList<PackageReferenceInfo>>(LoadPackages);
@@ -70,13 +73,22 @@ public sealed class AnalysisContext
     /// <summary>Assembly <c>&lt;Reference&gt;</c> elements declared in the project file.</summary>
     public IReadOnlyList<AssemblyReferenceInfo> AssemblyReferences => _assemblyReferences.Value;
 
+    /// <summary>External package status source (offline/empty unless <c>--online</c>).</summary>
+    public IPackageRegistry PackageRegistry { get; }
+
     /// <summary>Builds a context for one project, loading the project XML once.</summary>
-    public static AnalysisContext Create(string rootDirectory, string projectAbsolutePath, string targetFramework)
+    public static AnalysisContext Create(
+        string rootDirectory,
+        string projectAbsolutePath,
+        string targetFramework,
+        IPackageRegistry? packageRegistry = null)
     {
         XDocument document = XDocument.Load(projectAbsolutePath, LoadOptions.SetLineInfo);
         string relativePath = PathUtilities.ToRelative(rootDirectory, projectAbsolutePath);
         DiscoveredProject project = ProjectParser.ParseFrom(document, projectAbsolutePath, relativePath);
-        return new AnalysisContext(rootDirectory, projectAbsolutePath, targetFramework, document, project);
+        return new AnalysisContext(
+            rootDirectory, projectAbsolutePath, targetFramework, document, project,
+            packageRegistry ?? EmptyPackageRegistry.Instance);
     }
 
     /// <summary>True if the project directory contains any file with one of the given extensions.</summary>

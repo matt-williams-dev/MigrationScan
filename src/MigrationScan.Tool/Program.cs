@@ -48,6 +48,12 @@ var baselineOption = new Option<string?>("--baseline")
     Description = "Suppress findings present in a baseline (a JSON report captured earlier).",
 };
 
+var onlineOption = new Option<bool>("--online")
+{
+    Description = "Allow nuget.org lookups for package status (e.g. deprecations). Off by default; "
+        + "the default path makes no network calls.",
+};
+
 var rootCommand = new RootCommand(
     "MigrationScan — a free, deterministic, offline .NET Framework migration assessment tool.")
 {
@@ -57,6 +63,7 @@ var rootCommand = new RootCommand(
     outputOption,
     failOnOption,
     baselineOption,
+    onlineOption,
 };
 
 rootCommand.SetAction(parseResult =>
@@ -67,6 +74,7 @@ rootCommand.SetAction(parseResult =>
     string? output = parseResult.GetValue(outputOption);
     string? failOnValue = parseResult.GetValue(failOnOption);
     string? baselinePath = parseResult.GetValue(baselineOption);
+    bool online = parseResult.GetValue(onlineOption);
 
     string[] normalizedFormats = formats.Select(f => f.ToLowerInvariant()).Distinct().ToArray();
     string[] unknownFormats = normalizedFormats.Where(f => f is not ("console" or "json" or "markdown" or "sarif")).ToArray();
@@ -102,7 +110,11 @@ rootCommand.SetAction(parseResult =>
 
     try
     {
-        SolutionAnalyzer analyzer = SolutionAnalyzer.CreateDefault();
+        using NuGetPackageRegistry? registry = online
+            ? new NuGetPackageRegistry(message => Console.Error.WriteLine($"warning: {message}"))
+            : null;
+
+        SolutionAnalyzer analyzer = SolutionAnalyzer.CreateDefault(registry);
         AnalysisResult result = analyzer.Analyze(path, target);
 
         if (baselinePath is not null)

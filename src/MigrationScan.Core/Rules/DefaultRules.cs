@@ -16,6 +16,7 @@ public static class DefaultRules
         new Mig1002PackagesConfig(catalog.Get(Mig1002PackagesConfig.Id)),
         new Mig1005GacReference(catalog.Get(Mig1005GacReference.Id)),
         new Mig2001IncompatiblePackage(catalog.Get(Mig2001IncompatiblePackage.Id), packageCatalog),
+        new Mig2002DeprecatedPackage(catalog.Get(Mig2002DeprecatedPackage.Id)),
         new Mig3001WebForms(catalog.Get(Mig3001WebForms.Id)),
         new Mig3002SystemWeb(catalog.Get(Mig3002SystemWeb.Id)),
         new Mig3004WcfServiceHost(catalog.Get(Mig3004WcfServiceHost.Id)),
