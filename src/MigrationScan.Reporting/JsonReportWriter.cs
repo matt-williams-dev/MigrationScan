@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MigrationScan.Core.Effort;
 using MigrationScan.Core.Models;
 
 namespace MigrationScan.Reporting;
@@ -11,8 +12,11 @@ namespace MigrationScan.Reporting;
 /// </summary>
 public static class JsonReportWriter
 {
-    /// <summary>Bumped only on a breaking change to the JSON shape.</summary>
-    public const string SchemaVersion = "1.0";
+    /// <summary>
+    /// Schema version. 1.1 added the effort rollup (`summary.effort` and the `projects`
+    /// array); this is an additive, backward-compatible change over 1.0.
+    /// </summary>
+    public const string SchemaVersion = "1.1";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -39,7 +43,15 @@ public static class JsonReportWriter
                     Blocker: counts[Severity.Blocker],
                     High: counts[Severity.High],
                     Medium: counts[Severity.Medium],
-                    Low: counts[Severity.Low])),
+                    Low: counts[Severity.Low]),
+                Effort: ToEffort(EffortModel.ForSolution(result))),
+            Projects: result.Projects
+                .OrderBy(p => p.Path, StringComparer.Ordinal)
+                .Select(p => new ReportProject(
+                    Path: p.Path,
+                    FindingCount: result.Findings.Count(f => f.ProjectPath == p.Path),
+                    Effort: ToEffort(EffortModel.ForProject(result, p.Path))))
+                .ToList(),
             Findings: result.Findings.Select(ToDto).ToList(),
             Warnings: result.Warnings.Select(w => new ReportWarning(w.Message, w.Path)).ToList());
 
@@ -48,6 +60,13 @@ public static class JsonReportWriter
         // formatting newlines are affected.
         return JsonSerializer.Serialize(document, SerializerOptions).Replace("\r\n", "\n");
     }
+
+    // Effort as heuristic engineer-day ranges, rounded for display; "needsDecision" is the
+    // count of blocking issues that need an architectural decision before they can be estimated.
+    private static ReportEffort ToEffort(EffortEstimate estimate) => new(
+        MinDays: EffortModel.Round(estimate.MinDays),
+        MaxDays: EffortModel.Round(estimate.MaxDays),
+        NeedsDecision: estimate.BlockerCount);
 
     private static ReportFinding ToDto(Finding finding) => new(
         RuleId: finding.Rule.Id,
@@ -67,6 +86,7 @@ public static class JsonReportWriter
         string SchemaVersion,
         string Target,
         ReportSummary Summary,
+        IReadOnlyList<ReportProject> Projects,
         IReadOnlyList<ReportFinding> Findings,
         IReadOnlyList<ReportWarning> Warnings);
 
@@ -75,7 +95,12 @@ public static class JsonReportWriter
     private sealed record ReportSummary(
         int ProjectsScanned,
         int TotalFindings,
-        SeverityCounts FindingsBySeverity);
+        SeverityCounts FindingsBySeverity,
+        ReportEffort Effort);
+
+    private sealed record ReportProject(string Path, int FindingCount, ReportEffort Effort);
+
+    private sealed record ReportEffort(double MinDays, double MaxDays, int NeedsDecision);
 
     private sealed record SeverityCounts(int Blocker, int High, int Medium, int Low);
 

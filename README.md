@@ -167,6 +167,14 @@ A baseline is just a JSON report captured earlier; findings whose rule, file, an
 one in the baseline are suppressed. (Line numbers are ignored, so baselined findings survive
 unrelated edits that shift lines.)
 
+### Building on the output
+
+The JSON is a stable, versioned, deterministic feed meant to be consumed by other tools —
+dashboards, portfolio rollups, or your own scoping/estimating layer. Alongside the findings it
+carries an effort rollup (`summary.effort` and a per-`projects` breakdown, in engineer-day
+ranges). See the [output schema](docs/schema) for the full shape and consumer notes. Effort
+figures are heuristic planning aids, not a quote — apply your own rates and judgment downstream.
+
 ## Limitations
 
 Static analysis without resolved references cannot see everything, and MigrationScan is honest about that rather than pretending to certainty:
