@@ -4,8 +4,9 @@ using MigrationScan.Core.Models;
 namespace MigrationScan.Tool;
 
 /// <summary>
-/// Renders the console summary (spec §8): counts by severity, the findings, and the
-/// mandatory reminder that effort figures are planning aids, not a quote.
+/// Renders the console summary (spec §8): counts by severity, then findings grouped by
+/// rule and ordered most-severe-first (so a rule that fires many times doesn't bury the
+/// structural findings), and the mandatory reminder that effort figures are not a quote.
 /// </summary>
 internal static class ConsoleReporter
 {
@@ -45,15 +46,48 @@ internal static class ConsoleReporter
             return output.ToString();
         }
 
-        foreach (Finding finding in result.Findings)
+        // Group repeated findings of one rule so a rule that fires many times (e.g. a config
+        // API used across a codebase) doesn't bury the structural findings under duplicated
+        // remediation text. Most-severe rules first.
+        var groups = result.Findings
+            .GroupBy(f => f.Rule.Id)
+            .Select(g => (Rule: g.First().Rule, Items: g.ToList()))
+            .OrderBy(g => g.Rule.Severity)
+            .ThenBy(g => g.Rule.Id, StringComparer.Ordinal);
+
+        foreach ((RuleMetadata rule, List<Finding> group) in groups)
         {
-            RuleMetadata rule = finding.Rule;
+            // Cluster locations by file (then line) so occurrences in the same file sit together.
+            List<Finding> items = group
+                .OrderBy(f => f.FilePath ?? f.ProjectPath, StringComparer.Ordinal)
+                .ThenBy(f => f.Line ?? 0)
+                .ToList();
+
             output.AppendLine();
+            string occurrences = items.Count == 1 ? string.Empty : $"  ({items.Count} occurrences)";
             output.AppendLine(
-                $"{rule.Id}  {Lower(rule.Severity)} · {Lower(rule.Tier)} · effort {Lower(rule.Effort)}");
+                $"{rule.Id}  {Lower(rule.Severity)} · {Lower(rule.Tier)} · effort {Lower(rule.Effort)}{occurrences}");
             output.AppendLine($"  {rule.Title}");
-            output.AppendLine($"  {finding.Message}");
-            output.AppendLine($"  {Location(finding)}");
+
+            List<string> distinctMessages = items.Select(i => i.Message).Distinct().ToList();
+            if (distinctMessages.Count == 1)
+            {
+                // Every occurrence says the same thing: show it once, then just the locations.
+                output.AppendLine($"  {distinctMessages[0]}");
+                foreach (Finding item in items)
+                {
+                    output.AppendLine($"    {Location(item)}");
+                }
+            }
+            else
+            {
+                // Messages differ per site (e.g. a package or assembly name): show each.
+                foreach (Finding item in items)
+                {
+                    output.AppendLine($"    {Location(item)} — {item.Message}");
+                }
+            }
+
             output.AppendLine($"  → {rule.Remediation}");
         }
 
