@@ -3,17 +3,21 @@ using MigrationScan.Core.Discovery;
 namespace MigrationScan.Core.Analysis;
 
 /// <summary>
-/// Resolves a scan target (a <c>.sln</c>, a <c>.csproj</c>, or a directory) into the
-/// set of project files to analyze and the root directory that output paths are
+/// Resolves a scan target (a <c>.sln</c>, a <c>.csproj</c>/<c>.vbproj</c>, or a directory)
+/// into the set of project files to analyze and the root directory that output paths are
 /// reported relative to.
 /// </summary>
 /// <param name="RootDirectory">Absolute directory that output paths are relative to.</param>
-/// <param name="ProjectFiles">Absolute paths to the C# projects to analyze, ordered.</param>
+/// <param name="ProjectFiles">Absolute paths to the projects to analyze, ordered.</param>
 public sealed record ScanInput(string RootDirectory, IReadOnlyList<string> ProjectFiles)
 {
+    // C# and VB projects are both supported. (VB source-level rules are a further step; VB
+    // projects are still scanned for the language-agnostic project/dependency/framework rules.)
+    private static readonly string[] ProjectExtensions = [".csproj", ".vbproj"];
+
     /// <summary>
     /// Resolves <paramref name="path"/>. Supports a solution file, a single project file,
-    /// or a directory scanned recursively for C# projects.
+    /// or a directory scanned recursively for projects.
     /// </summary>
     public static ScanInput Resolve(string path)
     {
@@ -21,8 +25,8 @@ public sealed record ScanInput(string RootDirectory, IReadOnlyList<string> Proje
 
         if (Directory.Exists(fullPath))
         {
-            IReadOnlyList<string> projects = Directory
-                .EnumerateFiles(fullPath, "*.csproj", SearchOption.AllDirectories)
+            IReadOnlyList<string> projects = ProjectExtensions
+                .SelectMany(ext => Directory.EnumerateFiles(fullPath, $"*{ext}", SearchOption.AllDirectories))
                 .ToList();
             return new ScanInput(fullPath, Order(projects, fullPath));
         }
@@ -38,21 +42,23 @@ public sealed record ScanInput(string RootDirectory, IReadOnlyList<string> Proje
         {
             string root = Path.GetDirectoryName(fullPath)!;
             IReadOnlyList<string> projects = SolutionParser.GetProjectPaths(fullPath)
-                .Where(p => Path.GetExtension(p).Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+                .Where(IsProjectFile)
                 .ToList();
             return new ScanInput(root, Order(projects, root));
         }
 
-        if (extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+        if (IsProjectFile(fullPath))
         {
-            string root = Path.GetDirectoryName(fullPath)!;
-            return new ScanInput(root, [fullPath]);
+            return new ScanInput(Path.GetDirectoryName(fullPath)!, [fullPath]);
         }
 
         throw new ArgumentException(
-            $"Unsupported scan target '{path}'. Expected a .sln, a .csproj, or a directory.",
+            $"Unsupported scan target '{path}'. Expected a .sln, a .csproj/.vbproj, or a directory.",
             nameof(path));
     }
+
+    private static bool IsProjectFile(string filePath) =>
+        ProjectExtensions.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase);
 
     // Deterministic order: by repo-relative path, ordinal. Same input => same output.
     private static IReadOnlyList<string> Order(IEnumerable<string> projectFiles, string rootDirectory) =>
