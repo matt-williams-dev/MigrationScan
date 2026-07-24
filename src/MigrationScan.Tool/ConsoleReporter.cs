@@ -29,6 +29,16 @@ internal static class ConsoleReporter
             $"Findings by severity:  blocker {counts[Severity.Blocker]} · high {counts[Severity.High]} · " +
             $"medium {counts[Severity.Medium]} · low {counts[Severity.Low]}   ({result.Findings.Count} total)");
 
+        if (result.NotAssessed.Count > 0)
+        {
+            output.AppendLine();
+            output.AppendLine($"Not assessed — scope separately ({result.NotAssessed.Count}):");
+            foreach (NotAssessedProject project in result.NotAssessed)
+            {
+                output.AppendLine($"  • {project.Name} ({project.ProjectType}) — {project.Path}");
+            }
+        }
+
         if (result.Warnings.Count > 0)
         {
             output.AppendLine();
@@ -39,7 +49,7 @@ internal static class ConsoleReporter
             }
         }
 
-        if (result.Findings.Count == 0)
+        if (result.Findings.Count == 0 && result.NotAssessed.Count == 0)
         {
             output.AppendLine();
             output.AppendLine("No findings. Nothing here blocks a move off .NET Framework.");

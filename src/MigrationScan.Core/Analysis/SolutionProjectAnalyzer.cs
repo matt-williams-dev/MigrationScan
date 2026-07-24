@@ -29,12 +29,27 @@ public static class SolutionProjectAnalyzer
             ["E24C65DC-7377-472B-9ABA-BC803B73C61A"] = "an ASP.NET Web Site project",
         };
 
-    public static (IReadOnlyList<Finding> Findings, IReadOnlyList<ScanWarning> Warnings) Analyze(
+    // Friendly labels for the non-C#/VB project types the scan cannot assess.
+    private static readonly IReadOnlyDictionary<string, string> ProjectTypeNames =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [".sqlproj"] = "SQL Server database project",
+            [".deployproj"] = "deployment project",
+            [".wapproj"] = "Windows Application Packaging project",
+            [".fsproj"] = "F# project",
+            [".vcxproj"] = "C++ project",
+            [".njsproj"] = "Node.js project",
+            [".pyproj"] = "Python project",
+            [".shproj"] = "shared project",
+            [".wixproj"] = "WiX installer project",
+        };
+
+    public static (IReadOnlyList<Finding> Findings, IReadOnlyList<NotAssessedProject> NotAssessed) Analyze(
         IEnumerable<SolutionProjectEntry> otherProjects, string rootDirectory, RuleCatalog catalog)
     {
         RuleMetadata mig1007 = catalog.Get(Mig1007LegacyProjectType.Id);
         List<Finding> findings = [];
-        List<ScanWarning> warnings = [];
+        List<NotAssessedProject> notAssessed = [];
 
         foreach (SolutionProjectEntry project in otherProjects)
         {
@@ -51,14 +66,21 @@ public static class SolutionProjectAnalyzer
             }
             else
             {
-                warnings.Add(new ScanWarning(
-                    $"Skipped '{relativePath}': not a C#/VB project ({project.Extension}); its contents were not assessed.",
-                    relativePath));
+                notAssessed.Add(new NotAssessedProject(
+                    project.Name,
+                    relativePath,
+                    ProjectTypeName(project.Extension),
+                    "Not a C#/VB project; its contents were not analyzed and must be scoped separately."));
             }
         }
 
-        return (findings, warnings);
+        return (findings, notAssessed);
     }
+
+    private static string ProjectTypeName(string extension) =>
+        ProjectTypeNames.TryGetValue(extension, out string? name)
+            ? name
+            : $"{extension.TrimStart('.').ToUpperInvariant()} project";
 
     private static string? LegacyDescription(SolutionProjectEntry project)
     {

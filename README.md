@@ -212,8 +212,10 @@ unrelated edits that shift lines.)
 The JSON is a stable, versioned, deterministic feed meant to be consumed by other tools —
 dashboards, portfolio rollups, or your own scoping/estimating layer. Alongside the findings it
 carries an effort rollup (`summary.effort` and a per-`projects` breakdown, in engineer-day
-ranges). See the [output schema](docs/schema) for the full shape and consumer notes. Effort
-figures are heuristic planning aids, not a quote — apply your own rates and judgment downstream.
+ranges) and a `notAssessed` list of non-C#/VB projects (SQL, deployment, …) that need planning
+of their own — so coverage gaps are explicit, not silent. See the
+[output schema](docs/schema) for the full shape and consumer notes. Effort figures are
+heuristic planning aids, not a quote — apply your own rates and judgment downstream.
 
 ## Limitations
 

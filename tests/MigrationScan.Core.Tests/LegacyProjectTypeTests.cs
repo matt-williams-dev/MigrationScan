@@ -17,21 +17,21 @@ public class LegacyProjectTypeTests
     private static SolutionProjectEntry Entry(string name, string relativePath, string typeGuid) =>
         new(name, "/repo/" + relativePath, typeGuid);
 
-    private static (IReadOnlyList<Finding> Findings, IReadOnlyList<ScanWarning> Warnings) Analyze(
+    private static (IReadOnlyList<Finding> Findings, IReadOnlyList<NotAssessedProject> NotAssessed) Analyze(
         params SolutionProjectEntry[] entries) =>
         SolutionProjectAnalyzer.Analyze(entries, "/repo", RuleCatalog.LoadDefault());
 
     [Fact]
     public void FlagsLegacyTypesByExtension()
     {
-        var (findings, warnings) = Analyze(
+        var (findings, notAssessed) = Analyze(
             Entry("Reports", "Reports/Reports.rptproj", "F14B399A-7131-4C87-9E4B-1186C45EF12D"),
             Entry("Etl", "Etl/Etl.dtproj", "159641D6-6404-4A2A-AE62-294DE0FE8301"),
             Entry("Setup", "Setup/Setup.vdproj", "54435603-DBB4-11D2-8724-00A0C9A8B90C"));
 
         Assert.Equal(3, findings.Count);
         Assert.All(findings, f => Assert.Equal("MIG1007", f.Rule.Id));
-        Assert.Empty(warnings);
+        Assert.Empty(notAssessed);
         Assert.Contains(findings, f => f.Message.Contains("SSRS"));
     }
 
@@ -48,28 +48,29 @@ public class LegacyProjectTypeTests
     }
 
     [Fact]
-    public void WarnsAboutOtherNonAnalyzableProjects()
+    public void OtherNonAnalyzableProjectsBecomeNotAssessed()
     {
-        var (findings, warnings) = Analyze(
+        var (findings, notAssessed) = Analyze(
             Entry("Db", "Db/Db.sqlproj", "00D1A9C2-B5F0-4AF3-8072-F6C62B433612"),
             Entry("Deploy", "Deploy/Deploy.deployproj", "151D2E53-A2C4-4D7D-83FE-D05416EBD58E"));
 
         Assert.Empty(findings);
-        Assert.Equal(2, warnings.Count);
-        Assert.All(warnings, w => Assert.Contains("not assessed", w.Message));
+        Assert.Equal(2, notAssessed.Count);
+        Assert.Contains(notAssessed, p => p.ProjectType == "SQL Server database project");
+        Assert.Contains(notAssessed, p => p.ProjectType == "deployment project");
     }
 
     // --- integration: through a real .sln fixture ---
 
     [Fact]
-    public void SolutionScanFlagsLegacyProjectsAndWarnsOnSkipped()
+    public void SolutionScanFlagsLegacyProjectsAndListsNotAssessed()
     {
         AnalysisResult result = AnalysisHelper.AnalyzeFixture("MixedProjectTypes", "MixedProjectTypes.sln");
 
         // App (C#) is scanned and clean; Reports (.rptproj) and Etl (.dtproj) are MIG1007;
-        // Db (.sqlproj) is a "not assessed" warning.
+        // Db (.sqlproj) is listed as not assessed.
         Assert.Single(result.Projects); // only the C# App is an analyzable project
         Assert.Equal(2, result.Findings.Count(f => f.Rule.Id == "MIG1007"));
-        Assert.Contains(result.Warnings, w => w.Path!.EndsWith("Db.sqlproj"));
+        Assert.Contains(result.NotAssessed, p => p.Path.EndsWith("Db.sqlproj"));
     }
 }

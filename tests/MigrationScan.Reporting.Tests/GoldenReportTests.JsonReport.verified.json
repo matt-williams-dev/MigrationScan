@@ -1,5 +1,5 @@
 ﻿{
-  "schemaVersion": "1.1",
+  "schemaVersion": "1.2",
   "target": "net10.0",
   "summary": {
     "projectsScanned": 2,
@@ -14,7 +14,8 @@
       "minDays": 6.8,
       "maxDays": 22,
       "needsDecision": 1
-    }
+    },
+    "projectsNotAssessed": 1
   },
   "projects": [
     {
@@ -134,6 +135,14 @@
       "line": 5,
       "remediation": "Switch to Microsoft.Data.SqlClient.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md"
+    }
+  ],
+  "notAssessed": [
+    {
+      "name": "Shop.Database",
+      "path": "Shop.Database/Shop.Database.sqlproj",
+      "projectType": "SQL Server database project",
+      "reason": "Not a C#/VB project; its contents were not analyzed and must be scoped separately."
     }
   ],
   "warnings": [

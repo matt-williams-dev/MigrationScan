@@ -7,8 +7,17 @@ Static analysis of a solution's readiness to move to `net10.0`, produced by Migr
 - **Projects scanned:** 2
 - **Findings:** 7 (blocker 2 · high 0 · medium 2 · low 3)
 - **Estimated effort:** 6.8–22 engineer-days, plus 1 item requiring an architectural decision before they can be estimated
+- **Projects not assessed:** 1 (see below — scope separately)
 
 > These figures are heuristic planning aids derived from static analysis and are not a quote.
+
+## Not assessed — scope separately
+
+These projects are part of the solution but are not C#/VB, so their contents were not analyzed. They still need migration planning of their own and are **not** in the effort estimate:
+
+| Project | Type | Location |
+| --- | --- | --- |
+| Shop.Database | SQL Server database project | `Shop.Database/Shop.Database.sqlproj` |
 
 ## Scan warnings
 

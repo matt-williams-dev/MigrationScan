@@ -21,6 +21,7 @@ public static class MarkdownReportWriter
 
         WriteHeader(md, result);
         WriteExecutiveSummary(md, result);
+        WriteNotAssessed(md, result);
         WriteWarnings(md, result);
         WriteBlockers(md, result);
         WriteFindingsByProject(md, result);
@@ -55,8 +56,36 @@ public static class MarkdownReportWriter
             $"(blocker {counts[Severity.Blocker]} · high {counts[Severity.High]} · " +
             $"medium {counts[Severity.Medium]} · low {counts[Severity.Low]})");
         md.AppendLine($"- **Estimated effort:** {FormatEffort(effort)}");
+        if (result.NotAssessed.Count > 0)
+        {
+            md.AppendLine($"- **Projects not assessed:** {result.NotAssessed.Count} (see below — scope separately)");
+        }
+
         md.AppendLine();
         md.AppendLine($"> {Disclaimer}");
+        md.AppendLine();
+    }
+
+    private static void WriteNotAssessed(StringBuilder md, AnalysisResult result)
+    {
+        if (result.NotAssessed.Count == 0)
+        {
+            return;
+        }
+
+        md.AppendLine("## Not assessed — scope separately");
+        md.AppendLine();
+        md.AppendLine(
+            "These projects are part of the solution but are not C#/VB, so their contents were not " +
+            "analyzed. They still need migration planning of their own and are **not** in the effort estimate:");
+        md.AppendLine();
+        md.AppendLine("| Project | Type | Location |");
+        md.AppendLine("| --- | --- | --- |");
+        foreach (NotAssessedProject project in result.NotAssessed)
+        {
+            md.AppendLine($"| {EscapeCell(project.Name)} | {EscapeCell(project.ProjectType)} | `{project.Path}` |");
+        }
+
         md.AppendLine();
     }
 

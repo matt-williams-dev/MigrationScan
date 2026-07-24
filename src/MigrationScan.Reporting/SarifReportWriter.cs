@@ -36,6 +36,21 @@ public static class SarifReportWriter
             .Select((rule, index) => (rule.Id, index))
             .ToDictionary(x => x.Id, x => x.index);
 
+        // Projects that weren't analyzed are surfaced as run-level notifications — the
+        // SARIF-correct place for "something about the run" that isn't a code result.
+        IReadOnlyList<SarifInvocation>? invocations = result.NotAssessed.Count == 0
+            ? null
+            :
+            [
+                new SarifInvocation(
+                    ExecutionSuccessful: true,
+                    ToolExecutionNotifications: result.NotAssessed
+                        .Select(p => new SarifNotification(
+                            new SarifText($"Not assessed: '{p.Name}' ({p.ProjectType}) at {p.Path}. {p.Reason}"),
+                            Level: "note"))
+                        .ToList()),
+            ];
+
         SarifLog log = new(
             Schema: SchemaUrl,
             Version: "2.1.0",
@@ -46,7 +61,8 @@ public static class SarifReportWriter
                         Name: "MigrationScan",
                         InformationUri: InformationUri,
                         Rules: rules.Select(ToDescriptor).ToList())),
-                    Results: result.Findings.Select(f => ToResult(f, ruleIndex)).ToList()),
+                    Results: result.Findings.Select(f => ToResult(f, ruleIndex)).ToList(),
+                    Invocations: invocations),
             ]);
 
         return JsonSerializer.Serialize(log, SerializerOptions).Replace("\r\n", "\n");
@@ -94,7 +110,16 @@ public static class SarifReportWriter
         string Version,
         IReadOnlyList<SarifRun> Runs);
 
-    private sealed record SarifRun(SarifTool Tool, IReadOnlyList<SarifResult> Results);
+    private sealed record SarifRun(
+        SarifTool Tool,
+        IReadOnlyList<SarifResult> Results,
+        IReadOnlyList<SarifInvocation>? Invocations);
+
+    private sealed record SarifInvocation(
+        bool ExecutionSuccessful,
+        IReadOnlyList<SarifNotification> ToolExecutionNotifications);
+
+    private sealed record SarifNotification(SarifText Message, string Level);
 
     private sealed record SarifTool(SarifDriver Driver);
 

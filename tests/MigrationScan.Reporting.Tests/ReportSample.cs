@@ -58,7 +58,13 @@ internal static class ReportSample
                 "Shop.Legacy/Shop.Legacy.csproj"),
         ];
 
-        return new AnalysisResult("net10.0", [web, core], findings, warnings);
+        NotAssessedProject[] notAssessed =
+        [
+            new("Shop.Database", "Shop.Database/Shop.Database.sqlproj", "SQL Server database project",
+                "Not a C#/VB project; its contents were not analyzed and must be scoped separately."),
+        ];
+
+        return new AnalysisResult("net10.0", [web, core], findings, warnings) { NotAssessed = notAssessed };
     }
 
     private static RuleMetadata Rule(

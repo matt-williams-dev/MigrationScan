@@ -77,13 +77,15 @@ public sealed class SolutionAnalyzer
         }
 
         // Non-C#/VB projects the solution also references (SSRS/SSIS/setup -> MIG1007; the rest
-        // become "not assessed" warnings so coverage isn't silently overstated).
-        (IReadOnlyList<Finding> otherFindings, IReadOnlyList<ScanWarning> otherWarnings) =
+        // -> the "not assessed" list, so coverage isn't silently overstated).
+        (IReadOnlyList<Finding> otherFindings, IReadOnlyList<NotAssessedProject> notAssessed) =
             SolutionProjectAnalyzer.Analyze(input.OtherProjects, input.RootDirectory, _catalog);
         findings.AddRange(otherFindings);
-        warnings.AddRange(otherWarnings);
 
-        return new AnalysisResult(targetFramework, projects, Sort(findings), SortWarnings(warnings));
+        return new AnalysisResult(targetFramework, projects, Sort(findings), SortWarnings(warnings))
+        {
+            NotAssessed = notAssessed.OrderBy(p => p.Path, StringComparer.Ordinal).ToList(),
+        };
     }
 
     // A broken individual project is recoverable — skip it and warn. Anything else
