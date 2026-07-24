@@ -41,5 +41,8 @@ public static class DefaultRules
         new Mig7003OleDb(catalog.Get(Mig7003OleDb.Id)),
         new Mig7006LinqToSql(catalog.Get(Mig7006LinqToSql.Id)),
         new Mig3015WcfClient(catalog.Get(Mig3015WcfClient.Id)),
+        new Mig1006ComReference(catalog.Get(Mig1006ComReference.Id)),
+        new Mig1010VendoredDll(catalog.Get(Mig1010VendoredDll.Id)),
+        new Mig4013PInvokeWindows(catalog.Get(Mig4013PInvokeWindows.Id)),
     ];
 }

@@ -299,6 +299,36 @@
       "tier": "certain",
       "remediation": "This project type has no modern .NET equivalent and must be re-platformed: SSRS -> Power BI / a reporting service; SSIS -> Azure Data Factory or a code-based ETL; setup (.vdproj) -> WiX or MSIX; Silverlight -> Blazor/modern web; Web Site -> an SDK-style web project. It is out of scope for the code migration and needs planning of its own.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1007.md"
+    },
+    {
+      "id": "MIG1006",
+      "title": "COM reference or interop assembly",
+      "category": "Project and build",
+      "severity": "medium",
+      "effort": "medium",
+      "tier": "certain",
+      "remediation": "COM interop is supported on modern .NET only when targeting Windows (net-windows) — regenerate the interop assembly there. It is a Windows lock-in: if the app must run cross-platform there is no COM support off Windows, so the component must be replaced. Very old or ActiveX components may also need updating even on Windows.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1006.md"
+    },
+    {
+      "id": "MIG1010",
+      "title": "Vendored DLL with no source and no NuGet equivalent",
+      "category": "Project and build",
+      "severity": "high",
+      "effort": "large",
+      "tier": "certain",
+      "remediation": "A third-party assembly referenced from a checked-in path rather than a NuGet package. Assess it per assembly: confirm it loads on modern .NET (many Framework-only or ActiveX/COM assemblies do not), find a supported successor or NuGet package, or plan a replacement. If the vendor is defunct and there is no equivalent, this can block the migration.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1010.md"
+    },
+    {
+      "id": "MIG4013",
+      "title": "P/Invoke to a Windows system DLL",
+      "category": "Runtime failures",
+      "severity": "medium",
+      "effort": "small",
+      "tier": "probable",
+      "remediation": "P/Invoke to a Windows system library (kernel32/user32/advapi32/...) works on modern .NET when targeting Windows (net-windows). It is a Windows lock-in: for cross-platform, guard the call with OperatingSystem.IsWindows() and provide a non-Windows path, or replace it with a cross-platform .NET API.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4013.md"
     }
   ]
 }
