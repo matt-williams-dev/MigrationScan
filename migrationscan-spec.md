@@ -70,27 +70,27 @@ merely stated.
 
 Every finding carries a confidence level derived from how it was detected.
 
-**Tier 1 — Certain.** Derived from project files, `packages.config`, `app.config`, `web.config`, `.sln`. XML parsing, no ambiguity. Example: this project uses `packages.config`.
+**Tier 1, Certain.** Derived from project files, `packages.config`, `app.config`, `web.config`, `.sln`. XML parsing, no ambiguity. Example: this project uses `packages.config`.
 
-**Tier 2 — Probable.** Derived from Roslyn syntax trees without a resolved compilation. Matches using directives, type names, method invocation patterns. Good recall, some false positives, since `Registry` could be somebody's own class. Example: this file references `Microsoft.Win32.Registry`.
+**Tier 2, Probable.** Derived from Roslyn syntax trees without a resolved compilation. Matches using directives, type names, method invocation patterns. Good recall, some false positives, since `Registry` could be somebody's own class. Example: this file references `Microsoft.Win32.Registry`.
 
-**Tier 3 — Verified.** Derived from semantic model when references resolve, or from compiled assemblies in `bin/` via Cecil. Phase 6 work.
+**Tier 3, Verified.** Derived from semantic model when references resolve, or from compiled assemblies in `bin/` via Cecil. Phase 6 work.
 
 Report the tier on every finding. A Tier 2 finding that says "probable" and turns out wrong costs you nothing. A Tier 2 finding presented as certain costs you the user's trust.
 
 ### 5a. Portability awareness
 
-Not every finding is a problem for every migration. Modern .NET can target Windows (`net10.0-windows`), where COM interop, P/Invoke to Win32, the Registry, WMI, and similar continue to work. These are **Windows lock-in**: only migration cost if the app must also leave Windows. That is distinct from **gone-everywhere** APIs — WebForms, `BinaryFormatter`, .NET Remoting, MVC 5 — which are removed on modern .NET regardless of target.
+Not every finding is a problem for every migration. Modern .NET can target Windows (`net10.0-windows`), where COM interop, P/Invoke to Win32, the Registry, WMI, and similar continue to work. These are **Windows lock-in**: only migration cost if the app must also leave Windows. Contrast **gone-everywhere** APIs like WebForms, `BinaryFormatter`, .NET Remoting and MVC 5, which modern .NET removes whatever you target.
 
-Each rule declares a `platform`: `any` (the default — gone everywhere) or `windows` (a Windows lock-in). When the scan `--target` is a Windows TFM, `windows` findings are **satisfied**: still reported (so scope isn't hidden), but excluded from the severity counts, the effort estimate, and `--fail-on`. This lets one codebase yield two honest numbers — "modernize, stay on Windows" vs. "go cross-platform" — instead of overstating cost for the many teams that are Windows-only. When we can't statically prove an API works on `net-windows` (e.g. a vendored assembly of unknown provenance), the rule stays `any` rather than giving false comfort.
+Each rule declares a `platform`, either `any` (the default, meaning gone everywhere) or `windows` (a Windows lock-in). When the scan `--target` is a Windows TFM, `windows` findings are **satisfied**: still reported (so scope isn't hidden), but excluded from the severity counts, the effort estimate, and `--fail-on`. One codebase then yields two honest numbers, "modernize, stay on Windows" against "go cross-platform", instead of overstating cost for the many teams who never leave Windows. When we can't statically prove an API works on `net-windows` (e.g. a vendored assembly of unknown provenance), the rule stays `any` rather than giving false comfort.
 
-**Both stances come from one scan.** The target affects exactly one thing — whether a Windows lock-in finding counts as cost. The findings, the discovered projects, the reference inventory and the warnings are identical either way, so the alternate stance is an *exact* re-evaluation of the same analysis rather than a second one (`AnalysisResult.ForTarget`). Scanning twice was always wasted work, and asking a customer to do it, then to keep track of which file was which, was friction we imposed for nothing. The JSON reports both (§8); the console and Markdown report the stance `--target` names.
+**Both stances come from one scan.** The target affects exactly one thing: whether a Windows lock-in finding counts as cost. The findings, the discovered projects, the reference inventory and the warnings are identical either way, so the alternate stance is an *exact* re-evaluation of the same analysis rather than a second one (`AnalysisResult.ForTarget`). Scanning twice was always wasted work, and asking a customer to do it, then to keep track of which file was which, was friction we imposed for nothing. The JSON reports both (§8); the console and Markdown report the stance `--target` names.
 
 ## 6. Rule catalog
 
 Rule IDs are stable and never reused. Each rule declares: ID, title, category, severity, effort band, tier, remediation guidance, and a docs link.
 
-### MIG1xxx — Project and build
+### MIG1xxx: Project and build
 
 | ID | Rule |
 | --- | --- |
@@ -105,7 +105,7 @@ Rule IDs are stable and never reused. Each rule declares: ID, title, category, s
 | MIG1009 | Mixed-language solution (VB.NET, C++/CLI) |
 | MIG1010 | Vendored DLL with no source and no NuGet equivalent |
 
-### MIG2xxx — Dependencies
+### MIG2xxx: Dependencies
 
 | ID | Rule |
 | --- | --- |
@@ -116,7 +116,7 @@ Rule IDs are stable and never reused. Each rule declares: ID, title, category, s
 | MIG2005 | P/Invoke to a Windows system library |
 | MIG2006 | `Microsoft.VisualBasic` compatibility layer |
 
-### MIG3xxx — Blocking frameworks
+### MIG3xxx: Blocking frameworks
 
 | ID | Rule |
 | --- | --- |
@@ -135,7 +135,7 @@ Rule IDs are stable and never reused. Each rule declares: ID, title, category, s
 | MIG3013 | Setup project or ClickOnce deployment |
 | MIG3014 | Silverlight |
 
-### MIG4xxx — Compiles fine, fails at runtime
+### MIG4xxx: Compiles fine, fails at runtime
 
 The highest-value category. These pass the build and throw in production on Linux.
 
@@ -157,7 +157,7 @@ The highest-value category. These pass the build and throw in production on Linu
 | MIG4014 | Windows-only `Environment.SpecialFolder` values |
 | MIG4015 | `System.Configuration.Install` |
 
-### MIG5xxx — Configuration
+### MIG5xxx: Configuration
 
 | ID | Rule |
 | --- | --- |
@@ -168,7 +168,7 @@ The highest-value category. These pass the build and throw in production on Linu
 | MIG5005 | Encrypted config sections (`aspnet_regiis`) or `machineKey` |
 | MIG5006 | IIS-specific `system.webServer` settings |
 
-### MIG6xxx — Serialization and security
+### MIG6xxx: Serialization and security
 
 | ID | Rule |
 | --- | --- |
@@ -179,7 +179,7 @@ The highest-value category. These pass the build and throw in production on Linu
 | MIG6005 | Obsolete crypto (`RNGCryptoServiceProvider`, `SHA1Managed`, `*CryptoServiceProvider`) |
 | MIG6006 | ViewState or `MachineKey` dependency |
 
-### MIG7xxx — Data access
+### MIG7xxx: Data access
 
 | ID | Rule |
 | --- | --- |
@@ -191,7 +191,7 @@ The highest-value category. These pass the build and throw in production on Linu
 | MIG7006 | LINQ to SQL (`System.Data.Linq`) |
 | MIG7007 | `DataSet` / `DataTable` binary serialization |
 
-### MIG8xxx — Globalization and encoding
+### MIG8xxx: Globalization and encoding
 
 Underreported and expensive to debug after the fact.
 
@@ -227,9 +227,9 @@ The report must carry this sentence near the total: *these figures are heuristic
 
 **Markdown** (`--format markdown`). The shareable artifact. An engineering manager forwards this to a CTO. Structure: executive summary, blockers, findings by project, effort breakdown, references, methodology and limitations. Make it look good. This file is the marketing.
 
-**JSON** (`--format json`, and what the default run writes). Stable documented schema, versioned. Since 1.5 it carries a `targets` array holding **both** portability stances — a `net10.0` and a `net10.0-windows` view of the same analysis, each with its own summary and per-project effort. The findings array is not duplicated: a stance satisfies exactly the findings whose `platform` matches its `satisfiedPlatform`. Nobody should have to scan twice to learn what portability costs, and nobody downstream should have to reconcile two files that differ only in one boolean.
+**JSON** (`--format json`, and what the default run writes). Stable documented schema, versioned. Since 1.5 it carries a `targets` array holding **both** portability stances: a `net10.0` and a `net10.0-windows` view of the same analysis, each with its own summary and per-project effort. The findings array is not duplicated: a stance satisfies exactly the findings whose `platform` matches its `satisfiedPlatform`. Nobody should have to scan twice to learn what portability costs, and nobody downstream should have to reconcile two files that differ only in one boolean.
 
-**SARIF** (`--format sarif`). Drops into GitHub code scanning and Azure DevOps with no glue code. Findings only — SARIF is a results format, so the reference inventory has no place in it.
+**SARIF** (`--format sarif`). Drops into GitHub code scanning and Azure DevOps with no glue code. Findings only. SARIF is a results format, so the reference inventory has no place in it.
 
 ### 8a. Reference inventory
 
@@ -237,7 +237,7 @@ Every scan also catalogs what each project declares a dependency on: NuGet packa
 
 This is inventory, **not findings**. No severity, no effort, excluded from the counts and from `--fail-on`. Rationale: the costly unknowns in a migration are usually third-party, and rules can only flag components with a known pattern. The inventory makes the rest researchable.
 
-Appears in the console summary, the Markdown report, and the JSON `references` array. Full detail — kinds covered, classification judgment calls, and what is deliberately not collected — in `docs/references.md`.
+Appears in the console summary, the Markdown report, and the JSON `references` array. `docs/references.md` has the full detail: kinds covered, classification judgment calls, and what we deliberately leave out.
 
 **Exit codes.**
 
@@ -250,8 +250,8 @@ Appears in the console summary, the Markdown report, and the JSON `references` a
 
 ## 9. CLI surface
 
-The default path takes no options at all. `migrationscan` with a path — or with nothing, in the
-directory you want assessed — prints a console summary and writes `migrationscan-report.json`
+The default path takes no options at all. Run `migrationscan` with a path, or with nothing in the
+directory you want assessed, and it prints a console summary and writes `migrationscan-report.json`
 covering both portability stances. That is the whole customer interaction: one command, one file
 to send back. Every option below exists for CI and for us, not for them.
 
@@ -299,50 +299,50 @@ migrationscan [path] [options]
 
 Work through these in order. Do not scaffold everything up front.
 
-### Phase 0 — Foundation
+### Phase 0: Foundation
 Repo, Apache-2.0 license, README skeleton, `.editorconfig`, GitHub Actions building and testing on ubuntu, windows, and macos. Solution with the three source projects and two test projects, all empty.
 
 *Done when:* CI is green on all three platforms.
 
-### Phase 1 — Walking skeleton
+### Phase 1: Walking skeleton
 Parse a `.sln`, enumerate `.csproj` files, parse each as XML, extract target framework and references. Implement MIG1001 (non-SDK-style project) only. Console and JSON output.
 
 *Done when:* `migrationscan tests/fixtures/LegacyWebForms/LegacyWebForms.sln` prints one finding and emits valid JSON.
 
-### Phase 2 — Rule engine
+### Phase 2: Rule engine
 Define `IMigrationRule`, `AnalysisContext`, `Finding`. Split rules into project-file rules and syntax rules. Wire Roslyn syntax tree parsing for `.cs` files. Load rule metadata from JSON. Implement the Tier 1 rules: MIG1002, MIG1005, MIG2001, MIG3001, MIG3002, MIG5001.
 
 *Done when:* each rule has a passing positive fixture and a negative fixture that produces no finding.
 
-### Phase 3 — Syntax rules
+### Phase 3: Syntax rules
 Implement the Tier 2 rules: MIG3004, MIG3005, MIG3010, MIG4001, MIG4002, MIG4004, MIG4008, MIG6001, MIG6004, MIG7001, MIG8002, MIG8003. Each reports file and line. Confidence tier on every finding.
 
 *Done when:* full rule set runs against all fixtures with no false negatives, and known false positives are documented.
 
-### Phase 4 — Effort model and Markdown report
+### Phase 4: Effort model and Markdown report
 Implement banding and aggregation. Build the Markdown writer. Golden-file tests via Verify.
 
 *Done when:* the report reads well enough to send to a client without editing.
 
-### Phase 5 — CI integration
+### Phase 5: CI integration
 SARIF writer, exit codes, `--fail-on`, `--baseline`. Document a GitHub Actions usage example in the README.
 
 *Done when:* the SARIF output renders in GitHub code scanning.
 
-### Phase 6 — Post-v1
+### Phase 6: Post-v1
 Optional `--online` NuGet compatibility lookups. Binary analysis via Mono.Cecil for solutions without full source. VB.NET support. Remaining rules from the catalog.
 
-### Phase 7 — Redaction (schema 1.6, next)
+### Phase 7: Redaction (schema 1.6, shipped)
 Make a report safe to hand to a stranger without a review, because the funnel leaks at exactly the step where someone hesitates to send one.
 
-**Redact at the boundary, not in the analysis.** Console, Markdown and SARIF keep full paths — a developer scanning their own code already owns that information, and stripping it would make SARIF inert and take the CI story with it. The **shareable JSON** hashes them, and the escape hatch inverts to `--include-paths` so the safe path is the default and the unsafe one is deliberate.
+**Redact at the boundary, not in the analysis.** Console, Markdown and SARIF keep full paths. A developer scanning their own code already owns that information, and stripping it would leave SARIF inert and take the CI story with it. The **shareable JSON** hashes them, and the escape hatch inverts to `--include-paths` so the safe path is the default and the unsafe one is deliberate.
 
-What survives, because scoping depends on it: rule id, severity, tier, effort band, occurrence counts, **project names** (losing them makes every scope line in a proposal meaningless), and **dependency identities** — you cannot price a control from a vendor that folded without knowing which one it is. Locations go; identities stay.
+What survives, because scoping depends on it: rule id, severity, tier, effort band, occurrence counts, **project names** (losing them makes every scope line in a proposal meaningless), and **dependency identities**, because nobody prices a control from a vendor that folded without knowing which one it is. Locations go; identities stay.
 
 Two constraints that are easy to get wrong:
 
-- **`file` is omitted and `fileId` added**, rather than `file` being redefined from a path to an opaque id. Redefining it would break every consumer that resolves it, which is a *major* bump — and MigrationScope refuses an unknown major. `file` is already optional, so absence is legal and the change stays additive at **1.6**.
-- **Fingerprints must hash identically on both sides**, or `--baseline` silently stops matching; worse, two files collapsing to one id under-reports findings. No salt, no machine input — the determinism promise already demands that.
+- **`file` is omitted and `fileId` added**, rather than `file` being redefined from a path to an opaque id. Redefining it would break every consumer that resolves it, which is a *major* bump, and MigrationScope refuses an unknown major. `file` is already optional, so absence is legal and the change stays additive at **1.6**.
+- **Fingerprints must hash identically on both sides**, or `--baseline` silently stops matching; worse, two files collapsing to one id under-reports findings. No salt and no machine input, which the determinism promise already demands.
 
 Ships with the machine-readable `docs/schema/*.schema.json` files and CI validation, which are what demonstrate the bump stayed additive rather than merely asserting it.
 
@@ -385,20 +385,20 @@ Consider adding a `CLAUDE.md` at the repo root containing sections 3, 5, and 14,
 All four are settled. Kept rather than deleted, because the reasoning is what stops them being
 reopened by accident.
 
-1. **NuGet ID — `MigrationScan.Tool`, confirmed free** (checked 2026-07-25; `MigrationScan` is
+1. **NuGet ID: `MigrationScan.Tool`, confirmed free** (checked 2026-07-25; `MigrationScan` is
    free too). An ID prefix reservation for `MigrationScan.*` follows the first publish, since
    nuget.org's review looks at packages you already own.
-2. **VB.NET — supported.** `.vbproj` projects are discovered and `.vb` source is analyzed by the
+2. **VB.NET: supported.** `.vbproj` projects are discovered and `.vb` source is analyzed by the
    same rules as C#: the syntax queries are language-neutral, so VB gets the Tier 2 rules too,
    honouring VB's case-insensitive matching.
-3. **Default target — pinned at `net10.0`, bumped deliberately.** A floating default would mean
+3. **Default target: pinned at `net10.0`, bumped deliberately.** A floating default would mean
    two tool versions disagree about the same codebase for a reason the report never states, which
-   quietly undermines the determinism promise the whole tool rests on — and it would surface
+   quietly undermines the determinism promise the whole tool rests on, and it would surface
    mid-engagement, when a client rescans and the numbers have moved. Bumping it is a one-line
    change and a changelog entry. Revisit at the next LTS (November 2027).
-4. **Schema distribution — a static `.schema.json` per minor, validated in CI.** Published under
+4. **Schema distribution: a static `.schema.json` per minor, validated in CI.** Published under
    `docs/schema/` at a stable URL so consumers can validate and generate against it. The CI half
    is the point: it turns "additive and backward-compatible" from a claim in a README into
    something that fails a build when it stops being true. A `--json-schema` command was
-   considered and rejected — it cannot be linked to, cannot be referenced by a `$schema` key, and
+   considered and rejected, because you cannot link to it or name it in a `$schema` key, and it
    adds CLI surface for something better served by a URL.

@@ -39,7 +39,7 @@ public static class DefaultReport
         return
         [
             $"Report written to {Path.GetFullPath(destination)}",
-            "Send this one file on — it covers both staying on Windows and going cross-platform.",
+            "Send this one file on. It prices both options: stay on Windows, or go cross-platform.",
             includePaths ? PrivacyNotice.SummaryWithPaths : PrivacyNotice.Summary,
         ];
     }
