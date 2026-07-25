@@ -56,10 +56,15 @@ State these in the README. They keep scope controlled and set expectations.
 | Project/solution parsing | `System.Xml.Linq`, hand-rolled `.sln` parser |
 | Binary analysis (phase 6) | `Mono.Cecil` |
 | CLI | `System.CommandLine` |
-| Testing | xUnit + `Verify` for golden-file report tests |
+| Testing | xUnit + `Verify` for golden-file report tests, `JsonSchema.Net` for schema validation |
 | CI | GitHub Actions, matrix across ubuntu/windows/macos |
 
 Ask before adding any dependency beyond this list.
+
+`JsonSchema.Net` is **test-only** and never referenced by `src/`. The offline and
+no-dependency promises are about what a customer runs; a validator that only executes in CI does
+not run there, and it is what makes the schema's additive-only guarantee enforceable rather than
+merely stated.
 
 ## 5. Analysis tiers
 
@@ -327,6 +332,20 @@ SARIF writer, exit codes, `--fail-on`, `--baseline`. Document a GitHub Actions u
 ### Phase 6 — Post-v1
 Optional `--online` NuGet compatibility lookups. Binary analysis via Mono.Cecil for solutions without full source. VB.NET support. Remaining rules from the catalog.
 
+### Phase 7 — Redaction (schema 1.6, next)
+Make a report safe to hand to a stranger without a review, because the funnel leaks at exactly the step where someone hesitates to send one.
+
+**Redact at the boundary, not in the analysis.** Console, Markdown and SARIF keep full paths — a developer scanning their own code already owns that information, and stripping it would make SARIF inert and take the CI story with it. The **shareable JSON** hashes them, and the escape hatch inverts to `--include-paths` so the safe path is the default and the unsafe one is deliberate.
+
+What survives, because scoping depends on it: rule id, severity, tier, effort band, occurrence counts, **project names** (losing them makes every scope line in a proposal meaningless), and **dependency identities** — you cannot price a control from a vendor that folded without knowing which one it is. Locations go; identities stay.
+
+Two constraints that are easy to get wrong:
+
+- **`file` is omitted and `fileId` added**, rather than `file` being redefined from a path to an opaque id. Redefining it would break every consumer that resolves it, which is a *major* bump — and MigrationScope refuses an unknown major. `file` is already optional, so absence is legal and the change stays additive at **1.6**.
+- **Fingerprints must hash identically on both sides**, or `--baseline` silently stops matching; worse, two files collapsing to one id under-reports findings. No salt, no machine input — the determinism promise already demands that.
+
+Ships with the machine-readable `docs/schema/*.schema.json` files and CI validation, which are what demonstrate the bump stayed additive rather than merely asserting it.
+
 ## 12. Testing
 
 **Fixtures.** Build small but realistic legacy solutions under `tests/fixtures`. At minimum: a WebForms app, a WCF service, a WinForms app with COM interop, a class library with `packages.config`, and one clean modern solution that should produce zero findings. That last one guards against false positives, which will damage the tool's reputation faster than missing rules will.
@@ -361,9 +380,25 @@ The README does double duty as documentation and as the thing that convinces a s
 
 Consider adding a `CLAUDE.md` at the repo root containing sections 3, 5, and 14, so the constraints stay in context across sessions.
 
-## 15. Open questions
+## 15. Resolved questions
 
-1. Confirm `MigrationScan` is free on NuGet, or pick an alternative.
-2. VB.NET support. Large share of the legacy estate, significant extra work. Defer to phase 6 or skip?
-3. Default target: .NET 10 LTS, or let it float to whatever is current LTS?
-4. Ship a `--json-schema` command that emits the output schema, or publish the schema as a static file?
+All four are settled. Kept rather than deleted, because the reasoning is what stops them being
+reopened by accident.
+
+1. **NuGet ID — `MigrationScan.Tool`, confirmed free** (checked 2026-07-25; `MigrationScan` is
+   free too). An ID prefix reservation for `MigrationScan.*` follows the first publish, since
+   nuget.org's review looks at packages you already own.
+2. **VB.NET — supported.** `.vbproj` projects are discovered and `.vb` source is analyzed by the
+   same rules as C#: the syntax queries are language-neutral, so VB gets the Tier 2 rules too,
+   honouring VB's case-insensitive matching.
+3. **Default target — pinned at `net10.0`, bumped deliberately.** A floating default would mean
+   two tool versions disagree about the same codebase for a reason the report never states, which
+   quietly undermines the determinism promise the whole tool rests on — and it would surface
+   mid-engagement, when a client rescans and the numbers have moved. Bumping it is a one-line
+   change and a changelog entry. Revisit at the next LTS (November 2027).
+4. **Schema distribution — a static `.schema.json` per minor, validated in CI.** Published under
+   `docs/schema/` at a stable URL so consumers can validate and generate against it. The CI half
+   is the point: it turns "additive and backward-compatible" from a claim in a README into
+   something that fails a build when it stops being true. A `--json-schema` command was
+   considered and rejected — it cannot be linked to, cannot be referenced by a `$schema` key, and
+   adds CLI surface for something better served by a URL.
