@@ -174,14 +174,29 @@ jobs:
 
   # Last, and separately: nuget.org is append-only. A version pushed there cannot be replaced,
   # only unlisted, so this runs only after the GitHub release exists and the binaries are known
-  # good. NUGET_API_KEY is a repository secret; without it the job is skipped rather than failed,
-  # so a fork or a key-less repo still gets a working GitHub release.
+  # good.
+  #
+  # Publishes via Trusted Publishing: the job proves its identity to nuget.org with a
+  # short-lived GitHub OIDC token and gets back an API key valid for one hour, instead of a
+  # long-lived key sitting in repository secrets waiting to leak. Configured on nuget.org
+  # against this owner, this repository, this workflow file and this environment — see
+  # docs/PUBLISHING.md.
   nuget:
     name: publish to nuget.org
     needs: release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    # Named in the trusted publishing policy, so a workflow running outside this environment
+    # cannot obtain a key even if it is otherwise identical.
     environment: nuget
+
+    # Job-level, and deliberately not workflow-level: id-token: write lets anything in the job
+    # mint an identity token, so only the job that actually publishes should hold it. Declaring
+    # permissions here replaces the workflow default entirely, hence contents: read for checkout.
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
@@ -194,17 +209,31 @@ jobs:
         env:
           ContinuousIntegrationBuild: true
 
-      - name: Push
+      # Fails here with an explanation rather than inside the OIDC exchange, where a missing
+      # username surfaces as an opaque authentication error.
+      - name: Check the publisher identity is configured
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_USER: ${{ secrets.NUGET_USER }}
         run: |
-          if [ -z "$NUGET_API_KEY" ]; then
-            echo "::warning::NUGET_API_KEY is not set — skipping the nuget.org push. The GitHub release is unaffected."
-            exit 0
+          if [ -z "$NUGET_USER" ]; then
+            echo "::error::Secret NUGET_USER is not set. It is your nuget.org profile name (not your email), and it must match the owner of the trusted publishing policy. See docs/PUBLISHING.md."
+            exit 1
           fi
+
+      # Deliberately after packing and immediately before pushing: the key nuget.org returns is
+      # valid for one hour and can only be issued once per token, so requesting it early risks
+      # a slow build expiring it before the push.
+      - name: Exchange the OIDC token for a short-lived key
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push
+        run: |
           # --skip-duplicate so re-running a failed release job is safe: an already-pushed
           # version is reported and skipped instead of failing the run.
           dotnet nuget push "dist/*.nupkg" \
-            --api-key "$NUGET_API_KEY" \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate

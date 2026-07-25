@@ -21,41 +21,62 @@ be unlisted, never replaced or reused.
 
 ## One-time setup
 
-### The nuget.org API key
+### Trusted Publishing
 
-Required before the first release. Without it the push step logs a warning and skips; the GitHub
-release still publishes, so a missed key costs a re-run rather than a broken release.
+There is **no API key to create, store or rotate**. The publish job proves its identity to
+nuget.org with a short-lived GitHub OIDC token and gets back a key valid for one hour. Nothing
+long-lived exists to leak, and a stolen workflow log is worth nothing an hour later.
 
-1. Sign in at <https://www.nuget.org/> and go to **API Keys** → **Create**.
-2. Scope it as tightly as it will go:
-   - **Key name:** `MigrationScan release workflow`
-   - **Expires:** 365 days (the maximum). Put a reminder in the calendar — an expired key fails a
-     release at the last step.
-   - **Scopes:** *Push* only. Not *Unlist*.
-   - **Glob pattern:** `MigrationScan.*` — so a leaked key cannot push to anything else you own.
-3. Copy the key. It is shown once.
-4. Add it to the repository: **Settings → Secrets and variables → Actions → New repository
-   secret**, named `NUGET_API_KEY`.
+**On nuget.org:** sign in, click your username → **Trusted Publishing**, and add a policy:
 
-> The first push of a brand-new package ID cannot use a glob-scoped key, because the package does
-> not exist yet and the glob matches nothing. Either create the first key with **Push new packages
-> and package versions** unscoped, publish `0.1.0`, then replace it with the globbed key — or
-> reserve the ID first (below).
+| Field | Value |
+| --- | --- |
+| Repository Owner | `matt-williams-dev` |
+| Repository | `MigrationScan` |
+| Workflow File | `release.yml` |
+| Environment | `nuget` |
 
-### Reserve the package ID (optional, recommended)
+Two things that are easy to get wrong:
+
+- **Workflow File is the file name only.** `release.yml`, *not* `.github/workflows/release.yml`.
+- **Environment must match** the `environment:` on the publish job. It is optional in general,
+  but this workflow sets `environment: nuget`, so leaving the field blank will not match.
+
+**In this repository:** add one secret, **Settings → Secrets and variables → Actions**, named
+`NUGET_USER`, holding your **nuget.org profile name** — not your email address. It is not really
+a secret (it appears on every package page you own), but nuget.org recommends it as one and the
+workflow fails early with a clear message if it is missing.
+
+> **A policy covers packages that do not exist yet.** Policies are scoped to an *owner*, not to a
+> package, so the first-publish chicken-and-egg an API key has — a glob-scoped key cannot match an
+> ID nothing has been published under — simply does not arise. This is why Trusted Publishing is
+> the better fit here, not just the more fashionable one.
+
+> **If you do not see the Trusted Publishing option**, nuget.org is still rolling it out
+> gradually and your account may not have it. Fall back to an API key: create one at **API Keys**
+> → **Create** (push-only, unscoped for the first publish since the package does not exist yet),
+> store it as `NUGET_API_KEY`, and in the `nuget` job replace the login step with
+> `--api-key ${{ secrets.NUGET_API_KEY }}` and drop the `id-token: write` permission.
+
+### Reserve the package ID (recommended, after the first publish)
 
 `MigrationScan.Tool` and `MigrationScan` were both free as of 2026-07-25. An ID prefix reservation
 stops anyone else publishing `MigrationScan.Anything` and gives the package the verified-owner
 tick on nuget.org, which matters for a tool asking to be trusted with somebody's source. Request
-it at <https://www.nuget.org/policies/PackageIdPrefixReservation> — it is a manual review and
-takes days, so start it before you need it.
+it at <https://www.nuget.org/policies/PackageIdPrefixReservation>. It is a manual review that
+looks at packages you already own, so it follows the first publish rather than preceding it, and
+it takes days — start it as soon as `0.1.0` is live.
 
 ### The `nuget` environment
 
-The push job runs in a GitHub environment named `nuget`. Creating it under **Settings →
-Environments** and adding yourself as a required reviewer means every publish pauses for a manual
-approval. Worth it for an append-only destination. If the environment does not exist the job runs
-without the gate.
+The push job runs in a GitHub environment named `nuget`, which does double duty here. Creating it
+under **Settings → Environments** and adding yourself as a required reviewer makes every publish
+pause for a manual approval — worth it for an append-only destination. It is also named in the
+trusted publishing policy, so a workflow running outside that environment cannot obtain a key
+even if it is otherwise identical.
+
+Create it, or the policy's Environment field will not match and the token exchange will be
+refused.
 
 ## What the workflow does
 
@@ -67,7 +88,15 @@ without the gate.
 | `verify-version` | Tag matches `<Version>`. Fails fast, before any artifact exists. |
 | `publish` | Self-contained single-file executables for win-x64, win-arm64, linux-x64, osx-arm64, each on its own OS, archived with a `.sha256`. |
 | `release` | Creates the GitHub release and attaches the archives, checksums, and the `.nupkg`. |
-| `nuget` | Packs again and pushes `.nupkg` + `.snupkg` to nuget.org. Last, and only after the release exists. |
+| `nuget` | Exchanges an OIDC token for a one-hour key and pushes `.nupkg` + `.snupkg` to nuget.org. Last, and only after the release exists. |
+
+The key is requested *after* packing and immediately before the push. It is valid for an hour and
+each token buys exactly one key, so asking early risks a slow build expiring it.
+
+`id-token: write` is granted on the `nuget` job alone, never at workflow level. That permission
+lets anything in the job mint an identity token, so only the job that actually publishes should
+hold it. Declaring `permissions:` on a job replaces the workflow default outright, which is why
+that block also restates `contents: read` for the checkout.
 
 `workflow_dispatch` runs everything except `verify-version`, `release` and `nuget` — so the build
 and packaging path can be exercised without minting anything.
@@ -117,4 +146,11 @@ to see them.
   without a version, then publish a fixed higher version. Unlisting does not break anyone who
   already depends on that exact version, which is the point.
 - **A failed push, package already there:** the push uses `--skip-duplicate`, so re-running the
-  job is safe.
+  job is safe. Re-running also mints a fresh key, so an expired one is not a reason to retag.
+- **The token exchange is refused:** the policy and the run have to agree on all four of owner,
+  repository, workflow file name and environment. Check the workflow file field is `release.yml`
+  and not a path, and that the `nuget` environment exists. If the policy shows as *pending*, it
+  is in the 7-day activation window nuget.org applies to some repositories — a successful publish
+  inside that window makes it permanent, and the window can be restarted at any time.
+- **`NUGET_USER` missing:** the job fails before the exchange with a message naming the secret,
+  rather than surfacing as an opaque authentication error.
