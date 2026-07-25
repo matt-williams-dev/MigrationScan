@@ -12,9 +12,24 @@ requires a consumer change.
 
 ## [0.1.0] — first public release
 
-Report schema **1.5**.
+Report schema **1.6**.
 
 ### Added
+
+- **The JSON report contains no file paths.** Each is replaced by a stable opaque id, so a report
+  can be shared without a security review reading the whole file. `file` is *omitted* and
+  `fileId` carries the id — `file` was not redefined, because a field that sometimes holds a path
+  and sometimes a hash would be a breaking change wearing an additive one's clothes. Project names
+  and dependency identities are kept on purpose: a component cannot be assessed without knowing
+  which one it is. `--include-paths` opts out.
+
+  Console, Markdown and SARIF always keep full paths. They stay on your machine, SARIF exists to
+  annotate a specific line in a specific file, and withholding paths from your own developers
+  would help nobody.
+- **`finding.fingerprint`**, so a redacted report still works as a `--baseline`. The identity is
+  recorded rather than derived from the path, which a one-way hash could not reproduce.
+- **A machine-readable schema**, [`docs/schema/migrationscan-1.6.schema.json`](docs/schema/migrationscan-1.6.schema.json),
+  validated against real output in CI.
 
 - **One scan reports both portability stances.** The JSON report carries a `targets` array with
   a cross-platform (`net10.0`) and a Windows (`net10.0-windows`) view of the same analysis, each

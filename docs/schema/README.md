@@ -9,7 +9,16 @@ and estimating tools) should consume this rather than parsing the console or Mar
 - **Versioned.** `schemaVersion` follows semver-style rules: additive, backward-compatible
   changes bump the minor version; a breaking change would bump the major.
 
-## Current version: `1.5`
+## Current version: `1.6`
+
+**Machine-readable:** [`migrationscan-1.6.schema.json`](migrationscan-1.6.schema.json) — a JSON
+Schema (draft 2020-12) you can validate or generate against. Every report the tool produces is
+validated against it in CI, so a change that breaks the contract fails a build rather than
+reaching you.
+
+Schema files start at 1.6, the first released version. Earlier minors existed only in pre-release
+builds and no report at those versions was ever published, so a file describing them would be an
+artifact with nothing to describe.
 
 Each version is additive and backward-compatible:
 
@@ -21,8 +30,40 @@ Each version is additive and backward-compatible:
 - `1.4` — added the `references` inventory and `summary.thirdPartyReferences`.
 - `1.5` — added the `targets` array: both portability stances in one document, so a single
   scan answers both "what does it cost to modernize?" and "what does portability add?".
+- `1.6` — added `redacted`, `finding.fingerprint`, and `finding.fileId`. **Paths are now
+  redacted by default**: `file` is *omitted* and `fileId` carries a stable opaque id in its
+  place. `file` was not redefined — a field that sometimes holds a path and sometimes a hash
+  would be a breaking change wearing an additive one's clothes.
 
 Consumers written against an earlier version keep working unchanged.
+
+## Redaction
+
+The JSON is the document that leaves the machine, so it redacts by default and `--include-paths`
+opts out. Console, Markdown and SARIF always keep full paths: they stay put, SARIF exists to
+annotate a specific line in a specific file, and withholding paths from a team scanning its own
+code would help nobody.
+
+| | Redacted | Kept |
+| --- | --- | --- |
+| Source file paths | `file` omitted, `fileId` opaque id | — |
+| Project paths | — | identity; grouping by project is what makes a proposal readable |
+| Dependency name + version | — | identity; a component cannot be researched without it |
+| `source` — HintPath | opaque id | — |
+| `source` — COM type-library GUID | — | identity, not location; same value on every machine |
+| `source` — service URL | scheme only (`https://<redacted>`) | — |
+| Warning text and `path` | opaque id, substituted in the prose too | — |
+
+Two consequences worth knowing:
+
+- **`fileId` is stable**, so two findings in the same file still visibly share a file. That is
+  real signal for effort estimation and costs no disclosure.
+- **`fingerprint` is recorded outright** rather than derived from the fields, which is what lets
+  a redacted report serve as a `--baseline`. Reconstructing an identity from a one-way hash is
+  not possible, so a baseline whose paths were redacted would otherwise match nothing.
+
+A warning that still names a path after substitution — one listing several at once — is dropped
+rather than published half-redacted.
 
 ## Shape
 

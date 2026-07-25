@@ -1,7 +1,6 @@
 ﻿{
   "schemaVersion": "1.6",
   "target": "net10.0",
-  "redacted": true,
   "summary": {
     "projectsScanned": 2,
     "totalFindings": 7,
@@ -135,7 +134,7 @@
       "effort": "small",
       "message": "Project 'Shop.Web' uses the legacy non-SDK project format.",
       "project": "Shop.Web/Shop.Web.csproj",
-      "fileId": "f:87cf6a44c4fb5913",
+      "file": "Shop.Web/Shop.Web.csproj",
       "line": 2,
       "fingerprint": "9e54f5faef3d2c7da3061dd56c7be6e0",
       "remediation": "Convert the project to the SDK style.",
@@ -150,7 +149,7 @@
       "effort": "blocker",
       "message": "Project 'Shop.Web' is an ASP.NET WebForms application (.aspx present).",
       "project": "Shop.Web/Shop.Web.csproj",
-      "fileId": "f:87cf6a44c4fb5913",
+      "file": "Shop.Web/Shop.Web.csproj",
       "line": 2,
       "fingerprint": "b181103d4d1571744ef72e971301a1a4",
       "remediation": "Re-architect to Razor Pages, MVC, or Blazor.",
@@ -165,7 +164,7 @@
       "effort": "small",
       "message": "Reads configuration via ConfigurationManager.AppSettings.",
       "project": "Shop.Web/Shop.Web.csproj",
-      "fileId": "f:13a12b4d8e96a3c2",
+      "file": "Shop.Web/Default.aspx.cs",
       "line": 14,
       "fingerprint": "ce33997c796c9658fc35cebaaeea796a",
       "remediation": "Add System.Configuration.ConfigurationManager or migrate to Microsoft.Extensions.Configuration.",
@@ -180,7 +179,7 @@
       "effort": "small",
       "message": "Reads configuration via ConfigurationManager.AppSettings.",
       "project": "Shop.Web/Shop.Web.csproj",
-      "fileId": "f:371d4410f96812be",
+      "file": "Shop.Web/Global.asax.cs",
       "line": 20,
       "fingerprint": "199e5b2a687c5457e35c19b9023c6528",
       "remediation": "Add System.Configuration.ConfigurationManager or migrate to Microsoft.Extensions.Configuration.",
@@ -195,7 +194,7 @@
       "effort": "small",
       "message": "Reads configuration via ConfigurationManager.AppSettings.",
       "project": "Shop.Web/Shop.Web.csproj",
-      "fileId": "f:5657a6bf7714cc79",
+      "file": "Shop.Web/Settings.cs",
       "line": 8,
       "fingerprint": "354b6427875a0746c84569ca4a7189c7",
       "remediation": "Add System.Configuration.ConfigurationManager or migrate to Microsoft.Extensions.Configuration.",
@@ -210,7 +209,7 @@
       "effort": "large",
       "message": "Uses BinaryFormatter, which is removed in .NET 9.",
       "project": "Shop.Core/Shop.Core.csproj",
-      "fileId": "f:108896e78718a6aa",
+      "file": "Shop.Core/Cache.cs",
       "line": 33,
       "fingerprint": "7663bb943c44d832f8a893207570017c",
       "remediation": "Replace with a safe serializer such as System.Text.Json.",
@@ -225,7 +224,7 @@
       "effort": "small",
       "message": "Uses System.Data.SqlClient, which is in maintenance mode.",
       "project": "Shop.Core/Shop.Core.csproj",
-      "fileId": "f:023300b389e2db1e",
+      "file": "Shop.Core/Db.cs",
       "line": 5,
       "fingerprint": "99bd1bf4761374a664fc5ed65ca207ee",
       "remediation": "Switch to Microsoft.Data.SqlClient.",
@@ -248,7 +247,7 @@
       "isFrameworkAssembly": false,
       "isThirdParty": true,
       "project": "Shop.Core/Shop.Core.csproj",
-      "declaredIn": "f:10b9b7de736f18e9",
+      "declaredIn": "Shop.Core/Shop.Core.csproj",
       "line": 11
     },
     {
@@ -258,7 +257,7 @@
       "isFrameworkAssembly": false,
       "isThirdParty": true,
       "project": "Shop.Web/Shop.Web.csproj",
-      "declaredIn": "f:1fbb403c7375382b",
+      "declaredIn": "Shop.Web/packages.config",
       "line": 4
     },
     {
@@ -267,7 +266,7 @@
       "isFrameworkAssembly": true,
       "isThirdParty": false,
       "project": "Shop.Web/Shop.Web.csproj",
-      "declaredIn": "f:87cf6a44c4fb5913",
+      "declaredIn": "Shop.Web/Shop.Web.csproj",
       "line": 8
     },
     {
@@ -277,18 +276,18 @@
       "isFrameworkAssembly": false,
       "isThirdParty": true,
       "project": "Shop.Web/Shop.Web.csproj",
-      "declaredIn": "f:87cf6a44c4fb5913",
+      "declaredIn": "Shop.Web/Shop.Web.csproj",
       "line": 9
     },
     {
       "kind": "vendoredAssembly",
       "name": "Contoso.Payments",
       "version": "2.1.0.0",
-      "source": "f:1b31bbbc4ad34629",
+      "source": "libs/Contoso.Payments.dll",
       "isFrameworkAssembly": false,
       "isThirdParty": true,
       "project": "Shop.Web/Shop.Web.csproj",
-      "declaredIn": "f:87cf6a44c4fb5913",
+      "declaredIn": "Shop.Web/Shop.Web.csproj",
       "line": 12
     },
     {
@@ -299,34 +298,34 @@
       "isFrameworkAssembly": false,
       "isThirdParty": true,
       "project": "Shop.Web/Shop.Web.csproj",
-      "declaredIn": "f:87cf6a44c4fb5913",
+      "declaredIn": "Shop.Web/Shop.Web.csproj",
       "line": 18
     },
     {
       "kind": "webService",
       "name": "PricingService",
-      "source": "http://<redacted>",
+      "source": "http://pricing.internal/Pricing.asmx",
       "isFrameworkAssembly": false,
       "isThirdParty": true,
       "project": "Shop.Web/Shop.Web.csproj",
-      "declaredIn": "f:87cf6a44c4fb5913",
+      "declaredIn": "Shop.Web/Shop.Web.csproj",
       "line": 24
     },
     {
       "kind": "project",
       "name": "Shop.Core",
-      "source": "f:10b9b7de736f18e9",
+      "source": "Shop.Core/Shop.Core.csproj",
       "isFrameworkAssembly": false,
       "isThirdParty": false,
       "project": "Shop.Web/Shop.Web.csproj",
-      "declaredIn": "f:87cf6a44c4fb5913",
+      "declaredIn": "Shop.Web/Shop.Web.csproj",
       "line": 30
     }
   ],
   "warnings": [
     {
-      "message": "Skipped 'f:b29c7255aae96966': project file not found (referenced by the solution but missing on disk).",
-      "path": "f:b29c7255aae96966"
+      "message": "Skipped 'Shop.Legacy/Shop.Legacy.csproj': project file not found (referenced by the solution but missing on disk).",
+      "path": "Shop.Legacy/Shop.Legacy.csproj"
     }
   ]
 }

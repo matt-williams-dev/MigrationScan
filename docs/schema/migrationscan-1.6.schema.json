@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/matt-williams-dev/MigrationScan/main/docs/schema/migrationscan-1.6.schema.json",
+  "title": "MigrationScan report",
+  "description": "Output of `migrationscan`, schema 1.6. Additive and backward-compatible over 1.0: every field added since is optional, so a consumer written against an earlier minor keeps working. See docs/schema/README.md for consumer notes.",
+  "type": "object",
+  "required": ["schemaVersion", "target", "summary", "projects", "findings", "warnings"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "Major.minor. An unknown major must be refused; a newer minor is additive and safe to read."
+    },
+    "target": {
+      "type": "string",
+      "description": "The TFM the root summary and projects describe, e.g. net10.0 or net10.0-windows."
+    },
+    "redacted": {
+      "const": true,
+      "description": "Present and true when file paths were replaced with opaque ids. Absent means paths are real. Stated outright so an absent `file` is never ambiguous between 'redacted' and 'this finding has no file'."
+    },
+    "scan": {
+      "type": "object",
+      "description": "What produced the report. Deliberately carries no timestamp — identical input yields byte-identical output.",
+      "required": ["toolVersion"],
+      "additionalProperties": false,
+      "properties": {
+        "toolVersion": { "type": "string" },
+        "commit": {
+          "type": "string",
+          "description": "Commit the scanned tree was checked out at, when it is a git working copy."
+        }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" },
+    "projects": { "type": "array", "items": { "$ref": "#/$defs/project" } },
+    "targets": {
+      "type": "array",
+      "description": "Both portability stances from one scan (1.5+). Only summary and projects differ between them; findings, references, notAssessed and warnings are shared.",
+      "items": { "$ref": "#/$defs/targetView" }
+    },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "notAssessed": { "type": "array", "items": { "$ref": "#/$defs/notAssessed" } },
+    "references": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+    "warnings": { "type": "array", "items": { "$ref": "#/$defs/warning" } }
+  },
+  "$defs": {
+    "effort": {
+      "type": "object",
+      "description": "Heuristic engineer-day range. Already applies per-rule bands and a sub-linear occurrence factor — build on it, do not re-derive from raw findings.",
+      "required": ["minDays", "maxDays", "needsDecision"],
+      "additionalProperties": false,
+      "properties": {
+        "minDays": { "type": "number", "minimum": 0 },
+        "maxDays": { "type": "number", "minimum": 0 },
+        "needsDecision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Blocking issues excluded from the day range: unbounded until an architectural decision is made."
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["projectsScanned", "totalFindings", "findingsBySeverity", "effort"],
+      "additionalProperties": false,
+      "properties": {
+        "projectsScanned": { "type": "integer", "minimum": 0 },
+        "totalFindings": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Active findings only. On a Windows stance, satisfied lock-in findings are excluded."
+        },
+        "findingsBySeverity": {
+          "type": "object",
+          "required": ["blocker", "high", "medium", "low"],
+          "additionalProperties": false,
+          "properties": {
+            "blocker": { "type": "integer", "minimum": 0 },
+            "high": { "type": "integer", "minimum": 0 },
+            "medium": { "type": "integer", "minimum": 0 },
+            "low": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "effort": { "$ref": "#/$defs/effort" },
+        "projectsNotAssessed": { "type": "integer", "minimum": 0 },
+        "windowsLockInSatisfied": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Omitted on a cross-platform stance, where nothing is satisfied."
+        },
+        "thirdPartyReferences": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Distinct components, not declaration sites — fewer than the length of `references`."
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": ["path", "findingCount", "effort"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Repo-relative project path. Kept even when redacted: it is the project's identity, and grouping by project is what makes a downstream proposal readable."
+        },
+        "findingCount": { "type": "integer", "minimum": 0 },
+        "effort": { "$ref": "#/$defs/effort" }
+      }
+    },
+    "targetView": {
+      "type": "object",
+      "required": ["target", "stance", "summary", "projects"],
+      "additionalProperties": false,
+      "properties": {
+        "target": { "type": "string" },
+        "stance": { "enum": ["crossPlatform", "windows"] },
+        "default": {
+          "const": true,
+          "description": "Marks the stance the document root describes. Absent on the other."
+        },
+        "satisfiedPlatform": {
+          "const": "windows",
+          "description": "This stance satisfies findings whose `platform` equals this value. Absent on the cross-platform stance."
+        },
+        "summary": { "$ref": "#/$defs/summary" },
+        "projects": { "type": "array", "items": { "$ref": "#/$defs/project" } }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": ["ruleId", "title", "category", "severity", "tier", "effort", "message", "project"],
+      "additionalProperties": false,
+      "not": {
+        "description": "`file` and `fileId` are alternatives, never both: a redacted report replaces the field rather than redefining what `file` means.",
+        "required": ["file", "fileId"]
+      },
+      "properties": {
+        "ruleId": { "type": "string", "pattern": "^MIG[0-9]{4}$" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "severity": { "enum": ["blocker", "high", "medium", "low"] },
+        "tier": { "enum": ["certain", "probable", "verified"] },
+        "effort": { "enum": ["trivial", "small", "medium", "large", "blocker"] },
+        "message": { "type": "string" },
+        "project": { "type": "string" },
+        "file": {
+          "type": "string",
+          "description": "Repo-relative path. Omitted when the finding has no file, and when the report is redacted."
+        },
+        "fileId": {
+          "type": "string",
+          "pattern": "^f:[0-9a-f]{16}$",
+          "description": "Opaque, stable id standing in for a file path in a redacted report. Two findings in one file share an id."
+        },
+        "line": { "type": "integer", "minimum": 1 },
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$",
+          "description": "Stable identity across runs and across redaction, used by --baseline. Excludes the line number so a finding survives edits that shift lines."
+        },
+        "remediation": { "type": "string" },
+        "docsUrl": { "type": "string" },
+        "platform": {
+          "const": "windows",
+          "description": "Present only for Windows lock-in rules."
+        },
+        "satisfiedByTarget": {
+          "const": true,
+          "description": "Present only when the document's target satisfies this lock-in finding."
+        }
+      }
+    },
+    "notAssessed": {
+      "type": "object",
+      "required": ["name", "path", "projectType"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "projectType": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "description": "Inventory, not a finding: no severity, no effort, never trips --fail-on.",
+      "required": ["kind", "name", "isFrameworkAssembly", "isThirdParty", "project", "declaredIn"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["package", "assembly", "vendoredAssembly", "com", "project", "webService"] },
+        "name": {
+          "type": "string",
+          "description": "Identity, not location — kept even when redacted, because a component cannot be researched without it."
+        },
+        "version": { "type": "string" },
+        "source": {
+          "type": "string",
+          "description": "HintPath, project path, COM type-library GUID, or service URL. When redacted: a COM GUID is kept (identity), a service URL keeps only its scheme, anything else becomes an opaque id."
+        },
+        "isFrameworkAssembly": { "type": "boolean" },
+        "isThirdParty": { "type": "boolean" },
+        "project": { "type": "string" },
+        "declaredIn": { "type": "string" },
+        "line": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "warning": {
+      "type": "object",
+      "required": ["message"],
+      "additionalProperties": false,
+      "properties": {
+        "message": { "type": "string" },
+        "path": { "type": "string" }
+      }
+    }
+  }
+}
