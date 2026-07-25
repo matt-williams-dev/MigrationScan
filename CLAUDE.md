@@ -1,7 +1,7 @@
-# MigrationScan — working constraints
+# MigrationScan: working constraints
 
 This file keeps the core constraints in context across sessions. Full detail lives in
-`migrationscan-spec.md`. If anything here conflicts with the spec, the spec wins — update
+`migrationscan-spec.md`. If anything here conflicts with the spec, the spec wins, so update
 this file to match.
 
 ## Design principles (spec §3)
@@ -21,11 +21,11 @@ this file to match.
 
 Every finding carries a confidence tier derived from how it was detected:
 
-- **Tier 1 — Certain.** From project files, `packages.config`, `app.config`, `web.config`,
+- **Tier 1, Certain.** From project files, `packages.config`, `app.config`, `web.config`,
   `.sln`. XML parsing, no ambiguity.
-- **Tier 2 — Probable.** From Roslyn syntax trees without a resolved compilation. Good recall,
+- **Tier 2, Probable.** From Roslyn syntax trees without a resolved compilation. Good recall,
   some false positives (e.g. `Registry` could be someone's own class).
-- **Tier 3 — Verified.** From the semantic model when references resolve, or from compiled
+- **Tier 3, Verified.** From the semantic model when references resolve, or from compiled
   assemblies in `bin/` via Cecil. Phase 6 work.
 
 Report the tier on every finding. A Tier 2 finding labelled "probable" that turns out wrong
@@ -55,7 +55,7 @@ Public surfaces, roughly in the order somebody meets them:
 
 - The NuGet `<Description>`, which is the first paragraph on the package page.
 - `README.md`, which is also the package readme.
-- **Strings the tool prints or writes into its own reports** — `PrivacyNotice`,
+- **Strings the tool prints or writes into its own reports**: `PrivacyNotice`,
   `ConsoleReporter`, `MarkdownReportWriter`. Easy to overlook because they live in source, and
   read by more people than the docs.
 - `CHANGELOG.md`, `docs/`, and the release-notes template in `.github/workflows/release.yml`,
@@ -66,4 +66,4 @@ Public surfaces, roughly in the order somebody meets them:
 
 - Target `net10.0`, C# 14, nullable enabled, warnings as errors (see `Directory.Build.props`).
 - `dotnet build` and `dotnet test` from the repo root.
-- No network access in tests, ever — including `--online` tests. Mock the NuGet client.
+- No network access in tests, ever, including `--online` tests. Mock the NuGet client.
