@@ -4,10 +4,18 @@
 
 It answers one question: *how much work is it to move this solution off .NET Framework, and what specifically blocks it?* It runs offline, produces the same output every time, requires no account, and never transmits your source code.
 
+Download the executable for your platform from the [releases page](../../releases), put it in the
+folder you want to assess, and run it:
+
 ```console
-dotnet tool install -g MigrationScan.Tool
 migrationscan path/to/YourSolution.sln
 ```
+
+It writes one file — `migrationscan-report.json` — and prints a summary. No .NET install, no
+admin rights, no flags to learn. With no arguments at all it scans the current directory, so
+dropping the executable into a repository root and double-clicking it works too.
+
+Already have the .NET 10 SDK? `dotnet tool install -g MigrationScan.Tool` gets you the same tool.
 
 > **Status: pre-release / under active development.** The foundation is in place (Phase 0). Rules, reports, and the CLI surface are being built out phase by phase — see [Roadmap](#roadmap). The install command above will work once the first release is published to NuGet.
 
@@ -120,49 +128,64 @@ More rules land phase by phase; see the [full catalog in the spec](migrationscan
 ## Usage
 
 ```
-migrationscan <path> [options]
+migrationscan [path] [options]
 
-  <path>                  .sln, .csproj, .vbproj, .dll/.exe, or directory to scan
+  [path]                  .sln, .csproj, .vbproj, .dll/.exe, or directory to scan.
+                          Defaults to the current directory.
 
-  --target <tfm>          Target framework (default: net10.0). A -windows TFM
-                          (net10.0-windows) treats Windows lock-in findings as satisfied.
-  --format <fmt>          console | markdown | json | sarif (repeatable)
+  --target <tfm>          .NET version to assess against (default: net10.0). Both
+                          portability stances are always reported — see below.
+  --format <fmt>          console | markdown | json | sarif (repeatable). Omit for the
+                          default: a console summary plus migrationscan-report.json.
   --output <path>         Output file or directory
-  --rules <ids>           Include only these rule IDs
-  --exclude <ids>         Exclude these rule IDs
   --fail-on <severity>    blocker | high | medium | low
   --online                Allow NuGet.org lookups for package compatibility
   --baseline <path>       Suppress findings present in a baseline file
-  --verbosity <level>     quiet | normal | detailed
 ```
+
+That is the whole surface — `--help` is the authority. `--fail-on` is evaluated against the
+stance `--target` names, so adding the second stance to the report never changes an exit code.
 
 `console` always writes to stdout. For `json`/`markdown`, `--output` may be a **file**
 (written as-is for a single format) or a **directory** (receives `report.json` /
 `report.md`). When several file formats share one `--output` file path, each is written with
 its own extension so they don't overwrite each other.
 
-### Cross-platform vs. staying on Windows (`--target`)
+### Cross-platform vs. staying on Windows
 
 Modern .NET can still target Windows (`net10.0-windows`), where COM interop, P/Invoke to
 Win32, the Registry, WMI, and similar continue to work. Those APIs are **Windows lock-in** —
-they are only migration cost if you also need to leave Windows. MigrationScan reflects that in
-the target:
+they are only migration cost if you also need to leave Windows.
 
-```console
-migrationscan MyApp.sln                          # cross-platform (net10.0) — the loud default
-migrationscan MyApp.sln --target net10.0-windows # staying on Windows
+**You do not have to choose, and you do not have to scan twice.** Every report covers both
+stances:
+
+```jsonc
+"targets": [
+  { "target": "net10.0",         "stance": "crossPlatform", "summary": { /* 7.8–23 days */ } },
+  { "target": "net10.0-windows", "stance": "windows",       "summary": { /* 5–15 days  */ } }
+]
 ```
 
-On a `-windows` target, the Windows lock-in findings are **downgraded**: still listed (under a
-"satisfied by target" section, and flagged `satisfiedByTarget` in JSON / suppressed in SARIF),
-but excluded from the severity counts, the effort estimate, and `--fail-on`. Gone-everywhere
+The difference between those two numbers is the price of portability, and it comes from a
+single scan: the target changes what a finding *costs*, never what was found, so the second
+stance is an exact re-evaluation rather than a second analysis.
+
+The console and Markdown reports show the stance named by `--target` (cross-platform by
+default, the loud one), where Windows lock-in findings are **downgraded**: still listed under a
+"satisfied by target" section and flagged `satisfiedByTarget` in JSON / suppressed in SARIF, but
+excluded from the severity counts, the effort estimate, and `--fail-on`. Gone-everywhere
 findings — WebForms, `BinaryFormatter`, Remoting, MVC 5, and the rest — stay at full severity
-regardless of target. Run it both ways to see exactly what portability costs:
+regardless of stance.
+
+`--target` selects the .NET *version* (`net8.0` vs `net10.0`); the platform axis is always
+reported both ways. If you want the console summary from the Windows stance instead:
 
 ```console
-migrationscan MyApp.sln --format json -o cross-platform.json
-migrationscan MyApp.sln --target net10.0-windows --format json -o windows.json
+migrationscan MyApp.sln --target net10.0-windows
 ```
+
+The JSON is identical either way — both stances are in it regardless.
 
 ### Exit codes
 
@@ -270,6 +293,54 @@ of their own — so coverage gaps are explicit, not silent. It also carries the 
 inventory, flat and per-project, for feeding a dependency-research workflow. See the
 [output schema](docs/schema) for the full shape and consumer notes. Effort figures are
 heuristic planning aids, not a quote — apply your own rates and judgment downstream.
+
+## What's in the report (for your security review)
+
+Before you send a report anywhere, somebody may have to sign off on it. The answer travels with
+the file — every Markdown report ends with a "What this report contains" section, and every run
+prints a one-line version — so nobody has to read several thousand lines of JSON to approve it.
+
+**It includes:** project and source file paths relative to the folder you scanned, line numbers,
+rule identifiers and their fixed remediation text, the names and versions of dependencies your
+projects declare (NuGet packages, referenced assemblies, COM components, web-service endpoints,
+Windows system libraries called via P/Invoke), and project names.
+
+**It does not include:** any source code or file contents, connection strings, credentials,
+configuration values, customer or business data, machine or user names, or anything from outside
+the folder you scanned.
+
+One caveat worth checking rather than burying: a dependency's `source` is reproduced exactly as
+your project file declares it. That is normally a relative path, but a project with a hard-coded
+absolute `HintPath` will reproduce it as written.
+
+Each report also records what produced it — the tool version, and the commit the scanned tree was
+checked out at when it is a git working tree:
+
+```jsonc
+"scan": { "toolVersion": "0.1.0", "commit": "0fc6524d7b26ccd2f1eca0d18d8b3792dc6dc675" }
+```
+
+There is deliberately no timestamp: the report is byte-identical for the same input by design,
+which is what makes it diffable and baselineable. The commit is the better answer to "is this
+scan stale?" anyway, since it names the exact revision assessed.
+
+## Scanning a whole estate
+
+Point MigrationScan at a directory and it assesses everything under it in one pass — every
+solution, and every project, in one report:
+
+```console
+migrationscan C:\code\LegacyEstate
+```
+
+Projects are the unit of truth and solutions are the grouping, not the other way round. A project
+is assessed because it exists on disk, so **a project no solution references is still scanned** —
+those are exactly the ones that surface halfway through a migration and blow the plan. They are
+called out in the warnings so you can confirm whether they are in scope. A project shared by
+several solutions is scanned once, not once per solution.
+
+Build output, restored `packages/`, `node_modules`, and dot-directories are skipped, so a vendored
+source tree is never mistaken for your own code.
 
 ## Limitations
 

@@ -6,7 +6,8 @@ Working name. Confirm NuGet ID availability before committing to it.
 
 - CLI command: `migrationscan`
 - NuGet package: `MigrationScan.Tool`
-- Install: `dotnet tool install -g MigrationScan.Tool`
+- Primary distribution: **self-contained single-file executables** on the releases page. The teams sitting on the largest .NET Framework estates are the ones who cannot install an SDK on a locked-down build server; requiring one to assess their estate rules out the audience this exists for.
+- Also available as: `dotnet tool install -g MigrationScan.Tool`, for people who already have the .NET 10 SDK
 - License: Apache-2.0 (patent grant matters for enterprise legal review)
 
 ---
@@ -77,6 +78,8 @@ Report the tier on every finding. A Tier 2 finding that says "probable" and turn
 Not every finding is a problem for every migration. Modern .NET can target Windows (`net10.0-windows`), where COM interop, P/Invoke to Win32, the Registry, WMI, and similar continue to work. These are **Windows lock-in**: only migration cost if the app must also leave Windows. That is distinct from **gone-everywhere** APIs — WebForms, `BinaryFormatter`, .NET Remoting, MVC 5 — which are removed on modern .NET regardless of target.
 
 Each rule declares a `platform`: `any` (the default — gone everywhere) or `windows` (a Windows lock-in). When the scan `--target` is a Windows TFM, `windows` findings are **satisfied**: still reported (so scope isn't hidden), but excluded from the severity counts, the effort estimate, and `--fail-on`. This lets one codebase yield two honest numbers — "modernize, stay on Windows" vs. "go cross-platform" — instead of overstating cost for the many teams that are Windows-only. When we can't statically prove an API works on `net-windows` (e.g. a vendored assembly of unknown provenance), the rule stays `any` rather than giving false comfort.
+
+**Both stances come from one scan.** The target affects exactly one thing — whether a Windows lock-in finding counts as cost. The findings, the discovered projects, the reference inventory and the warnings are identical either way, so the alternate stance is an *exact* re-evaluation of the same analysis rather than a second one (`AnalysisResult.ForTarget`). Scanning twice was always wasted work, and asking a customer to do it, then to keep track of which file was which, was friction we imposed for nothing. The JSON reports both (§8); the console and Markdown report the stance `--target` names.
 
 ## 6. Rule catalog
 
@@ -219,7 +222,7 @@ The report must carry this sentence near the total: *these figures are heuristic
 
 **Markdown** (`--format markdown`). The shareable artifact. An engineering manager forwards this to a CTO. Structure: executive summary, blockers, findings by project, effort breakdown, references, methodology and limitations. Make it look good. This file is the marketing.
 
-**JSON** (`--format json`). Stable documented schema, versioned.
+**JSON** (`--format json`, and what the default run writes). Stable documented schema, versioned. Since 1.5 it carries a `targets` array holding **both** portability stances — a `net10.0` and a `net10.0-windows` view of the same analysis, each with its own summary and per-project effort. The findings array is not duplicated: a stance satisfies exactly the findings whose `platform` matches its `satisfiedPlatform`. Nobody should have to scan twice to learn what portability costs, and nobody downstream should have to reconcile two files that differ only in one boolean.
 
 **SARIF** (`--format sarif`). Drops into GitHub code scanning and Azure DevOps with no glue code. Findings only — SARIF is a results format, so the reference inventory has no place in it.
 
@@ -242,13 +245,22 @@ Appears in the console summary, the Markdown report, and the JSON `references` a
 
 ## 9. CLI surface
 
+The default path takes no options at all. `migrationscan` with a path — or with nothing, in the
+directory you want assessed — prints a console summary and writes `migrationscan-report.json`
+covering both portability stances. That is the whole customer interaction: one command, one file
+to send back. Every option below exists for CI and for us, not for them.
+
 ```
-migrationscan <path> [options]
+migrationscan [path] [options]
 
-  <path>                  .sln, .csproj, or directory to scan recursively
+  [path]                  .sln, .csproj, or directory to scan recursively
+                          (default: the current directory)
 
-  --target <tfm>          Target framework (default: net10.0)
-  --format <fmt>          console | markdown | json | sarif (repeatable)
+  --target <tfm>          .NET version to assess against (default: net10.0). Both
+                          portability stances are always reported; see §5.
+  --format <fmt>          console | markdown | json | sarif (repeatable). Omitting it
+                          means console + the report file; naming it means exactly
+                          what was named, so CI output never changes underneath us.
   --output <path>         Output file or directory
   --rules <ids>           Include only these rule IDs
   --exclude <ids>         Exclude these rule IDs

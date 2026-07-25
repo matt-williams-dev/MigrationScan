@@ -1,0 +1,130 @@
+name: Release
+
+# Publishes the artifacts a customer actually downloads: self-contained executables that need
+# no .NET SDK, no install, and no admin rights — plus the NuGet tool package for people who
+# already have the SDK. Runs on a version tag, or by hand for a dry run.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write   # required to create the release and upload assets
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # The tests gate the release: a tag must not produce downloadable binaries that were never
+  # verified, and the release job below depends on this one.
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet test --configuration Release
+
+  publish:
+    name: publish (${{ matrix.rid }})
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Cross-compiling a single-file host is supported, but publishing each RID on its own
+          # OS is the configuration Microsoft tests, and a broken binary here is one a customer
+          # discovers for us.
+          - { rid: win-x64,   os: windows-latest, archive: zip    }
+          - { rid: win-arm64, os: windows-latest, archive: zip    }
+          - { rid: linux-x64, os: ubuntu-latest,  archive: tar.gz }
+          - { rid: osx-arm64, os: macos-latest,   archive: tar.gz }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish
+        shell: bash
+        run: |
+          dotnet publish src/MigrationScan.Tool/MigrationScan.Tool.csproj \
+            --configuration Release \
+            --runtime ${{ matrix.rid }} \
+            --output publish/${{ matrix.rid }}
+
+      # A checksum a customer can verify against the release page before running an executable
+      # somebody emailed them a link to.
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p dist
+          name="migrationscan-${{ matrix.rid }}"
+          cd publish/${{ matrix.rid }}
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            7z a -tzip "../../dist/$name.zip" migrationscan.exe
+          else
+            chmod +x migrationscan
+            tar -czf "../../dist/$name.tar.gz" migrationscan
+          fi
+          cd ../../dist
+          if command -v sha256sum >/dev/null; then
+            sha256sum "$name."* > "$name.sha256"
+          else
+            shasum -a 256 "$name."* > "$name.sha256"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: migrationscan-${{ matrix.rid }}
+          path: dist/*
+
+  release:
+    name: create release
+    needs: publish
+    runs-on: ubuntu-latest
+    # A manual dispatch builds and checks everything but publishes nothing, so the workflow can
+    # be exercised without minting a release.
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Pack the dotnet tool
+        run: dotnet pack src/MigrationScan.Tool/MigrationScan.Tool.csproj --configuration Release --output dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --generate-notes \
+            --notes-file - dist/* <<'NOTES'
+          ## Which download do I want?
+
+          **Just assessing a solution?** Take `migrationscan-win-x64.zip`. It is a single
+          executable — no .NET install, no admin rights. Unzip it into the folder you want to
+          scan and double-click it, or run `migrationscan.exe path\to\YourSolution.sln`.
+
+          It writes one file, `migrationscan-report.json`, covering both staying on Windows and
+          going cross-platform. That is the file to send on.
+
+          **Already have the .NET 10 SDK?** `dotnet tool install -g MigrationScan.Tool`.
+
+          Verify a download against the matching `.sha256` file before running it.
+          NOTES

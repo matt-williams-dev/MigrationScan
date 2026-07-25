@@ -30,6 +30,7 @@ public static class MarkdownReportWriter
         WriteReferences(md, result);
         WriteRemediation(md, result);
         WriteMethodology(md);
+        WritePrivacy(md);
 
         // Normalize to LF so output is byte-identical across operating systems (StringBuilder
         // .AppendLine emits Environment.NewLine, which is CRLF on Windows).
@@ -389,6 +390,36 @@ public static class MarkdownReportWriter
             md.AppendLine(EscapeInline(rule.Remediation));
             md.AppendLine();
         }
+    }
+
+    /// <summary>
+    /// What is safe to share, stated in the report itself so the answer travels with the file
+    /// rather than living in a README the recipient never opens.
+    /// </summary>
+    private static void WritePrivacy(StringBuilder md)
+    {
+        md.AppendLine("## What this report contains");
+        md.AppendLine();
+        md.AppendLine("For the security review before you send this on.");
+        md.AppendLine();
+        md.AppendLine("**It includes:**");
+        md.AppendLine();
+        foreach (string line in PrivacyNotice.Includes)
+        {
+            md.AppendLine($"- {line}");
+        }
+
+        md.AppendLine();
+        md.AppendLine("**It does not include:**");
+        md.AppendLine();
+        foreach (string line in PrivacyNotice.Excludes)
+        {
+            md.AppendLine($"- {line}");
+        }
+
+        md.AppendLine();
+        md.AppendLine(PrivacyNotice.Caveat);
+        md.AppendLine();
     }
 
     private static void WriteMethodology(StringBuilder md)

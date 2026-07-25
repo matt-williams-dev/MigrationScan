@@ -6,6 +6,7 @@
     <!-- Packaged and distributed as a global dotnet tool. -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>migrationscan</ToolCommandName>
+    <AssemblyName>migrationscan</AssemblyName>
     <PackageId>MigrationScan.Tool</PackageId>
     <Description>A free, deterministic, offline .NET Framework migration assessment tool.</Description>
     <PackageTags>dotnet-framework;migration;upgrade;assessment;roslyn;analysis</PackageTags>
@@ -15,6 +16,32 @@
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <!--
+    Settings for the self-contained single-file builds published on the releases page.
+    They only take effect when a RuntimeIdentifier is passed (the release workflow does);
+    an ordinary `dotnet build` and the NuGet tool package are unaffected.
+
+    This is the build a customer actually runs. The teams with the largest .NET Framework
+    estates are exactly the ones who cannot install a .NET 10 SDK on a locked-down build
+    server, so requiring one to assess their estate would rule them out before they start.
+  -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <!-- Roslyn is loaded reflectively in places; trimming it is not worth the risk of a
+         scan failing on a customer machine we cannot debug. Size is not the constraint. -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- Deterministic output matters here too: two people publishing the same tag should get
+         the same binary, so a customer can verify what they were sent. -->
+    <Deterministic>true</Deterministic>
+    <DebugType>none</DebugType>
+    <!-- Referenced projects would otherwise drop their .pdb next to the executable, so the
+         "single file" would arrive as three. -->
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MigrationScan.Core\MigrationScan.Core.csproj" />

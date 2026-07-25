@@ -57,7 +57,7 @@ public class JsonReportWriterTests
         using JsonDocument document = JsonDocument.Parse(json);
         JsonElement root = document.RootElement;
 
-        Assert.Equal("1.4", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("1.5", root.GetProperty("schemaVersion").GetString());
         Assert.Equal("net10.0", root.GetProperty("target").GetString());
 
         JsonElement summary = root.GetProperty("summary");
@@ -122,5 +122,105 @@ public class JsonReportWriterTests
         string second = JsonReportWriter.Write(SampleResult());
 
         Assert.Equal(first, second);
+    }
+
+    /// <summary>
+    /// The sample plus one Windows lock-in finding (a Registry read), so the two portability
+    /// stances have genuinely different costs to assert against.
+    /// </summary>
+    private static AnalysisResult SampleWithWindowsLockIn()
+    {
+        RuleMetadata registry = new(
+            Id: "MIG4002",
+            Title: "Windows Registry access",
+            Category: "Runtime failures",
+            Severity: Severity.High,
+            Effort: EffortBand.Medium,
+            Tier: ConfidenceTier.Probable,
+            Remediation: "Move the setting into configuration.",
+            DocsUrl: "https://example.test/MIG4002") { Platform = RulePlatform.Windows };
+
+        AnalysisResult sample = SampleResult();
+        return sample with
+        {
+            Findings =
+            [
+                .. sample.Findings,
+                new Finding(
+                    Rule: registry,
+                    Message: "Reads HKEY_LOCAL_MACHINE at startup.",
+                    ProjectPath: "Legacy/Legacy.csproj",
+                    FilePath: "Legacy/Startup.cs",
+                    Line: 42),
+            ],
+        };
+    }
+
+    [Fact]
+    public void CarriesBothPortabilityStancesInOneDocument()
+    {
+        // Written at the cross-platform target, which is what a customer's default run produces.
+        string json = JsonReportWriter.Write(SampleWithWindowsLockIn().ForTarget("net10.0"));
+
+        using JsonDocument document = JsonDocument.Parse(json);
+        JsonElement root = document.RootElement;
+
+        List<JsonElement> targets = root.GetProperty("targets").EnumerateArray().ToList();
+        Assert.Equal(2, targets.Count);
+
+        JsonElement cross = targets[0];
+        Assert.Equal("net10.0", cross.GetProperty("target").GetString());
+        Assert.Equal("crossPlatform", cross.GetProperty("stance").GetString());
+        // The document was written at this stance, so this is the one the root describes.
+        Assert.True(cross.GetProperty("default").GetBoolean());
+        // Nothing is satisfied cross-platform, so the field is absent rather than null or "".
+        Assert.False(cross.TryGetProperty("satisfiedPlatform", out _));
+
+        JsonElement windows = targets[1];
+        Assert.Equal("net10.0-windows", windows.GetProperty("target").GetString());
+        Assert.Equal("windows", windows.GetProperty("stance").GetString());
+        Assert.False(windows.TryGetProperty("default", out _));
+        Assert.Equal("windows", windows.GetProperty("satisfiedPlatform").GetString());
+
+        // Staying on Windows drops the Registry finding from the counts and the effort.
+        Assert.Equal(2, cross.GetProperty("summary").GetProperty("totalFindings").GetInt32());
+        Assert.Equal(1, windows.GetProperty("summary").GetProperty("totalFindings").GetInt32());
+        Assert.Equal(1, windows.GetProperty("summary").GetProperty("windowsLockInSatisfied").GetInt32());
+        Assert.False(cross.GetProperty("summary").TryGetProperty("windowsLockInSatisfied", out _));
+
+        Assert.True(
+            cross.GetProperty("summary").GetProperty("effort").GetProperty("maxDays").GetDouble() >
+            windows.GetProperty("summary").GetProperty("effort").GetProperty("maxDays").GetDouble(),
+            "portability should cost more than staying on Windows when a lock-in finding is present");
+
+        // Per-project rollups are per stance too — the estimator apportions against these.
+        Assert.Equal(2, cross.GetProperty("projects")[0].GetProperty("findingCount").GetInt32());
+        Assert.Equal(1, windows.GetProperty("projects")[0].GetProperty("findingCount").GetInt32());
+
+        // The findings array is shared, not duplicated per stance: a stance satisfies exactly the
+        // findings whose platform matches its satisfiedPlatform, so one copy stays the single truth.
+        List<JsonElement> findings = root.GetProperty("findings").EnumerateArray().ToList();
+        Assert.Equal(2, findings.Count);
+        Assert.Equal("windows", findings[1].GetProperty("platform").GetString());
+    }
+
+    [Fact]
+    public void RootStillDescribesTheRequestedTargetForOlderConsumers()
+    {
+        // A 1.4 consumer reads only the root. Whatever --target was asked for must still be what
+        // the root reports, or adding `targets` would silently change existing integrations.
+        string json = JsonReportWriter.Write(SampleWithWindowsLockIn().ForTarget("net10.0-windows"));
+
+        using JsonDocument document = JsonDocument.Parse(json);
+        JsonElement root = document.RootElement;
+
+        Assert.Equal("net10.0-windows", root.GetProperty("target").GetString());
+        Assert.Equal(1, root.GetProperty("summary").GetProperty("totalFindings").GetInt32());
+        Assert.Equal(1, root.GetProperty("summary").GetProperty("windowsLockInSatisfied").GetInt32());
+
+        // ...and `default` moves to the stance the root actually describes.
+        List<JsonElement> targets = root.GetProperty("targets").EnumerateArray().ToList();
+        Assert.False(targets[0].TryGetProperty("default", out _));
+        Assert.True(targets[1].GetProperty("default").GetBoolean());
     }
 }

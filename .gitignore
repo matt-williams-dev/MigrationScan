@@ -4,6 +4,11 @@ obj/
 [Bb]uild/
 artifacts/
 
+# ...except inside test fixtures, where a build-output directory is the thing under test:
+# discovery must be proven to skip it, and it cannot be if it is not in the repository.
+!tests/fixtures/**/bin/
+!tests/fixtures/**/obj/
+
 # .NET tool / test artifacts
 *.nupkg
 TestResults/

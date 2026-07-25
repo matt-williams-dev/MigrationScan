@@ -50,10 +50,10 @@ public sealed class SolutionAnalyzer
             string root = Path.GetDirectoryName(Path.GetFullPath(path))!;
             (DiscoveredProject project, IReadOnlyList<Finding> binaryFindings, IReadOnlyList<ReferenceRecord> binaryReferences) =
                 BinaryAnalyzer.Analyze(path, root);
-            return new AnalysisResult(targetFramework, [project], Sort(binaryFindings, targetFramework), [])
+            return new AnalysisResult(targetFramework, [project], Sort(binaryFindings), [])
             {
                 References = ReferenceInventory.Sort(binaryReferences),
-            };
+            }.ForTarget(targetFramework);
         }
 
         ScanInput input = ScanInput.Resolve(path);
@@ -88,11 +88,52 @@ public sealed class SolutionAnalyzer
             SolutionProjectAnalyzer.Analyze(input.OtherProjects, input.RootDirectory, _catalog);
         findings.AddRange(otherFindings);
 
-        return new AnalysisResult(targetFramework, projects, Sort(findings, targetFramework), SortWarnings(warnings))
+        if (DescribeOrphans(input) is { } orphanWarning)
+        {
+            warnings.Add(orphanWarning);
+        }
+
+        return new AnalysisResult(targetFramework, projects, Sort(findings), SortWarnings(warnings))
         {
             NotAssessed = notAssessed.OrderBy(p => p.Path, StringComparer.Ordinal).ToList(),
             References = ReferenceInventory.Sort(references),
-        };
+            Provenance = Provenance(input.RootDirectory),
+        }.ForTarget(targetFramework);
+    }
+
+    private static ScanProvenance Provenance(string rootDirectory) =>
+        new(ScanProvenance.CurrentToolVersion, GitRepository.CommitOf(rootDirectory));
+
+    /// <summary>
+    /// One aggregate warning for projects no solution references. They are scanned and costed
+    /// like any other — being unreferenced is not a defect — but it is worth saying out loud,
+    /// because a project outside every solution is often either dead code nobody wants to pay
+    /// to migrate, or live work nobody remembered to scope. Which one is a question for a human.
+    /// </summary>
+    private static ScanWarning? DescribeOrphans(ScanInput input)
+    {
+        // Only meaningful when solutions were discovered to compare against: scanning a directory
+        // with no .sln at all makes every project an orphan, which says nothing.
+        if (input.OrphanProjects.Count == 0 || input.Solutions.Count == 0)
+        {
+            return null;
+        }
+
+        const int shown = 5;
+        IEnumerable<string> names = input.OrphanProjects
+            .Take(shown)
+            .Select(p => PathUtilities.ToRelative(input.RootDirectory, p));
+        string list = string.Join(", ", names);
+        int remaining = input.OrphanProjects.Count - shown;
+        if (remaining > 0)
+        {
+            list += $" (and {remaining} more)";
+        }
+
+        return new ScanWarning(
+            $"{input.OrphanProjects.Count} project(s) are not referenced by any solution in the scan " +
+            $"and may not be part of a shipping build — confirm whether they are in scope: {list}",
+            Path: null);
     }
 
     // A broken individual project is recoverable — skip it and warn. Anything else
@@ -114,23 +155,17 @@ public sealed class SolutionAnalyzer
 
     // Collapse identical findings (same rule, location, and message) — e.g. a rule that
     // matches two related identifiers on one line — then order stably so the same input
-    // always produces byte-identical output. Windows lock-in findings are marked "satisfied"
-    // when the target is a Windows TFM, so the reports downgrade rather than count them.
-    private static IReadOnlyList<Finding> Sort(IEnumerable<Finding> findings, string targetFramework)
-    {
-        bool targetIsWindows = TargetPlatform.IsWindows(targetFramework);
-        return findings
+    // always produces byte-identical output. Marking Windows lock-in findings as satisfied
+    // is the target's business, and belongs to AnalysisResult.ForTarget.
+    private static IReadOnlyList<Finding> Sort(IEnumerable<Finding> findings) =>
+        findings
             .Distinct()
             .OrderBy(f => f.ProjectPath, StringComparer.Ordinal)
             .ThenBy(f => f.Rule.Id, StringComparer.Ordinal)
             .ThenBy(f => f.Line ?? 0)
             .ThenBy(f => f.FilePath, StringComparer.Ordinal)
             .ThenBy(f => f.Message, StringComparer.Ordinal)
-            .Select(f => targetIsWindows && f.Rule.Platform == RulePlatform.Windows
-                ? f with { SatisfiedByTarget = true }
-                : f)
             .ToList();
-    }
 
     private static IReadOnlyList<ScanWarning> SortWarnings(IEnumerable<ScanWarning> warnings) =>
         warnings

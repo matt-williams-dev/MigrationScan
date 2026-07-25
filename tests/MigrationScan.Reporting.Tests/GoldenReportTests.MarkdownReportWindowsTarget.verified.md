@@ -79,3 +79,24 @@ MigrationScan parses `.sln` and `.csproj` files as XML and reads `.cs` files wit
 Effort figures apply a per-rule range and a flattening occurrence factor, aggregated per project and across the solution. Two things are tracked separately and can differ: **severity** (the *Blockers* section lists the highest-impact findings) and **estimability** (the *Needs decision* count is the subset whose effort is unbounded until an architectural decision is made). A finding can be a severity blocker yet still estimable — for example replacing `BinaryFormatter` is high impact but a bounded change.
 
 _These figures are heuristic planning aids derived from static analysis and are not a quote._
+## What this report contains
+
+For the security review before you send this on.
+
+**It includes:**
+
+- Project and source file paths, relative to the folder you scanned.
+- Line numbers of the code that matched a rule.
+- Rule identifiers, titles and their fixed remediation text (the same for every scan).
+- Names and versions of dependencies your projects declare: NuGet packages, referenced assemblies, COM components, web-service endpoints, and Windows system libraries called via P/Invoke.
+- Project names as they appear in your solution and project files.
+
+**It does not include:**
+
+- Any source code, or any part of the contents of any file.
+- Connection strings, credentials, secrets, or configuration values.
+- Customer, business or personal data of any kind.
+- Machine names, user names, or environment details.
+- Anything from outside the folder you scanned.
+
+One exception worth checking: a dependency's `source` is copied exactly as your project file declares it. That is normally a relative path, but a project with a hard-coded absolute HintPath (for example C:\Users\...) will reproduce it as written.
