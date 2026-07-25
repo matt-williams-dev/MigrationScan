@@ -31,16 +31,16 @@ public static class DefaultReport
         : outputPath;
 
     /// <summary>Writes the report and returns the closing lines to print.</summary>
-    public static IReadOnlyList<string> Write(AnalysisResult result, string? outputPath)
+    public static IReadOnlyList<string> Write(AnalysisResult result, string? outputPath, bool includePaths = false)
     {
         string destination = Destination(outputPath);
-        File.WriteAllText(destination, JsonReportWriter.Write(result));
+        File.WriteAllText(destination, JsonReportWriter.Write(result, includePaths));
 
         return
         [
             $"Report written to {Path.GetFullPath(destination)}",
             "Send this one file on — it covers both staying on Windows and going cross-platform.",
-            PrivacyNotice.Summary,
+            includePaths ? PrivacyNotice.SummaryWithPaths : PrivacyNotice.Summary,
         ];
     }
 }

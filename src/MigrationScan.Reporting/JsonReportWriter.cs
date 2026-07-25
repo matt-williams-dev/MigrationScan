@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MigrationScan.Core.Analysis;
 using MigrationScan.Core.Effort;
 using MigrationScan.Core.Models;
 
@@ -17,12 +18,14 @@ public static class JsonReportWriter
     /// `summary.projectsNotAssessed`; 1.3 added portability awareness — `finding.platform`,
     /// `finding.satisfiedByTarget`, and `summary.windowsLockInSatisfied`; 1.4 added the
     /// `references` inventory and `summary.thirdPartyReferences`; 1.5 added the `targets`
-    /// array, which carries both portability stances in one document.
+    /// array, which carries both portability stances in one document; 1.6 added
+    /// `finding.fingerprint`, `redacted`, and `finding.fileId` — which replaces (never
+    /// redefines) `file` when paths are redacted.
     /// `summary.totalFindings` and `project.findingCount` count only active findings (a
     /// Windows target's satisfied lock-in findings are excluded). All additive,
     /// backward-compatible over 1.0.
     /// </summary>
-    public const string SchemaVersion = "1.5";
+    public const string SchemaVersion = "1.6";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -35,13 +38,22 @@ public static class JsonReportWriter
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    public static string Write(AnalysisResult result)
+    /// <summary>
+    /// Writes the report. Paths are redacted by default: this is the document that leaves the
+    /// machine, and the safe form has to be the one nobody has to know to ask for. Pass
+    /// <paramref name="includePaths"/> to keep them, which is what <c>--include-paths</c> does.
+    /// </summary>
+    public static string Write(AnalysisResult result, bool includePaths = false)
     {
         (string crossPlatform, string windows) = TargetPlatform.Stances(result.Target);
 
         ReportDocument document = new(
             SchemaVersion: SchemaVersion,
             Target: result.Target,
+            // Stated in the document rather than inferred from the shape of the fields, so a
+            // consumer never has to guess whether an absent `file` means "redacted" or
+            // "this finding has no file".
+            Redacted: includePaths ? null : true,
             // Omitted entirely when the result was not produced by a scan, so a hand-built
             // report never claims a provenance it does not have.
             Scan: result.Provenance is { } p ? new ReportScan(p.ToolVersion, p.Commit) : null,
@@ -55,14 +67,16 @@ public static class JsonReportWriter
                 ToTarget(result.ForTarget(crossPlatform), "crossPlatform", result.Target),
                 ToTarget(result.ForTarget(windows), "windows", result.Target),
             ],
-            Findings: result.Findings.Select(ToDto).ToList(),
+            Findings: result.Findings.Select(f => ToDto(f, includePaths)).ToList(),
+            // Project paths are kept even when redacting: they are the project's identity, and
+            // grouping scope lines by project is what makes a downstream proposal readable.
             NotAssessed: result.NotAssessed
                 .Select(p => new ReportNotAssessed(p.Name, p.Path, p.ProjectType, p.Reason))
                 .ToList(),
             // Flat and per-project rather than pre-grouped: it's the lossless form, and a
             // consumer wanting a solution-wide roll-up can group on (kind, name) itself.
-            References: result.References.Select(ToDto).ToList(),
-            Warnings: result.Warnings.Select(w => new ReportWarning(w.Message, w.Path)).ToList());
+            References: result.References.Select(r => ToDto(r, includePaths)).ToList(),
+            Warnings: Warnings(result, includePaths));
 
         // Normalize indentation newlines to LF for byte-identical output across operating
         // systems. Newlines inside string values are escaped by the serializer, so only
@@ -125,7 +139,7 @@ public static class JsonReportWriter
         MaxDays: EffortModel.Round(estimate.MaxDays),
         NeedsDecision: estimate.BlockerCount);
 
-    private static ReportFinding ToDto(Finding finding) => new(
+    private static ReportFinding ToDto(Finding finding, bool includePaths) => new(
         RuleId: finding.Rule.Id,
         Title: finding.Rule.Title,
         Category: finding.Rule.Category,
@@ -134,8 +148,15 @@ public static class JsonReportWriter
         Effort: finding.Rule.Effort,
         Message: finding.Message,
         Project: finding.ProjectPath,
-        File: finding.FilePath,
+        // `file` and `fileId` are alternatives, never both. Redefining what `file` *means* would
+        // break every consumer that resolves it against a repo — a major bump, which downstream
+        // readers refuse. `file` is already optional, so its absence is a shape consumers handle.
+        File: includePaths ? finding.FilePath : null,
+        FileId: includePaths ? null : Redaction.Path(finding.FilePath),
         Line: finding.Line,
+        // Computed from the unredacted finding either way, which is what lets a baseline captured
+        // from a redacted report still match an unredacted scan of the same solution.
+        Fingerprint: Fingerprints.Of(finding),
         Remediation: finding.Rule.Remediation,
         DocsUrl: finding.Rule.DocsUrl,
         // Emitted only for Windows lock-in rules; omitted for the ordinary "any" case.
@@ -143,20 +164,42 @@ public static class JsonReportWriter
         // True only when a Windows target satisfies this lock-in finding; otherwise omitted.
         SatisfiedByTarget: finding.SatisfiedByTarget ? true : null);
 
-    private static ReportReference ToDto(ReferenceRecord reference) => new(
+    private static ReportReference ToDto(ReferenceRecord reference, bool includePaths) => new(
         Kind: reference.Kind,
+        // Name and version are identity, not location, and survive redaction on purpose: a
+        // vendored control cannot be researched, priced or replaced without knowing which it is.
         Name: reference.Name,
         Version: reference.Version,
-        Source: reference.Source,
+        Source: includePaths ? reference.Source : Redaction.Source(reference.Source, reference.Kind),
         IsFrameworkAssembly: reference.IsFrameworkAssembly,
         IsThirdParty: reference.IsThirdParty,
         Project: reference.ProjectPath,
-        DeclaredIn: reference.DeclaredIn,
+        DeclaredIn: includePaths ? reference.DeclaredIn : Fingerprints.FileId(reference.DeclaredIn),
         Line: reference.Line);
+
+    /// <summary>
+    /// Warnings, with paths removed from the prose as well as the field. One that still names a
+    /// path afterwards — a warning listing several at once cannot be fixed by substituting the
+    /// single path it carries — is dropped rather than published half-redacted.
+    /// </summary>
+    private static IReadOnlyList<ReportWarning> Warnings(AnalysisResult result, bool includePaths)
+    {
+        if (includePaths)
+        {
+            return result.Warnings.Select(w => new ReportWarning(w.Message, w.Path)).ToList();
+        }
+
+        return result.Warnings
+            .Select(Redaction.Warning)
+            .Where(w => !Redaction.StillNamesAPath(w))
+            .Select(w => new ReportWarning(w.Message, w.Path))
+            .ToList();
+    }
 
     private sealed record ReportDocument(
         string SchemaVersion,
         string Target,
+        bool? Redacted,
         ReportScan? Scan,
         ReportSummary Summary,
         IReadOnlyList<ReportProject> Projects,
@@ -216,7 +259,9 @@ public static class JsonReportWriter
         string Message,
         string Project,
         string? File,
+        string? FileId,
         int? Line,
+        string Fingerprint,
         string Remediation,
         string DocsUrl,
         string? Platform,

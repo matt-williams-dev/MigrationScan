@@ -30,10 +30,14 @@ public sealed class Mig1010VendoredDll : ProjectRule
 
             string name = reference.Attribute("Include")?.Value?.Split(',', 2)[0].Trim() ?? Path.GetFileName(hintPath);
 
+            // The HintPath is deliberately not repeated here. It is already carried structurally
+            // by the reference inventory's `source`, where a redacted report can strip it — and a
+            // path interpolated into free text is the one place redaction cannot reliably reach.
+            // The assembly name is what makes this actionable anyway; the location is lookup.
             yield return Report(
                 context,
                 $"Project '{context.Project.Name}' references a vendored assembly ('{name}') from a checked-in " +
-                $"path ('{hintPath.Trim()}'), not a NuGet package. Confirm it runs on modern .NET — many such " +
+                "path, not a NuGet package. Confirm it runs on modern .NET — many such " +
                 "assemblies are Framework-only or ActiveX/COM with no supported successor.",
                 line: LineOf(reference));
         }

@@ -26,6 +26,17 @@ public static class BaselineReader
 
         foreach (JsonElement finding in findings.EnumerateArray())
         {
+            // Schema 1.6+ records the fingerprint outright. Preferring it is what makes a
+            // *redacted* baseline usable: its paths are one-way hashes, so recomputing from the
+            // fields below could never reproduce the original identity.
+            if (GetString(finding, "fingerprint") is { Length: > 0 } recorded)
+            {
+                fingerprints.Add(recorded);
+                continue;
+            }
+
+            // Pre-1.6 report: reconstruct from the fields, exactly as before. Those reports were
+            // never redacted, so the path is present and real.
             string? ruleId = GetString(finding, "ruleId");
             // JSON omits null "file", so fall back to the project path (matches Fingerprints.Of).
             string? file = GetString(finding, "file") ?? GetString(finding, "project");

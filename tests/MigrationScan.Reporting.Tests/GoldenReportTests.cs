@@ -18,7 +18,17 @@ public class GoldenReportTests
     [Fact]
     public Task JsonReport()
     {
+        // The default, and therefore the document that actually leaves a customer's machine.
         string json = JsonReportWriter.Write(ReportSample.Build());
+        return Verify(new Target("json", json));
+    }
+
+    [Fact]
+    public Task JsonReportWithPaths()
+    {
+        // --include-paths is a supported output too, so it gets a golden of its own: a change
+        // that quietly stopped redacting, or quietly started, shows up as a diff in one of the two.
+        string json = JsonReportWriter.Write(ReportSample.Build(), includePaths: true);
         return Verify(new Target("json", json));
     }
 

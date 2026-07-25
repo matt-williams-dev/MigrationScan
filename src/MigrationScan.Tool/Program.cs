@@ -62,6 +62,15 @@ var onlineOption = new Option<bool>("--online")
         + "the default path makes no network calls.",
 };
 
+// Opt *out* of redaction, never in. A report is shared far more often than it is inspected in
+// place, so the shareable form has to be the one nobody needs to know to ask for.
+var includePathsOption = new Option<bool>("--include-paths")
+{
+    Description = "Keep real file paths in the JSON report. Off by default: the JSON replaces "
+        + "them with stable opaque ids so the report can be shared without a review. Console, "
+        + "Markdown and SARIF always keep full paths.",
+};
+
 var rootCommand = new RootCommand(
     "MigrationScan — a free, deterministic, offline .NET Framework migration assessment tool.")
 {
@@ -72,6 +81,7 @@ var rootCommand = new RootCommand(
     failOnOption,
     baselineOption,
     onlineOption,
+    includePathsOption,
 };
 
 rootCommand.SetAction(parseResult =>
@@ -83,6 +93,7 @@ rootCommand.SetAction(parseResult =>
     string? failOnValue = parseResult.GetValue(failOnOption);
     string? baselinePath = parseResult.GetValue(baselineOption);
     bool online = parseResult.GetValue(onlineOption);
+    bool includePaths = parseResult.GetValue(includePathsOption);
 
     string[] normalizedFormats = formats.Select(f => f.ToLowerInvariant()).Distinct().ToArray();
     string[] unknownFormats = normalizedFormats.Where(f => f is not ("console" or "json" or "markdown" or "sarif")).ToArray();
@@ -132,11 +143,11 @@ rootCommand.SetAction(parseResult =>
 
         if (normalizedFormats.Length == 0)
         {
-            EmitDefault(result, output);
+            EmitDefault(result, output, includePaths);
         }
         else
         {
-            Emit(result, normalizedFormats, output);
+            Emit(result, normalizedFormats, output, includePaths);
         }
 
         return failOn is { } threshold && result.FailsThreshold(threshold)
@@ -166,17 +177,17 @@ return exitCode;
 
 // The no-flags path: a summary on screen, and one file to send on. Everything a customer needs
 // from the tool without them having to learn any of its options.
-static void EmitDefault(AnalysisResult result, string? outputPath)
+static void EmitDefault(AnalysisResult result, string? outputPath, bool includePaths)
 {
     Console.Out.Write(ConsoleReporter.Render(result));
     Console.Out.WriteLine();
-    foreach (string line in DefaultReport.Write(result, outputPath))
+    foreach (string line in DefaultReport.Write(result, outputPath, includePaths))
     {
         Console.Out.WriteLine(line);
     }
 }
 
-static void Emit(AnalysisResult result, string[] formats, string? outputPath)
+static void Emit(AnalysisResult result, string[] formats, string? outputPath, bool includePaths)
 {
     if (formats.Contains("console"))
     {
@@ -186,7 +197,7 @@ static void Emit(AnalysisResult result, string[] formats, string? outputPath)
     // File-producing formats: emitted to a file when --output is set, otherwise to stdout.
     (string Name, string Extension, Func<string> Render)[] fileFormats =
     [
-        ("json", "json", () => JsonReportWriter.Write(result)),
+        ("json", "json", () => JsonReportWriter.Write(result, includePaths)),
         ("markdown", "md", () => MarkdownReportWriter.Write(result)),
         ("sarif", "sarif", () => SarifReportWriter.Write(result)),
     ];

@@ -1,6 +1,7 @@
 ﻿{
-  "schemaVersion": "1.5",
+  "schemaVersion": "1.6",
   "target": "net10.0-windows",
+  "redacted": true,
   "summary": {
     "projectsScanned": 1,
     "totalFindings": 2,
@@ -109,8 +110,9 @@
       "effort": "medium",
       "message": "Project 'Scan.App' has a COM reference ('RANGERLib').",
       "project": "Scan.App/Scan.App.csproj",
-      "file": "Scan.App/Scan.App.csproj",
+      "fileId": "f:c24186c4b44b7196",
       "line": 12,
+      "fingerprint": "fda626880813aa255d0d9ef773819f60",
       "remediation": "Supported on net-windows; replace only if going cross-platform.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1006.md",
       "platform": "windows",
@@ -125,8 +127,9 @@
       "effort": "blocker",
       "message": "Project 'Scan.App' is an ASP.NET WebForms application (.aspx present).",
       "project": "Scan.App/Scan.App.csproj",
-      "file": "Scan.App/Scan.App.csproj",
+      "fileId": "f:c24186c4b44b7196",
       "line": 2,
+      "fingerprint": "43b48d780fc46059ce6263a3c8acbd22",
       "remediation": "Re-architect to Razor Pages, MVC, or Blazor.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md"
     },
@@ -139,8 +142,9 @@
       "effort": "small",
       "message": "Uses Microsoft.Win32.Registry.",
       "project": "Scan.App/Scan.App.csproj",
-      "file": "Scan.App/Settings.cs",
+      "fileId": "f:b203f751bb1bf76f",
       "line": 8,
+      "fingerprint": "4549d52e506db1caef1d84592d1e937a",
       "remediation": "Move registry state to a cross-platform store; on Windows-only deployments it is fine.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md",
       "platform": "windows",
@@ -155,8 +159,9 @@
       "effort": "small",
       "message": "Uses Microsoft.Win32.Registry.",
       "project": "Scan.App/Scan.App.csproj",
-      "file": "Scan.App/Startup.cs",
+      "fileId": "f:ac70246b51dd461f",
       "line": 19,
+      "fingerprint": "cd206b80f1b94f603171aa51d4048ac2",
       "remediation": "Move registry state to a cross-platform store; on Windows-only deployments it is fine.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md",
       "platform": "windows",
@@ -171,8 +176,9 @@
       "effort": "small",
       "message": "Uses System.Data.SqlClient, which is in maintenance mode.",
       "project": "Scan.App/Scan.App.csproj",
-      "file": "Scan.App/Db.cs",
+      "fileId": "f:61446c7f226ae0e3",
       "line": 5,
+      "fingerprint": "51b7b3d1ea3fb8e112d81de8ac0449c2",
       "remediation": "Switch to Microsoft.Data.SqlClient.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md"
     }
@@ -187,7 +193,7 @@
       "isFrameworkAssembly": false,
       "isThirdParty": true,
       "project": "Scan.App/Scan.App.csproj",
-      "declaredIn": "Scan.App/Scan.App.csproj",
+      "declaredIn": "f:c24186c4b44b7196",
       "line": 14
     },
     {
@@ -198,7 +204,7 @@
       "isFrameworkAssembly": false,
       "isThirdParty": true,
       "project": "Scan.App/Scan.App.csproj",
-      "declaredIn": "Scan.App/Scan.App.csproj",
+      "declaredIn": "f:c24186c4b44b7196",
       "line": 12
     }
   ],

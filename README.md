@@ -141,6 +141,7 @@ migrationscan [path] [options]
   --fail-on <severity>    blocker | high | medium | low
   --online                Allow NuGet.org lookups for package compatibility
   --baseline <path>       Suppress findings present in a baseline file
+  --include-paths         Keep real file paths in the JSON (off by default)
 ```
 
 That is the whole surface — `--help` is the authority. `--fail-on` is evaluated against the
@@ -296,22 +297,29 @@ heuristic planning aids, not a quote — apply your own rates and judgment downs
 
 ## What's in the report (for your security review)
 
-Before you send a report anywhere, somebody may have to sign off on it. The answer travels with
-the file — every Markdown report ends with a "What this report contains" section, and every run
-prints a one-line version — so nobody has to read several thousand lines of JSON to approve it.
+**The JSON report contains no file paths.** Each one is replaced by a stable opaque id, so the
+file can be shared without anyone reading several thousand lines of JSON to approve it. Every run
+says so, and every Markdown report ends with a "What this report contains" section.
 
-**It includes:** project and source file paths relative to the folder you scanned, line numbers,
-rule identifiers and their fixed remediation text, the names and versions of dependencies your
-projects declare (NuGet packages, referenced assemblies, COM components, web-service endpoints,
-Windows system libraries called via P/Invoke), and project names.
+**It includes:** project names, line numbers, rule identifiers and their fixed remediation text,
+and the names and versions of dependencies your projects declare (NuGet packages, referenced
+assemblies, COM components, web-service endpoints, Windows system libraries called via P/Invoke).
+Those are *identities, not locations*, and they are kept deliberately — a component cannot be
+assessed without knowing which one it is.
 
-**It does not include:** any source code or file contents, connection strings, credentials,
-configuration values, customer or business data, machine or user names, or anything from outside
-the folder you scanned.
+**It does not include:** source file paths, any source code or file contents, connection strings,
+credentials, configuration values, web-service hosts and URLs, customer or business data, machine
+or user names, or anything from outside the folder you scanned.
 
-One caveat worth checking rather than burying: a dependency's `source` is reproduced exactly as
-your project file declares it. That is normally a relative path, but a project with a hard-coded
-absolute `HintPath` will reproduce it as written.
+Redaction applies to the **JSON** — the file you share. The console, the Markdown report and the
+SARIF output keep full paths on purpose: they stay on your machine, SARIF exists to annotate a
+specific line in a specific file, and withholding paths from your own developers would help
+nobody. `--include-paths` keeps them in the JSON too.
+
+Two details worth knowing: a `fileId` is stable, so two findings in the same file still visibly
+share a file — real signal for estimating, at no disclosure. And a redacted report still works as
+a `--baseline`, because each finding records its own fingerprint rather than having one derived
+from the path.
 
 Each report also records what produced it — the tool version, and the commit the scanned tree was
 checked out at when it is a git working tree:

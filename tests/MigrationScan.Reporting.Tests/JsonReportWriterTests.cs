@@ -52,12 +52,12 @@ public class JsonReportWriterTests
     [Fact]
     public void ProducesValidJsonWithExpectedSchema()
     {
-        string json = JsonReportWriter.Write(SampleResult());
+        string json = JsonReportWriter.Write(SampleResult(), includePaths: true);
 
         using JsonDocument document = JsonDocument.Parse(json);
         JsonElement root = document.RootElement;
 
-        Assert.Equal("1.5", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("1.6", root.GetProperty("schemaVersion").GetString());
         Assert.Equal("net10.0", root.GetProperty("target").GetString());
 
         JsonElement summary = root.GetProperty("summary");
@@ -160,7 +160,7 @@ public class JsonReportWriterTests
     public void CarriesBothPortabilityStancesInOneDocument()
     {
         // Written at the cross-platform target, which is what a customer's default run produces.
-        string json = JsonReportWriter.Write(SampleWithWindowsLockIn().ForTarget("net10.0"));
+        string json = JsonReportWriter.Write(SampleWithWindowsLockIn().ForTarget("net10.0"), includePaths: true);
 
         using JsonDocument document = JsonDocument.Parse(json);
         JsonElement root = document.RootElement;
@@ -209,7 +209,7 @@ public class JsonReportWriterTests
     {
         // A 1.4 consumer reads only the root. Whatever --target was asked for must still be what
         // the root reports, or adding `targets` would silently change existing integrations.
-        string json = JsonReportWriter.Write(SampleWithWindowsLockIn().ForTarget("net10.0-windows"));
+        string json = JsonReportWriter.Write(SampleWithWindowsLockIn().ForTarget("net10.0-windows"), includePaths: true);
 
         using JsonDocument document = JsonDocument.Parse(json);
         JsonElement root = document.RootElement;

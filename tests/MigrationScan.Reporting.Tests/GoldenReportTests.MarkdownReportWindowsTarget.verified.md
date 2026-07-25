@@ -85,18 +85,19 @@ For the security review before you send this on.
 
 **It includes:**
 
-- Project and source file paths, relative to the folder you scanned.
+- Project names, as they appear in your solution and project files.
 - Line numbers of the code that matched a rule.
 - Rule identifiers, titles and their fixed remediation text (the same for every scan).
-- Names and versions of dependencies your projects declare: NuGet packages, referenced assemblies, COM components, web-service endpoints, and Windows system libraries called via P/Invoke.
-- Project names as they appear in your solution and project files.
+- Names and versions of dependencies your projects declare: NuGet packages, referenced assemblies, COM components, web-service endpoints, and Windows system libraries called via P/Invoke. These are identities, not locations, and they are kept deliberately — a component cannot be assessed without knowing which one it is.
 
 **It does not include:**
 
+- Source file paths. Each is replaced by a stable opaque id, so two findings in the same file are still visibly in the same file, without naming it.
 - Any source code, or any part of the contents of any file.
 - Connection strings, credentials, secrets, or configuration values.
+- Web-service endpoint hosts and URLs — only the scheme is kept.
 - Customer, business or personal data of any kind.
 - Machine names, user names, or environment details.
 - Anything from outside the folder you scanned.
 
-One exception worth checking: a dependency's `source` is copied exactly as your project file declares it. That is normally a relative path, but a project with a hard-coded absolute HintPath (for example C:\Users\...) will reproduce it as written.
+Redaction applies to the JSON report — the file you share. The console output, this Markdown report and the SARIF output keep full paths on purpose: they stay on your machine, SARIF exists to annotate a specific line in a specific file, and withholding paths from your own developers would help nobody. Run with --include-paths if you want the JSON to keep them too.

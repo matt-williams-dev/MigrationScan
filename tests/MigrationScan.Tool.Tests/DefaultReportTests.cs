@@ -81,8 +81,13 @@ public class DefaultReportTests
 
             IReadOnlyList<string> lines = DefaultReport.Write(result, directory);
 
-            // A customer has to clear this file with their security people before sending it.
-            Assert.Contains(lines, l => l.Contains("never source code"));
+            // A customer has to clear this file with their security people before sending it, and
+            // since redaction the claim they can make is the strong one.
+            Assert.Contains(lines, l => l.Contains("no file paths and no source code"));
+
+            // ...and the file has to actually back it up.
+            string report = File.ReadAllText(Path.Combine(directory, DefaultReport.FileName));
+            Assert.DoesNotContain("ScannerInterop.cs", report, StringComparison.Ordinal);
         }
         finally
         {
