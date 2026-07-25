@@ -36,7 +36,7 @@ public static class SarifReportWriter
             .Select((rule, index) => (rule.Id, index))
             .ToDictionary(x => x.Id, x => x.index);
 
-        // Projects that weren't analyzed are surfaced as run-level notifications — the
+        // Projects that weren't analyzed are surfaced as run-level notifications. The
         // SARIF-correct place for "something about the run" that isn't a code result.
         IReadOnlyList<SarifInvocation>? invocations = result.NotAssessed.Count == 0
             ? null
