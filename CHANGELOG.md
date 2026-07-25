@@ -10,6 +10,20 @@ consumer change.
 
 ## [Unreleased]
 
+## [0.1.1]
+
+No change to how the tool behaves. Report schema stays at **1.6**, and output is byte-identical
+to 0.1.0 apart from the version it records.
+
+### Changed
+
+- Rewrote the package description, the readme and the text the tool prints into your console and
+  Markdown report. A readme is embedded in the package at build time and nuget.org holds versions
+  immutable, so 0.1.0's page keeps the old wording. This release is what corrects it.
+- Updated the GitHub Actions the release workflow uses: `checkout` to v7, `setup-dotnet` to v6,
+  `upload-artifact` to v7, `download-artifact` to v8. Clears the Node 20 deprecation warning on
+  every run.
+
 ## [0.1.0] · first public release
 
 Report schema **1.6**.
@@ -68,5 +82,6 @@ Report schema **1.6**.
 - The README no longer documents `--rules`, `--exclude` or `--verbosity`, which were never
   implemented.
 
-[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.1
 [0.1.0]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.0
