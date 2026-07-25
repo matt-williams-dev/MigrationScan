@@ -363,6 +363,9 @@ dotnet build
 dotnet test
 ```
 
+Releases ship from a `v*` tag — see [publishing](docs/PUBLISHING.md). Changes are recorded in
+the [changelog](CHANGELOG.md).
+
 ## Roadmap
 
 Development proceeds in ordered phases (see the spec for detail):

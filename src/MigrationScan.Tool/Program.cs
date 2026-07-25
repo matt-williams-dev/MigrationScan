@@ -22,9 +22,10 @@ var pathArgument = new Argument<string>("path")
 
 var targetOption = new Option<string>("--target")
 {
-    Description = "Target framework to assess against. A '-windows' TFM (e.g. net10.0-windows) marks "
-        + "Windows lock-in findings (COM, P/Invoke, Registry, WMI, …) as satisfied — still listed, "
-        + "but not counted or estimated.",
+    Description = "The .NET version to assess against. The JSON report always covers both "
+        + "portability stances; this picks the one the console and Markdown describe. A '-windows' "
+        + "TFM (e.g. net10.0-windows) marks Windows lock-in findings (COM, P/Invoke, Registry, "
+        + "WMI, …) as satisfied — still listed, but not counted or estimated.",
     DefaultValueFactory = _ => "net10.0",
 };
 

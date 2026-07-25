@@ -13,8 +13,9 @@
 
   <!-- Package metadata shared across the shippable assemblies. -->
   <PropertyGroup>
-    <!-- Pinned rather than derived from the build, so a report's toolVersion is stable and
-         two people on the same release produce byte-identical output. -->
+    <!-- The single version knob for the whole repo. Pinned rather than derived from the build,
+         so a report's toolVersion is stable and two people on the same release produce
+         byte-identical output. Bump this, tag it, push the tag. See docs/PUBLISHING.md. -->
     <Version>0.1.0</Version>
     <!-- The SDK otherwise appends "+<commit>" to the informational version, which would put the
          tool's own commit next to the scanned repository's in the report. Two different commits
@@ -22,8 +23,28 @@
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>MigrationScan contributors</Authors>
     <Product>MigrationScan</Product>
+    <Copyright>Copyright (c) MigrationScan contributors</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+
+    <!-- nuget.org renders these as the package's links. RepositoryUrl in particular: without it
+         the .nuspec carries a commit hash and no repository to resolve it against, which is
+         worse than saying nothing. -->
     <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/matt-williams-dev/MigrationScan</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/matt-williams-dev/MigrationScan</PackageProjectUrl>
+
+    <!-- Source Link. Built into the .NET SDK since 8.0, so this needs no PackageReference
+         (spec §4 keeps the dependency list short deliberately). Lets anyone step into the
+         published build, which for a tool asking to be trusted with a customer's source is
+         worth more than it costs. -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <!-- Reproducible builds: a published package should be rebuildable from its tag by anyone.
+       Only on CI, because it rewrites source paths and makes local debugging worse. -->
+  <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true'">
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
 
 </Project>
