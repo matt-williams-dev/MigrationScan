@@ -7,6 +7,7 @@ Static analysis of a solution's readiness to move to `net10.0`, produced by Migr
 - **Projects scanned:** 1
 - **Findings:** 6 (blocker 1 · high 1 · medium 3 · low 1)
 - **Estimated effort:** 5.5–16 engineer-days, plus 1 item requiring an architectural decision before they can be estimated
+- **Third-party references:** 3 distinct (see below — inventory, not counted or estimated)
 
 > These figures are heuristic planning aids derived from static analysis and are not a quote.
 
@@ -39,6 +40,20 @@ Estimated effort: 5.5–16 engineer-days, plus 1 item requiring an architectural
 | **Total** | **6** | **5.5–16** | **1** |
 
 _These figures are heuristic planning aids derived from static analysis and are not a quote._
+
+## References
+
+Everything the scanned projects declare a dependency on, read from the project files. This is an inventory, not findings: nothing here is counted, estimated, or a build failure. It's the list to research — check each third-party component for a supported .NET 10 release before committing to a plan.
+
+### Third-party (3 distinct)
+
+| Reference | Kind | Version | Used by | Resolved from |
+| --- | --- | --- | --- | --- |
+| Microsoft.AspNet.Mvc | NuGet package | 5.2.9 | 1 project | — |
+| Newtonsoft.Json | NuGet package | 13.0.3 | 1 project | — |
+| Telerik.Web.UI | NuGet package | 2019.1.115.45 | 1 project | — |
+
+_4 framework assembly references were also read (`System.*`, `mscorlib`, WPF, …) and are not listed — they move with the runtime rather than needing research._
 
 ## Remediation guidance
 

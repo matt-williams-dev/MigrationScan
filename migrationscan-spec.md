@@ -217,11 +217,19 @@ The report must carry this sentence near the total: *these figures are heuristic
 
 **Console.** Summary table. Counts by severity, top blockers, aggregate effort range.
 
-**Markdown** (`--format markdown`). The shareable artifact. An engineering manager forwards this to a CTO. Structure: executive summary, blockers, findings by project, effort breakdown, methodology and limitations. Make it look good. This file is the marketing.
+**Markdown** (`--format markdown`). The shareable artifact. An engineering manager forwards this to a CTO. Structure: executive summary, blockers, findings by project, effort breakdown, references, methodology and limitations. Make it look good. This file is the marketing.
 
 **JSON** (`--format json`). Stable documented schema, versioned.
 
-**SARIF** (`--format sarif`). Drops into GitHub code scanning and Azure DevOps with no glue code.
+**SARIF** (`--format sarif`). Drops into GitHub code scanning and Azure DevOps with no glue code. Findings only — SARIF is a results format, so the reference inventory has no place in it.
+
+### 8a. Reference inventory
+
+Every scan also catalogs what each project declares a dependency on: NuGet packages, GAC and vendored assemblies, COM/ActiveX interop, project references, and ASMX/WCF service proxies. All Tier 1 (read from project XML).
+
+This is inventory, **not findings**. No severity, no effort, excluded from the counts and from `--fail-on`. Rationale: the costly unknowns in a migration are usually third-party, and rules can only flag components with a known pattern. The inventory makes the rest researchable.
+
+Appears in the console summary, the Markdown report, and the JSON `references` array. Full detail — kinds covered, classification judgment calls, and what is deliberately not collected — in `docs/references.md`.
 
 **Exit codes.**
 

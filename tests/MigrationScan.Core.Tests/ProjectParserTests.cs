@@ -19,17 +19,6 @@ public class ProjectParserTests
     }
 
     [Fact]
-    public void ReadsAssemblyReferencesFromLegacyProject()
-    {
-        string csproj = Fixtures.Path("LegacyWebForms", "LegacyWebForms", "LegacyWebForms.csproj");
-
-        DiscoveredProject project = ProjectParser.Parse(csproj, "LegacyWebForms/LegacyWebForms.csproj");
-
-        Assert.Contains("System.Web", project.References);
-        Assert.Contains("System.Configuration", project.References);
-    }
-
-    [Fact]
     public void ParsesModernProjectAsSdkStyle()
     {
         string csproj = Fixtures.Path("ModernClean", "ModernClean", "ModernClean.csproj");

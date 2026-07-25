@@ -58,6 +58,8 @@ internal static class ConsoleReporter
             }
         }
 
+        WriteReferences(output, result);
+
         if (activeCount == 0 && satisfiedCount == 0 && result.NotAssessed.Count == 0)
         {
             output.AppendLine();
@@ -117,6 +119,60 @@ internal static class ConsoleReporter
         output.AppendLine(Disclaimer);
         return output.ToString();
     }
+
+    // The third-party dependency catalog. Not findings — this is the list to research for
+    // modern .NET support. Framework assemblies and this solution's own project references are
+    // excluded (noted, not silently dropped); the full inventory is in the JSON and Markdown.
+    private static void WriteReferences(StringBuilder output, AnalysisResult result)
+    {
+        var groups = result.ThirdPartyReferences
+            .GroupBy(r => (r.Kind, Key: r.Name.ToUpperInvariant()))
+            .Select(g => new
+            {
+                g.First().Kind,
+                g.First().Name,
+                Versions = g.Select(r => r.Version).OfType<string>().Distinct(StringComparer.Ordinal)
+                    .OrderBy(v => v, StringComparer.Ordinal).ToList(),
+                Projects = g.Select(r => r.ProjectPath).Distinct(StringComparer.Ordinal).Count(),
+            })
+            .OrderBy(g => g.Kind)
+            .ThenBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (groups.Count == 0)
+        {
+            return;
+        }
+
+        output.AppendLine();
+        output.AppendLine($"Third-party references ({groups.Count} distinct) — inventory, not counted above:");
+
+        foreach (var group in groups)
+        {
+            string version = group.Versions.Count == 0 ? string.Empty : $" {string.Join(", ", group.Versions)}";
+            string projects = group.Projects == 1 ? string.Empty : $"  [{group.Projects} projects]";
+            output.AppendLine($"  • {KindLabel(group.Kind)}  {group.Name}{version}{projects}");
+        }
+
+        int frameworkCount = result.References.Count(r => r.IsFrameworkAssembly);
+        int projectCount = result.References.Count(r => r.Kind == ReferenceKind.Project);
+        if (frameworkCount > 0 || projectCount > 0)
+        {
+            output.AppendLine(
+                $"  (Also read, not listed: {frameworkCount} framework, {projectCount} solution-internal.)");
+        }
+    }
+
+    private static string KindLabel(ReferenceKind kind) => kind switch
+    {
+        ReferenceKind.Package => "nuget ",
+        ReferenceKind.Assembly => "gac   ",
+        ReferenceKind.VendoredAssembly => "dll   ",
+        ReferenceKind.Com => "com   ",
+        ReferenceKind.Project => "proj  ",
+        ReferenceKind.WebService => "svc   ",
+        _ => "?     ",
+    };
 
     // Windows lock-in findings that this (Windows) target satisfies: shown so the scope is
     // complete, but clearly marked as not migration cost for this target.

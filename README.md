@@ -47,6 +47,32 @@ MigrationScan parses your `.sln`, `.csproj`, and `.vbproj` files as XML and read
 | 2 | Probable | Roslyn syntax trees without a resolved compilation (good recall, some false positives) |
 | 3 | Verified | Read from compiled assemblies via Cecil — see [binary analysis](#scanning-compiled-binaries) |
 
+## Reference inventory
+
+Findings tell you what's broken. The **reference inventory** tells you what you depend on — every
+NuGet package, GAC and vendored assembly, COM/ActiveX component, project reference, and ASMX/WCF
+service proxy each project declares, with versions and where each one resolves from.
+
+It's inventory, not findings: no severity, no effort, never a build failure. The point is that the
+expensive unknowns in a migration are usually somebody else's code — a control from a vendor that
+folded, a type library with no 64-bit build — and rules can only flag the ones with a known
+pattern. The inventory gives you the rest of the list to research.
+
+```
+Third-party references (10 distinct) — inventory, not counted above:
+  • nuget   Newtonsoft.Json 13.0.3
+  • gac     Telerik.Web.UI 2015.3.930.45
+  • dll     Contoso.Payments 2.1.0.0
+  • com     AxInterop.MSCommLib 1.0.0.0
+  • com     MSXML2 6.0
+  • svc     PricingService
+  (Also read, not listed: 1 framework, 1 solution-internal.)
+```
+
+The Markdown report renders it as a table with per-component project counts; the JSON exposes it
+as a `references` array for scripting. See [the references doc](docs/references.md) for what each
+kind covers, the classification judgment calls, and what deliberately isn't collected.
+
 ## Rules
 
 MigrationScan ships a catalog of stable, never-reused rule IDs grouped by category (project/build, dependencies, blocking frameworks, runtime failures, configuration, serialization/security, data access, globalization). Each rule links to a remediation page under [`/docs/rules`](docs/rules).
@@ -240,7 +266,8 @@ The JSON is a stable, versioned, deterministic feed meant to be consumed by othe
 dashboards, portfolio rollups, or your own scoping/estimating layer. Alongside the findings it
 carries an effort rollup (`summary.effort` and a per-`projects` breakdown, in engineer-day
 ranges) and a `notAssessed` list of non-C#/VB projects (SQL, deployment, …) that need planning
-of their own — so coverage gaps are explicit, not silent. See the
+of their own — so coverage gaps are explicit, not silent. It also carries the full `references`
+inventory, flat and per-project, for feeding a dependency-research workflow. See the
 [output schema](docs/schema) for the full shape and consumer notes. Effort figures are
 heuristic planning aids, not a quote — apply your own rates and judgment downstream.
 
@@ -251,6 +278,7 @@ Static analysis without resolved references cannot see everything, and Migration
 - **Tier 2 findings can be false positives.** A reference to a type named `Registry` might be your own class, not `Microsoft.Win32.Registry`. These are reported as *probable*, never certain.
 - **Source scanning has no resolved compilation.** Tier 2 findings come from syntax alone. For extra confidence you can also scan compiled binaries (Tier 3, via `migrationscan YourApp.dll`), which reads referenced assemblies from the assembly metadata.
 - **Effort figures are heuristic.** They are planning aids derived from static analysis, not a quote.
+- **The reference inventory is what projects *declare*.** Transitive package dependencies, `<Import>`ed build targets, and binding redirects are not collected — see [what isn't collected](docs/references.md#what-isnt-collected). Resolving the full package graph would need a restore, and therefore the network.
 - **Architectural decisions are yours.** MigrationScan flags what blocks a migration; it does not decide how to redesign around it.
 
 ## Building from source

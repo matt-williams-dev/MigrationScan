@@ -18,6 +18,28 @@ public sealed record AnalysisResult(
     public IReadOnlyList<NotAssessedProject> NotAssessed { get; init; } = [];
 
     /// <summary>
+    /// Every dependency each project declares — packages, assemblies, COM/ActiveX interop,
+    /// project references, service proxies. Inventory, not findings: it carries no severity or
+    /// effort and is excluded from the counts, the estimate, and <c>--fail-on</c>. Its purpose
+    /// is to make the third-party surface researchable before scoping.
+    /// </summary>
+    public IReadOnlyList<ReferenceRecord> References { get; init; } = [];
+
+    /// <summary>
+    /// References external to both the framework and this solution — the subset worth
+    /// researching. Still one entry per declaring project; deduplicate for a solution-wide view.
+    /// </summary>
+    public IEnumerable<ReferenceRecord> ThirdPartyReferences => References.Where(r => r.IsThirdParty);
+
+    /// <summary>
+    /// Distinct third-party components across the solution. The same package referenced by six
+    /// projects is one thing to research, so it counts once. Names are compared case-insensitively
+    /// (<c>newtonsoft.json</c> and <c>Newtonsoft.Json</c> are the same component).
+    /// </summary>
+    public int DistinctThirdPartyCount() =>
+        ThirdPartyReferences.DistinctBy(r => (r.Kind, r.Name.ToUpperInvariant())).Count();
+
+    /// <summary>
     /// Findings that are actual migration cost for this target — everything except Windows
     /// lock-in findings satisfied by a Windows TFM. This is what the counts, effort rollup,
     /// and <c>--fail-on</c> threshold operate on.

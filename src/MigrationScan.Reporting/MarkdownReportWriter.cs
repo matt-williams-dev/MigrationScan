@@ -27,6 +27,7 @@ public static class MarkdownReportWriter
         WriteBlockers(md, result);
         WriteFindingsByProject(md, result);
         WriteEffortBreakdown(md, result);
+        WriteReferences(md, result);
         WriteRemediation(md, result);
         WriteMethodology(md);
 
@@ -68,6 +69,14 @@ public static class MarkdownReportWriter
         if (result.NotAssessed.Count > 0)
         {
             md.AppendLine($"- **Projects not assessed:** {result.NotAssessed.Count} (see below — scope separately)");
+        }
+
+        int thirdPartyCount = result.DistinctThirdPartyCount();
+        if (thirdPartyCount > 0)
+        {
+            md.AppendLine(
+                $"- **Third-party references:** {thirdPartyCount} distinct " +
+                "(see below — inventory, not counted or estimated)");
         }
 
         md.AppendLine();
@@ -227,6 +236,136 @@ public static class MarkdownReportWriter
         md.AppendLine($"_{Disclaimer}_");
         md.AppendLine();
     }
+
+    // The dependency catalog. Deliberately separate from findings: most third-party references
+    // are perfectly fine, but every one of them is a question a migration has to answer — does
+    // this ship a modern .NET build, is the vendor still around, is there a successor?
+    private static void WriteReferences(StringBuilder md, AnalysisResult result)
+    {
+        if (result.References.Count == 0)
+        {
+            return;
+        }
+
+        md.AppendLine("## References");
+        md.AppendLine();
+        md.AppendLine(
+            "Everything the scanned projects declare a dependency on, read from the project files. " +
+            "This is an inventory, not findings: nothing here is counted, estimated, or a build failure. " +
+            "It's the list to research — check each third-party component for a supported .NET 10 release " +
+            "before committing to a plan.");
+        md.AppendLine();
+
+        WriteThirdPartyReferences(md, result);
+        WriteProjectReferences(md, result);
+        WriteFrameworkReferenceNote(md, result);
+    }
+
+    private static void WriteThirdPartyReferences(StringBuilder md, AnalysisResult result)
+    {
+        // One row per distinct component across the solution — the same package referenced by
+        // six projects is one thing to research, not six.
+        // Case-insensitive on the name so "newtonsoft.json" and "Newtonsoft.Json" are one row.
+        var groups = result.ThirdPartyReferences
+            .GroupBy(r => (r.Kind, Key: r.Name.ToUpperInvariant()))
+            .Select(g => new
+            {
+                g.First().Kind,
+                g.First().Name,
+                Versions = g.Select(r => r.Version).OfType<string>().Distinct(StringComparer.Ordinal)
+                    .OrderBy(v => v, StringComparer.Ordinal).ToList(),
+                Sources = g.Select(r => r.Source).OfType<string>().Distinct(StringComparer.Ordinal)
+                    .OrderBy(s => s, StringComparer.Ordinal).ToList(),
+                Projects = g.Select(r => r.ProjectPath).Distinct(StringComparer.Ordinal).Count(),
+            })
+            .OrderBy(g => g.Kind)
+            .ThenBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        md.AppendLine($"### Third-party ({groups.Count} distinct)");
+        md.AppendLine();
+
+        if (groups.Count == 0)
+        {
+            md.AppendLine("None. Every reference is either a framework assembly or another project in this solution.");
+            md.AppendLine();
+            return;
+        }
+
+        md.AppendLine("| Reference | Kind | Version | Used by | Resolved from |");
+        md.AppendLine("| --- | --- | --- | --- | --- |");
+        foreach (var group in groups)
+        {
+            string versions = group.Versions.Count == 0 ? "—" : string.Join(", ", group.Versions);
+            string sources = group.Sources.Count == 0 ? "—" : string.Join("<br>", group.Sources.Select(s => $"`{s}`"));
+            string projects = group.Projects == 1 ? "1 project" : $"{group.Projects} projects";
+            md.AppendLine(
+                $"| {EscapeCell(group.Name)} | {KindLabel(group.Kind)} | {EscapeCell(versions)} | {projects} | {EscapeCell(sources)} |");
+        }
+
+        md.AppendLine();
+    }
+
+    private static void WriteProjectReferences(StringBuilder md, AnalysisResult result)
+    {
+        List<ReferenceRecord> projectReferences = result.References
+            .Where(r => r.Kind == ReferenceKind.Project)
+            .ToList();
+
+        if (projectReferences.Count == 0)
+        {
+            return;
+        }
+
+        md.AppendLine("### Solution-internal project references");
+        md.AppendLine();
+        md.AppendLine("This solution's own code. Already in scope — listed to show the build order dependencies:");
+        md.AppendLine();
+        md.AppendLine("| Project | Depends on |");
+        md.AppendLine("| --- | --- |");
+        foreach (var group in projectReferences
+            .GroupBy(r => r.ProjectPath, StringComparer.Ordinal)
+            .OrderBy(g => g.Key, StringComparer.Ordinal))
+        {
+            string dependencies = string.Join(", ", group
+                .Select(r => r.Name)
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
+            md.AppendLine($"| `{group.Key}` | {EscapeCell(dependencies)} |");
+        }
+
+        md.AppendLine();
+    }
+
+    // Stated rather than silently dropped: the BCL is excluded from the table above on purpose.
+    private static void WriteFrameworkReferenceNote(StringBuilder md, AnalysisResult result)
+    {
+        int frameworkCount = result.References.Count(r => r.IsFrameworkAssembly);
+        if (frameworkCount == 0)
+        {
+            return;
+        }
+
+        string sentence = frameworkCount == 1
+            ? "1 framework assembly reference was also read (`System.*`, `mscorlib`, WPF, …) and is not listed — " +
+              "it moves with the runtime rather than needing research."
+            : $"{frameworkCount} framework assembly references were also read (`System.*`, `mscorlib`, WPF, …) and are " +
+              "not listed — they move with the runtime rather than needing research.";
+
+        md.AppendLine($"_{sentence}_");
+        md.AppendLine();
+    }
+
+    private static string KindLabel(ReferenceKind kind) => kind switch
+    {
+        ReferenceKind.Package => "NuGet package",
+        ReferenceKind.Assembly => "GAC assembly",
+        ReferenceKind.VendoredAssembly => "Vendored DLL",
+        ReferenceKind.Com => "COM / ActiveX",
+        ReferenceKind.Project => "Project",
+        ReferenceKind.WebService => "Service proxy",
+        _ => kind.ToString(),
+    };
 
     private static void WriteRemediation(StringBuilder md, AnalysisResult result)
     {

@@ -196,14 +196,25 @@ public sealed class AnalysisContext
             include = include.Trim();
             string simpleName = include.Split(',', 2)[0].Trim();
             // An empty or whitespace <HintPath> does not point anywhere — treat it as absent.
-            bool hasHintPath = !string.IsNullOrWhiteSpace(reference.Element(Namespace + "HintPath")?.Value);
+            string? hintPath = reference.Element(Namespace + "HintPath")?.Value is { } path && !string.IsNullOrWhiteSpace(path)
+                ? path.Trim()
+                : null;
+            bool embedInterop = string.Equals(
+                reference.Element(Namespace + "EmbedInteropTypes")?.Value.Trim(), "true", StringComparison.OrdinalIgnoreCase);
             bool isStrongNamed = include.Contains("PublicKeyToken", StringComparison.OrdinalIgnoreCase);
 
-            references.Add(new AssemblyReferenceInfo(include, simpleName, hasHintPath, isStrongNamed, LineOf(reference)));
+            references.Add(new AssemblyReferenceInfo(
+                include, simpleName, StrongNameVersion(include), hintPath, embedInterop, isStrongNamed, LineOf(reference)));
         }
 
         return references;
     }
+
+    // Pulls "1.2.3.4" out of "Foo, Version=1.2.3.4, Culture=neutral, PublicKeyToken=…".
+    private static string? StrongNameVersion(string include) => include
+        .Split(',')
+        .Select(part => part.Trim())
+        .FirstOrDefault(part => part.StartsWith("Version=", StringComparison.OrdinalIgnoreCase))?[8..];
 
     // Files belonging to this project: everything under its directory, but not descending
     // into build output (bin/obj), hidden folders (.git, .vs, …), node_modules, or a nested

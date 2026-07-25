@@ -30,7 +30,6 @@ public class JsonReportWriterTests
             Name: "Legacy",
             IsSdkStyle: false,
             TargetFramework: "v4.7.2",
-            References: ["System.Web"],
             RootElementLine: 2);
 
         return new AnalysisResult("net10.0", [project], [finding], [])
@@ -39,6 +38,13 @@ public class JsonReportWriterTests
             [
                 new NotAssessedProject("Shop.Database", "Shop.Database/Shop.Database.sqlproj",
                     "SQL Server database project", "Not a C#/VB project; must be scoped separately."),
+            ],
+            References =
+            [
+                new ReferenceRecord(ReferenceKind.Assembly, "System.Web", null, null,
+                    IsFrameworkAssembly: true, "Legacy/Legacy.csproj", "Legacy/Legacy.csproj", 8),
+                new ReferenceRecord(ReferenceKind.Package, "Newtonsoft.Json", "13.0.3", null,
+                    IsFrameworkAssembly: false, "Legacy/Legacy.csproj", "Legacy/packages.config", 3),
             ],
         };
     }
@@ -51,7 +57,7 @@ public class JsonReportWriterTests
         using JsonDocument document = JsonDocument.Parse(json);
         JsonElement root = document.RootElement;
 
-        Assert.Equal("1.3", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("1.4", root.GetProperty("schemaVersion").GetString());
         Assert.Equal("net10.0", root.GetProperty("target").GetString());
 
         JsonElement summary = root.GetProperty("summary");
@@ -85,6 +91,24 @@ public class JsonReportWriterTests
         Assert.Equal("Shop.Database", notAssessed.GetProperty("name").GetString());
         Assert.Equal("SQL Server database project", notAssessed.GetProperty("projectType").GetString());
         Assert.EndsWith(".sqlproj", notAssessed.GetProperty("path").GetString());
+
+        // Reference inventory (schema 1.4): flat and per-project, with the third-party subset
+        // counted in the summary. The framework assembly is present in the array but not counted.
+        Assert.Equal(1, summary.GetProperty("thirdPartyReferences").GetInt32());
+        List<JsonElement> references = root.GetProperty("references").EnumerateArray().ToList();
+        Assert.Equal(2, references.Count);
+
+        JsonElement frameworkReference = references[0];
+        Assert.Equal("assembly", frameworkReference.GetProperty("kind").GetString());
+        Assert.Equal("System.Web", frameworkReference.GetProperty("name").GetString());
+        Assert.True(frameworkReference.GetProperty("isFrameworkAssembly").GetBoolean());
+        Assert.False(frameworkReference.GetProperty("isThirdParty").GetBoolean());
+
+        JsonElement package = references[1];
+        Assert.Equal("package", package.GetProperty("kind").GetString());
+        Assert.Equal("13.0.3", package.GetProperty("version").GetString());
+        Assert.Equal("Legacy/packages.config", package.GetProperty("declaredIn").GetString());
+        Assert.True(package.GetProperty("isThirdParty").GetBoolean());
 
         // The warnings array is always present (empty here) for schema stability.
         Assert.Equal(JsonValueKind.Array, root.GetProperty("warnings").ValueKind);

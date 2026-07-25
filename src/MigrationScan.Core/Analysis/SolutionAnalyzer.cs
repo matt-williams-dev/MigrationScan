@@ -48,14 +48,19 @@ public sealed class SolutionAnalyzer
             || extension.Equals(".exe", StringComparison.OrdinalIgnoreCase)))
         {
             string root = Path.GetDirectoryName(Path.GetFullPath(path))!;
-            (DiscoveredProject project, IReadOnlyList<Finding> binaryFindings) = BinaryAnalyzer.Analyze(path, root);
-            return new AnalysisResult(targetFramework, [project], Sort(binaryFindings, targetFramework), []);
+            (DiscoveredProject project, IReadOnlyList<Finding> binaryFindings, IReadOnlyList<ReferenceRecord> binaryReferences) =
+                BinaryAnalyzer.Analyze(path, root);
+            return new AnalysisResult(targetFramework, [project], Sort(binaryFindings, targetFramework), [])
+            {
+                References = ReferenceInventory.Sort(binaryReferences),
+            };
         }
 
         ScanInput input = ScanInput.Resolve(path);
 
         List<DiscoveredProject> projects = [];
         List<Finding> findings = [];
+        List<ReferenceRecord> references = [];
         List<ScanWarning> warnings = [];
 
         foreach (string projectFile in input.ProjectFiles)
@@ -69,6 +74,7 @@ public sealed class SolutionAnalyzer
                 IReadOnlyList<Finding> projectFindings = _engine.Analyze(context);
                 projects.Add(context.Project);
                 findings.AddRange(projectFindings);
+                references.AddRange(ReferenceInventory.Collect(context));
             }
             catch (Exception ex) when (IsRecoverable(ex))
             {
@@ -85,6 +91,7 @@ public sealed class SolutionAnalyzer
         return new AnalysisResult(targetFramework, projects, Sort(findings, targetFramework), SortWarnings(warnings))
         {
             NotAssessed = notAssessed.OrderBy(p => p.Path, StringComparer.Ordinal).ToList(),
+            References = ReferenceInventory.Sort(references),
         };
     }
 

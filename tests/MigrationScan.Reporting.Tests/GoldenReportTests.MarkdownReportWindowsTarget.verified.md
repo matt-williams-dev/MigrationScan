@@ -8,6 +8,7 @@ Static analysis of a solution's readiness to move to `net10.0-windows`, produced
 - **Findings:** 2 (blocker 1 · high 0 · medium 1 · low 0)
 - **Estimated effort:** 0.5–2 engineer-days, plus 1 item requiring an architectural decision before they can be estimated
 - **Windows lock-in satisfied by `net10.0-windows`:** 3 (supported on this target — see below, not counted or estimated)
+- **Third-party references:** 2 distinct (see below — inventory, not counted or estimated)
 
 > These figures are heuristic planning aids derived from static analysis and are not a quote.
 
@@ -46,6 +47,17 @@ Estimated effort: 0.5–2 engineer-days, plus 1 item requiring an architectural 
 | **Total** | **2** | **0.5–2** | **1** |
 
 _These figures are heuristic planning aids derived from static analysis and are not a quote._
+
+## References
+
+Everything the scanned projects declare a dependency on, read from the project files. This is an inventory, not findings: nothing here is counted, estimated, or a build failure. It's the list to research — check each third-party component for a supported .NET 10 release before committing to a plan.
+
+### Third-party (2 distinct)
+
+| Reference | Kind | Version | Used by | Resolved from |
+| --- | --- | --- | --- | --- |
+| AxInterop.RANGERLib | COM / ActiveX | 1.0.0.0 | 1 project | `libs/AxInterop.RANGERLib.dll` |
+| RANGERLib | COM / ActiveX | 1.0 | 1 project | `{8b3a1e60-0000-0000-0000-000000000001}` |
 
 ## Remediation guidance
 

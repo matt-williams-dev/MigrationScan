@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://pricing.internal/PricingService.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+</ReferenceGroup>

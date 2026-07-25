@@ -39,7 +39,6 @@ public static class ProjectParser
             Name: Path.GetFileNameWithoutExtension(projectFilePath),
             IsSdkStyle: isSdkStyle,
             TargetFramework: ReadTargetFramework(root, ns),
-            References: ReadReferences(root, ns),
             RootElementLine: LineOf(root));
     }
 
@@ -53,22 +52,6 @@ public static class ProjectParser
             ?? root.Descendants(ns + "TargetFrameworkVersion").FirstOrDefault()?.Value;
 
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
-
-    private static IReadOnlyList<string> ReadReferences(XElement root, XNamespace ns)
-    {
-        List<string> references = [];
-
-        foreach (XElement element in root.Descendants(ns + "Reference").Concat(root.Descendants(ns + "PackageReference")))
-        {
-            string? include = element.Attribute("Include")?.Value;
-            if (!string.IsNullOrWhiteSpace(include))
-            {
-                references.Add(include.Trim());
-            }
-        }
-
-        return references;
     }
 
     private static int LineOf(XElement element) =>

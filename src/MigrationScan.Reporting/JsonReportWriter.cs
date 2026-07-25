@@ -15,11 +15,12 @@ public static class JsonReportWriter
     /// <summary>
     /// Schema version. 1.1 added the effort rollup; 1.2 added the `notAssessed` array and
     /// `summary.projectsNotAssessed`; 1.3 added portability awareness — `finding.platform`,
-    /// `finding.satisfiedByTarget`, and `summary.windowsLockInSatisfied`. `summary.totalFindings`
+    /// `finding.satisfiedByTarget`, and `summary.windowsLockInSatisfied`; 1.4 added the
+    /// `references` inventory and `summary.thirdPartyReferences`. `summary.totalFindings`
     /// and `project.findingCount` count only active findings (a Windows target's satisfied
     /// lock-in findings are excluded). All additive, backward-compatible over 1.0.
     /// </summary>
-    public const string SchemaVersion = "1.3";
+    public const string SchemaVersion = "1.4";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -51,7 +52,10 @@ public static class JsonReportWriter
                 Effort: ToEffort(EffortModel.ForSolution(result)),
                 ProjectsNotAssessed: result.NotAssessed.Count,
                 // Omitted entirely on a cross-platform target (nothing is satisfied).
-                WindowsLockInSatisfied: satisfiedCount == 0 ? null : satisfiedCount),
+                WindowsLockInSatisfied: satisfiedCount == 0 ? null : satisfiedCount,
+                // Distinct components, not declaration sites — the `references` array below is
+                // per-project and will be longer.
+                ThirdPartyReferences: result.DistinctThirdPartyCount()),
             Projects: result.Projects
                 .OrderBy(p => p.Path, StringComparer.Ordinal)
                 .Select(p => new ReportProject(
@@ -63,6 +67,9 @@ public static class JsonReportWriter
             NotAssessed: result.NotAssessed
                 .Select(p => new ReportNotAssessed(p.Name, p.Path, p.ProjectType, p.Reason))
                 .ToList(),
+            // Flat and per-project rather than pre-grouped: it's the lossless form, and a
+            // consumer wanting a solution-wide roll-up can group on (kind, name) itself.
+            References: result.References.Select(ToDto).ToList(),
             Warnings: result.Warnings.Select(w => new ReportWarning(w.Message, w.Path)).ToList());
 
         // Normalize indentation newlines to LF for byte-identical output across operating
@@ -96,6 +103,17 @@ public static class JsonReportWriter
         // True only when a Windows target satisfies this lock-in finding; otherwise omitted.
         SatisfiedByTarget: finding.SatisfiedByTarget ? true : null);
 
+    private static ReportReference ToDto(ReferenceRecord reference) => new(
+        Kind: reference.Kind,
+        Name: reference.Name,
+        Version: reference.Version,
+        Source: reference.Source,
+        IsFrameworkAssembly: reference.IsFrameworkAssembly,
+        IsThirdParty: reference.IsThirdParty,
+        Project: reference.ProjectPath,
+        DeclaredIn: reference.DeclaredIn,
+        Line: reference.Line);
+
     private sealed record ReportDocument(
         string SchemaVersion,
         string Target,
@@ -103,7 +121,19 @@ public static class JsonReportWriter
         IReadOnlyList<ReportProject> Projects,
         IReadOnlyList<ReportFinding> Findings,
         IReadOnlyList<ReportNotAssessed> NotAssessed,
+        IReadOnlyList<ReportReference> References,
         IReadOnlyList<ReportWarning> Warnings);
+
+    private sealed record ReportReference(
+        ReferenceKind Kind,
+        string Name,
+        string? Version,
+        string? Source,
+        bool IsFrameworkAssembly,
+        bool IsThirdParty,
+        string Project,
+        string DeclaredIn,
+        int? Line);
 
     private sealed record ReportWarning(string Message, string? Path);
 
@@ -115,7 +145,8 @@ public static class JsonReportWriter
         SeverityCounts FindingsBySeverity,
         ReportEffort Effort,
         int ProjectsNotAssessed,
-        int? WindowsLockInSatisfied);
+        int? WindowsLockInSatisfied,
+        int ThirdPartyReferences);
 
     private sealed record ReportProject(string Path, int FindingCount, ReportEffort Effort);
 

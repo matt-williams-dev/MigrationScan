@@ -1,5 +1,5 @@
 ﻿{
-  "schemaVersion": "1.3",
+  "schemaVersion": "1.4",
   "target": "net10.0-windows",
   "summary": {
     "projectsScanned": 1,
@@ -16,7 +16,8 @@
       "needsDecision": 1
     },
     "projectsNotAssessed": 0,
-    "windowsLockInSatisfied": 3
+    "windowsLockInSatisfied": 3,
+    "thirdPartyReferences": 2
   },
   "projects": [
     {
@@ -108,5 +109,29 @@
     }
   ],
   "notAssessed": [],
+  "references": [
+    {
+      "kind": "com",
+      "name": "AxInterop.RANGERLib",
+      "version": "1.0.0.0",
+      "source": "libs/AxInterop.RANGERLib.dll",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Scan.App/Scan.App.csproj",
+      "declaredIn": "Scan.App/Scan.App.csproj",
+      "line": 14
+    },
+    {
+      "kind": "com",
+      "name": "RANGERLib",
+      "version": "1.0",
+      "source": "{8b3a1e60-0000-0000-0000-000000000001}",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Scan.App/Scan.App.csproj",
+      "declaredIn": "Scan.App/Scan.App.csproj",
+      "line": 12
+    }
+  ],
   "warnings": []
 }

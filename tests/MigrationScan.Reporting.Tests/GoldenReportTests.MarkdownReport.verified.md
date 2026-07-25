@@ -8,6 +8,7 @@ Static analysis of a solution's readiness to move to `net10.0`, produced by Migr
 - **Findings:** 7 (blocker 2 · high 0 · medium 2 · low 3)
 - **Estimated effort:** 6.8–22 engineer-days, plus 1 item requiring an architectural decision before they can be estimated
 - **Projects not assessed:** 1 (see below — scope separately)
+- **Third-party references:** 5 distinct (see below — inventory, not counted or estimated)
 
 > These figures are heuristic planning aids derived from static analysis and are not a quote.
 
@@ -64,6 +65,30 @@ Estimated effort: 1.3–5 engineer-days, plus 1 item requiring an architectural 
 | **Total** | **7** | **6.8–22** | **1** |
 
 _These figures are heuristic planning aids derived from static analysis and are not a quote._
+
+## References
+
+Everything the scanned projects declare a dependency on, read from the project files. This is an inventory, not findings: nothing here is counted, estimated, or a build failure. It's the list to research — check each third-party component for a supported .NET 10 release before committing to a plan.
+
+### Third-party (5 distinct)
+
+| Reference | Kind | Version | Used by | Resolved from |
+| --- | --- | --- | --- | --- |
+| Newtonsoft.Json | NuGet package | 13.0.3 | 2 projects | — |
+| Telerik.Web.UI | GAC assembly | 2015.3.930.45 | 1 project | — |
+| Contoso.Payments | Vendored DLL | 2.1.0.0 | 1 project | `libs/Contoso.Payments.dll` |
+| MSXML2 | COM / ActiveX | 6.0 | 1 project | `{f5078f18-c551-11d3-89b9-0000f81fe221}` |
+| PricingService | Service proxy | — | 1 project | `http://pricing.internal/Pricing.asmx` |
+
+### Solution-internal project references
+
+This solution's own code. Already in scope — listed to show the build order dependencies:
+
+| Project | Depends on |
+| --- | --- |
+| `Shop.Web/Shop.Web.csproj` | Shop.Core |
+
+_1 framework assembly reference was also read (`System.*`, `mscorlib`, WPF, …) and is not listed — it moves with the runtime rather than needing research._
 
 ## Remediation guidance
 

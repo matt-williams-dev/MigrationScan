@@ -29,8 +29,8 @@ internal static class ReportSample
             Severity.Medium, EffortBand.Small, ConfidenceTier.Probable,
             "Switch to Microsoft.Data.SqlClient.");
 
-        DiscoveredProject web = new("Shop.Web/Shop.Web.csproj", "Shop.Web", false, "v4.7.2", [], 2);
-        DiscoveredProject core = new("Shop.Core/Shop.Core.csproj", "Shop.Core", true, "net10.0", [], 1);
+        DiscoveredProject web = new("Shop.Web/Shop.Web.csproj", "Shop.Web", false, "v4.7.2", 2);
+        DiscoveredProject core = new("Shop.Core/Shop.Core.csproj", "Shop.Core", true, "net10.0", 1);
 
         // Findings are provided in the analyzer's deterministic order (project, rule, line).
         Finding[] findings =
@@ -64,7 +64,34 @@ internal static class ReportSample
                 "Not a C#/VB project; its contents were not analyzed and must be scoped separately."),
         ];
 
-        return new AnalysisResult("net10.0", [web, core], findings, warnings) { NotAssessed = notAssessed };
+        // Every reference kind, plus a package used by both projects (one row, "2 projects"),
+        // a framework assembly (excluded from the table but counted in the note), and a
+        // project reference (its own section).
+        ReferenceRecord[] references =
+        [
+            new(ReferenceKind.Package, "Newtonsoft.Json", "13.0.3", null, false,
+                "Shop.Core/Shop.Core.csproj", "Shop.Core/Shop.Core.csproj", 11),
+            new(ReferenceKind.Package, "Newtonsoft.Json", "13.0.3", null, false,
+                "Shop.Web/Shop.Web.csproj", "Shop.Web/packages.config", 4),
+            new(ReferenceKind.Assembly, "System.Web", null, null, true,
+                "Shop.Web/Shop.Web.csproj", "Shop.Web/Shop.Web.csproj", 8),
+            new(ReferenceKind.Assembly, "Telerik.Web.UI", "2015.3.930.45", null, false,
+                "Shop.Web/Shop.Web.csproj", "Shop.Web/Shop.Web.csproj", 9),
+            new(ReferenceKind.VendoredAssembly, "Contoso.Payments", "2.1.0.0", "libs/Contoso.Payments.dll", false,
+                "Shop.Web/Shop.Web.csproj", "Shop.Web/Shop.Web.csproj", 12),
+            new(ReferenceKind.Com, "MSXML2", "6.0", "{f5078f18-c551-11d3-89b9-0000f81fe221}", false,
+                "Shop.Web/Shop.Web.csproj", "Shop.Web/Shop.Web.csproj", 18),
+            new(ReferenceKind.WebService, "PricingService", null, "http://pricing.internal/Pricing.asmx", false,
+                "Shop.Web/Shop.Web.csproj", "Shop.Web/Shop.Web.csproj", 24),
+            new(ReferenceKind.Project, "Shop.Core", null, "Shop.Core/Shop.Core.csproj", false,
+                "Shop.Web/Shop.Web.csproj", "Shop.Web/Shop.Web.csproj", 30),
+        ];
+
+        return new AnalysisResult("net10.0", [web, core], findings, warnings)
+        {
+            NotAssessed = notAssessed,
+            References = references,
+        };
     }
 
     /// <summary>
@@ -90,7 +117,7 @@ internal static class ReportSample
             "Supported on net-windows; replace only if going cross-platform.")
             with { Platform = RulePlatform.Windows };
 
-        DiscoveredProject app = new("Scan.App/Scan.App.csproj", "Scan.App", false, "v4.7.2", [], 2);
+        DiscoveredProject app = new("Scan.App/Scan.App.csproj", "Scan.App", false, "v4.7.2", 2);
 
         Finding[] findings =
         [
@@ -106,7 +133,18 @@ internal static class ReportSample
                 "Scan.App/Scan.App.csproj", "Scan.App/Db.cs", 5),
         ];
 
-        return new AnalysisResult("net10.0-windows", [app], findings, []);
+        return new AnalysisResult("net10.0-windows", [app], findings, [])
+        {
+            References =
+            [
+                new ReferenceRecord(ReferenceKind.Com, "AxInterop.RANGERLib", "1.0.0.0",
+                    "libs/AxInterop.RANGERLib.dll", false,
+                    "Scan.App/Scan.App.csproj", "Scan.App/Scan.App.csproj", 14),
+                new ReferenceRecord(ReferenceKind.Com, "RANGERLib", "1.0",
+                    "{8b3a1e60-0000-0000-0000-000000000001}", false,
+                    "Scan.App/Scan.App.csproj", "Scan.App/Scan.App.csproj", 12),
+            ],
+        };
     }
 
     private static RuleMetadata Rule(

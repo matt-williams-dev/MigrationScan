@@ -9,13 +9,16 @@ and estimating tools) should consume this rather than parsing the console or Mar
 - **Versioned.** `schemaVersion` follows semver-style rules: additive, backward-compatible
   changes bump the minor version; a breaking change would bump the major.
 
-## Current version: `1.2`
+## Current version: `1.4`
 
 Each version is additive and backward-compatible:
 
 - `1.1` — added the effort rollup (`summary.effort` and the `projects` array).
 - `1.2` — added `summary.projectsNotAssessed` and the `notAssessed` array (non-C#/VB projects
   the scan could not analyze, which still need migration planning).
+- `1.3` — added portability awareness: `finding.platform`, `finding.satisfiedByTarget`, and
+  `summary.windowsLockInSatisfied`.
+- `1.4` — added the `references` inventory and `summary.thirdPartyReferences`.
 
 Consumers written against an earlier version keep working unchanged.
 
@@ -35,7 +38,9 @@ Consumers written against an earlier version keep working unchanged.
       "needsDecision": 1               // blocking issues excluded from the day range;
                                        // they need an architectural decision first
     },
-    "projectsNotAssessed": 1           // count of non-C#/VB projects not analyzed
+    "projectsNotAssessed": 1,          // count of non-C#/VB projects not analyzed
+    "windowsLockInSatisfied": 3,       // omitted on a cross-platform target
+    "thirdPartyReferences": 12         // distinct components, not declaration sites
   },
   "projects": [                        // per-project rollup, ordered by path
     {
@@ -68,6 +73,20 @@ Consumers written against an earlier version keep working unchanged.
       "reason": "Not a C#/VB project; its contents were not analyzed and must be scoped separately."
     }
   ],
+  "references": [                      // dependency inventory — not findings
+    {
+      "kind": "package",               // package | assembly | vendoredAssembly | com | project | webService
+      "name": "Newtonsoft.Json",
+      "version": "13.0.3",             // omitted when the declaration carries no version
+      "source": "libs/Contoso.dll",    // HintPath, project path, COM type-lib GUID, or service URL;
+                                       // omitted when the declaration points nowhere (e.g. a GAC reference)
+      "isFrameworkAssembly": false,    // true only for <Reference> to System.*, mscorlib, WPF, …
+      "isThirdParty": true,            // external to both the framework and this solution
+      "project": "Shop.Web/Shop.Web.csproj",
+      "declaredIn": "Shop.Web/packages.config",
+      "line": 4                        // omitted when not line-specific
+    }
+  ],
   "warnings": [                        // always present (may be empty)
     { "message": "Skipped 'X.csproj': project file not found.", "path": "X.csproj" }
   ]
@@ -86,3 +105,8 @@ Consumers written against an earlier version keep working unchanged.
   compilation and may include false positives — discount or verify before acting on them.
 - **Portfolio rollups:** scan each solution/repo separately and aggregate the `projects`
   arrays; the occurrence factor is scoped per project by design.
+- **`references` is inventory, not findings.** Entries have no severity, no effort, and never
+  affect `--fail-on`. The array is flat and per-project — one entry per declaration site — so a
+  package used by six projects appears six times. Group on `(kind, name)` for a solution-wide
+  view; `summary.thirdPartyReferences` is already that count. See
+  [the references doc](../references.md) for what each kind covers and what isn't collected.

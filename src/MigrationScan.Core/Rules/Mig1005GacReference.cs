@@ -1,3 +1,4 @@
+using MigrationScan.Core.Discovery;
 using MigrationScan.Core.Engine;
 using MigrationScan.Core.Models;
 
@@ -15,14 +16,6 @@ public sealed class Mig1005GacReference : ProjectRule
 {
     public const string Id = "MIG1005";
 
-    // Assemblies shipped with the framework itself — not third-party GAC dependencies.
-    private static readonly string[] FrameworkPrefixes =
-    [
-        "System", "mscorlib", "netstandard", "Microsoft.CSharp", "Microsoft.VisualBasic",
-        "Microsoft.Win32", "PresentationCore", "PresentationFramework", "WindowsBase",
-        "UIAutomationProvider", "UIAutomationTypes", "ReachFramework",
-    ];
-
     public Mig1005GacReference(RuleMetadata metadata) : base(metadata)
     {
     }
@@ -32,7 +25,7 @@ public sealed class Mig1005GacReference : ProjectRule
         foreach (AssemblyReferenceInfo reference in context.AssemblyReferences)
         {
             // GAC-resolved third-party assembly: strong-named, no HintPath, not a framework assembly.
-            if (reference.HasHintPath || !reference.IsStrongNamed || IsFrameworkAssembly(reference.SimpleName))
+            if (reference.HasHintPath || !reference.IsStrongNamed || FrameworkAssemblies.Contains(reference.SimpleName))
             {
                 continue;
             }
@@ -44,9 +37,4 @@ public sealed class Mig1005GacReference : ProjectRule
                 line: reference.Line);
         }
     }
-
-    private static bool IsFrameworkAssembly(string simpleName) =>
-        FrameworkPrefixes.Any(prefix =>
-            simpleName.Equals(prefix, StringComparison.OrdinalIgnoreCase)
-            || simpleName.StartsWith(prefix + ".", StringComparison.OrdinalIgnoreCase));
 }

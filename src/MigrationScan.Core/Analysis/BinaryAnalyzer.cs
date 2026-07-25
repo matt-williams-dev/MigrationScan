@@ -27,8 +27,12 @@ public static class BinaryAnalyzer
             ["System.Data.Linq"] = Mig7006LinqToSql.Id,
         };
 
-    /// <summary>Analyzes a compiled assembly file, returning a synthetic project and its findings.</summary>
-    public static (DiscoveredProject Project, IReadOnlyList<Finding> Findings) Analyze(
+    /// <summary>
+    /// Analyzes a compiled assembly file, returning a synthetic project, its findings, and the
+    /// assemblies it references. There is no project file here, so the reference inventory comes
+    /// from the compiled metadata — the same catalog, read at Tier 3 instead of Tier 1.
+    /// </summary>
+    public static (DiscoveredProject Project, IReadOnlyList<Finding> Findings, IReadOnlyList<ReferenceRecord> References) Analyze(
         string assemblyPath, string rootDirectory, RuleCatalog? catalog = null)
     {
         RuleCatalog rules = catalog ?? RuleCatalog.LoadDefault();
@@ -41,11 +45,25 @@ public static class BinaryAnalyzer
             Name: assembly.Name.Name,
             IsSdkStyle: false,
             TargetFramework: null,
-            References: [],
             RootElementLine: 0);
 
-        return (project, AnalyzeAssembly(assembly, relativePath, rules));
+        return (project, AnalyzeAssembly(assembly, relativePath, rules), ReadReferences(assembly, relativePath));
     }
+
+    // Every assembly the compiled module binds to. Metadata carries no hint paths or package
+    // identity, so there is nothing to classify beyond framework vs. third-party.
+    private static IReadOnlyList<ReferenceRecord> ReadReferences(AssemblyDefinition assembly, string relativePath) =>
+        assembly.MainModule.AssemblyReferences
+            .Select(reference => new ReferenceRecord(
+                ReferenceKind.Assembly,
+                reference.Name,
+                reference.Version?.ToString(),
+                Source: null,
+                FrameworkAssemblies.Contains(reference.Name),
+                relativePath,
+                relativePath,
+                Line: null))
+            .ToList();
 
     /// <summary>
     /// Analyzes an already-loaded assembly. Tests use this with an in-memory
