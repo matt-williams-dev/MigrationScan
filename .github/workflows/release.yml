@@ -85,9 +85,30 @@ jobs:
           name: migrationscan-${{ matrix.rid }}
           path: dist/*
 
+  # The tag must match the version the code declares, or the release page and nuget.org
+  # disagree about what v0.1.0 contains — and nuget.org is immutable, so that is not
+  # fixable after the fact. Fails before anything is published.
+  verify-version:
+    name: verify tag matches version
+    needs: test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare tag to Directory.Build.props
+        shell: bash
+        run: |
+          declared=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props | head -1)
+          tagged="${GITHUB_REF_NAME#v}"
+          echo "declared=$declared tagged=$tagged"
+          if [ "$declared" != "$tagged" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match <Version>$declared</Version> in Directory.Build.props. Bump the version, commit, then retag."
+            exit 1
+          fi
+
   release:
     name: create release
-    needs: publish
+    needs: [publish, verify-version]
     runs-on: ubuntu-latest
     # A manual dispatch builds and checks everything but publishes nothing, so the workflow can
     # be exercised without minting a release.
@@ -101,30 +122,89 @@ jobs:
 
       - name: Pack the dotnet tool
         run: dotnet pack src/MigrationScan.Tool/MigrationScan.Tool.csproj --configuration Release --output dist
+        env:
+          ContinuousIntegrationBuild: true
 
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
 
-      - name: Create release
-        env:
-          GH_TOKEN: ${{ github.token }}
+      # Written to a file rather than piped in, so the notes are not entangled with the
+      # positional asset globs on the same command line.
+      - name: Write release notes
         run: |
-          gh release create "${{ github.ref_name }}" \
-            --title "${{ github.ref_name }}" \
-            --generate-notes \
-            --notes-file - dist/* <<'NOTES'
+          cat > /tmp/notes.md <<'NOTES'
           ## Which download do I want?
 
           **Just assessing a solution?** Take `migrationscan-win-x64.zip`. It is a single
           executable — no .NET install, no admin rights. Unzip it into the folder you want to
-          scan and double-click it, or run `migrationscan.exe path\to\YourSolution.sln`.
+          scan and run it:
 
-          It writes one file, `migrationscan-report.json`, covering both staying on Windows and
-          going cross-platform. That is the file to send on.
+          ```
+          migrationscan.exe path\to\YourSolution.sln
+          ```
 
-          **Already have the .NET 10 SDK?** `dotnet tool install -g MigrationScan.Tool`.
+          Or drop it in the folder and double-click — with no arguments it scans the current
+          directory. Either way it writes one file, `migrationscan-report.json`, covering both
+          staying on Windows and going cross-platform. That is the file to send on.
+
+          **Already have the .NET 10 SDK?** `dotnet tool install -g MigrationScan.Tool`
 
           Verify a download against the matching `.sha256` file before running it.
+
+          ---
           NOTES
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          assets=(dist/*)
+          if [ ${#assets[@]} -eq 0 ]; then
+            echo "::error::No artifacts to attach — the publish job produced nothing."
+            exit 1
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file /tmp/notes.md \
+            --generate-notes \
+            "${assets[@]}"
+
+  # Last, and separately: nuget.org is append-only. A version pushed there cannot be replaced,
+  # only unlisted, so this runs only after the GitHub release exists and the binaries are known
+  # good. NUGET_API_KEY is a repository secret; without it the job is skipped rather than failed,
+  # so a fork or a key-less repo still gets a working GitHub release.
+  nuget:
+    name: publish to nuget.org
+    needs: release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: nuget
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Pack
+        run: dotnet pack src/MigrationScan.Tool/MigrationScan.Tool.csproj --configuration Release --output dist
+        env:
+          ContinuousIntegrationBuild: true
+
+      - name: Push
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::warning::NUGET_API_KEY is not set — skipping the nuget.org push. The GitHub release is unaffected."
+            exit 0
+          fi
+          # --skip-duplicate so re-running a failed release job is safe: an already-pushed
+          # version is reported and skipped instead of failing the run.
+          dotnet nuget push "dist/*.nupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

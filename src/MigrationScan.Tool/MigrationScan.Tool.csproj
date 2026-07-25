@@ -8,13 +8,24 @@
     <ToolCommandName>migrationscan</ToolCommandName>
     <AssemblyName>migrationscan</AssemblyName>
     <PackageId>MigrationScan.Tool</PackageId>
-    <Description>A free, deterministic, offline .NET Framework migration assessment tool.</Description>
-    <PackageTags>dotnet-framework;migration;upgrade;assessment;roslyn;analysis</PackageTags>
+    <Title>MigrationScan</Title>
+    <!-- One line on purpose: MSBuild preserves the indentation of a wrapped value and it ends up
+         in the .nuspec, where some clients render it verbatim. -->
+    <Description>A free, deterministic, offline .NET Framework migration assessment tool. It answers one question: how much work is it to move this solution off .NET Framework, and what specifically blocks it? Runs offline, produces the same output every time, requires no account, and never transmits your source code. Every finding carries a confidence tier, and a single scan reports both staying on Windows and going cross-platform.</Description>
+    <PackageTags>dotnet-framework;migration;upgrade;assessment;roslyn;analysis;modernization;sarif;legacy</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReleaseNotes>See https://github.com/matt-williams-dev/MigrationScan/blob/main/CHANGELOG.md</PackageReleaseNotes>
+
+    <!-- Symbols alongside the package. Cheap, and the alternative is being unable to diagnose
+         a report a customer says is wrong. -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\assets\icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
   <!--
