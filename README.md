@@ -1,73 +1,72 @@
 # MigrationScan
 
-**A free, deterministic, offline .NET Framework migration assessment tool.**
+**Find out what it costs to move a .NET Framework solution to modern .NET.**
 
-It answers one question: *how much work is it to move this solution off .NET Framework, and what specifically blocks it?* It runs offline, produces the same output every time, requires no account, and never transmits your source code.
+MigrationScan tells you what blocks the migration, how much work each item is, and how far to trust each answer. It runs with no network, no account, and no source code leaving your machine.
 
-Download the executable for your platform from the [releases page](../../releases), put it in the
-folder you want to assess, and run it:
+Download the executable for your platform from the [releases page](../../releases), drop it in the folder you want to assess, and run it:
 
 ```console
 migrationscan path/to/YourSolution.sln
 ```
 
-It writes one file — `migrationscan-report.json` — and prints a summary. No .NET install, no
-admin rights, no flags to learn. With no arguments at all it scans the current directory, so
-dropping the executable into a repository root and double-clicking it works too.
+You get one file, `migrationscan-report.json`, plus a summary on screen. No .NET install, no admin rights, no flags to learn. Run it with no arguments and it scans the current directory, so you can drop the executable into a repository root and double-click it.
 
 Already have the .NET 10 SDK? `dotnet tool install -g MigrationScan.Tool` gets you the same tool.
 
-> **Status: pre-release / under active development.** The foundation is in place (Phase 0). Rules, reports, and the CLI surface are being built out phase by phase — see [Roadmap](#roadmap). The install command above will work once the first release is published to NuGet.
+> **Status: early release.** Version 0.1.0 covers 33 rules across 8 categories, both portability targets, and a redacted report format. Expect the rule catalog to keep growing. See the [roadmap](#roadmap).
 
-📄 **[See a sample Markdown report →](docs/sample-report.md)** — the shareable artifact an engineering manager forwards to a CTO: executive summary, blockers, findings by project, an effort breakdown, and remediation guidance.
+📄 **[See a sample Markdown report →](docs/sample-report.md)** is the artifact an engineering manager forwards to a CTO: executive summary, blockers, findings by project, an effort breakdown, and remediation guidance.
 
 ## Why this exists
 
-Microsoft deprecated the .NET Upgrade Assistant in late 2025 and replaced it with the GitHub Copilot app modernization agent. The replacement needs a paid subscription and sends source code to a cloud service. Teams in finance, healthcare, defense, and government cannot do that — and they are the teams sitting on the largest .NET Framework estates. MigrationScan gives those teams an assessment they can run themselves, offline, with nothing leaving the machine.
+Microsoft deprecated the .NET Upgrade Assistant in late 2025 and replaced it with the GitHub Copilot app modernization agent. The replacement needs a paid subscription and uploads your source to a cloud service. Teams in finance, healthcare, defense and government cannot agree to that, and those same teams are sitting on the largest .NET Framework estates. If you work at one of them, MigrationScan gives you an assessment you can run yourself, with nothing leaving the building.
 
 ## The promise
 
-- **Offline by default.** No network calls in the default path. Network access is only available behind an explicit `--online` flag, and only for NuGet package compatibility lookups.
-- **No telemetry.** No phoning home, no usage collection, no login.
-- **Your code stays put.** Source is never transmitted anywhere.
+- **Offline by default.** The default path makes no network calls. You get network access only by passing `--online`, and only for NuGet package compatibility lookups.
+- **No telemetry.** Nothing phones home. No usage collection, no login.
+- **Your code stays put.** MigrationScan transmits your source nowhere.
 - **Deterministic.** Same input, same output, every run.
-- **No AI in the analysis path.** Findings come from static analysis, not an LLM.
+- **No AI in the analysis path.** Findings come from static analysis.
 
 ## Non-goals
 
-MigrationScan deliberately does **not**:
+MigrationScan will not:
 
 - Modify your source code
 - Perform the upgrade
-- Use AI or an LLM anywhere in the analysis path
+- Use an LLM anywhere in the analysis path
 - Phone home, collect telemetry, or require a login
-- Produce a binding cost estimate — effort figures are heuristic planning aids, not a quote
-- Require Visual Studio or MSBuild to be installed
+- Give you a binding cost estimate. Effort figures are planning aids, not a quote.
+- Require Visual Studio or MSBuild
 - Replace human judgment on architectural decisions
 
 ## How it works
 
-MigrationScan parses your `.sln`, `.csproj`, and `.vbproj` files as XML and reads your `.cs` and `.vb` source with Roslyn — no MSBuild registration and no Visual Studio required, so it runs the same on Windows, Linux, and macOS. Every finding carries a **confidence tier** so the report is honest about what static analysis can and cannot prove:
+MigrationScan parses your `.sln`, `.csproj` and `.vbproj` files as XML, then reads your `.cs` and `.vb` source with Roslyn. It registers no MSBuild and needs no Visual Studio, so it behaves the same on Windows, Linux and macOS.
+
+Every finding carries a **confidence tier**, because static analysis can prove some things and only suspect others:
 
 | Tier | Name | Source |
 | --- | --- | --- |
-| 1 | Certain | Project files, `packages.config`, `app.config`, `web.config`, `.sln` (XML, no ambiguity) |
-| 2 | Probable | Roslyn syntax trees without a resolved compilation (good recall, some false positives) |
-| 3 | Verified | Read from compiled assemblies via Cecil — see [binary analysis](#scanning-compiled-binaries) |
+| 1 | Certain | Project files, `packages.config`, `app.config`, `web.config`, `.sln`. XML, no ambiguity. |
+| 2 | Probable | Roslyn syntax trees with no resolved compilation. Good recall, some false positives. |
+| 3 | Verified | Read from compiled assemblies via Cecil. See [binary analysis](#scanning-compiled-binaries). |
 
 ## Reference inventory
 
-Findings tell you what's broken. The **reference inventory** tells you what you depend on — every
-NuGet package, GAC and vendored assembly, COM/ActiveX component, project reference, and ASMX/WCF
-service proxy each project declares, with versions and where each one resolves from.
+Findings tell you what's broken. The **reference inventory** tells you what you depend on: every
+NuGet package, GAC and vendored assembly, COM/ActiveX component, project reference and ASMX/WCF
+service proxy your projects declare, with versions and where each one resolves from.
 
-It's inventory, not findings: no severity, no effort, never a build failure. The point is that the
-expensive unknowns in a migration are usually somebody else's code — a control from a vendor that
-folded, a type library with no 64-bit build — and rules can only flag the ones with a known
-pattern. The inventory gives you the rest of the list to research.
+Entries carry no severity and no effort, and they never fail a build. They exist because the
+expensive unknowns in a migration usually belong to somebody else. A grid control from a vendor
+that folded, or a type library nobody ever built for 64-bit, will cost you weeks. Rules catch the
+ones matching a known pattern; the inventory hands you the rest of the list to research.
 
 ```
-Third-party references (10 distinct) — inventory, not counted above:
+Third-party references (10 distinct), inventory only, not counted above:
   • nuget   Newtonsoft.Json 13.0.3
   • gac     Telerik.Web.UI 2015.3.930.45
   • dll     Contoso.Payments 2.1.0.0
@@ -89,39 +88,39 @@ MigrationScan ships a catalog of stable, never-reused rule IDs grouped by catego
 
 | ID | Rule | Severity | Tier |
 | --- | --- | --- | --- |
-| [MIG1001](docs/rules/MIG1001.md) | Non-SDK-style project file | Medium | 1 — Certain |
-| [MIG1002](docs/rules/MIG1002.md) | `packages.config` instead of PackageReference | Medium | 1 — Certain |
-| [MIG1003](docs/rules/MIG1003.md) | Target framework below 4.6.2 | Medium | 1 — Certain |
-| [MIG1005](docs/rules/MIG1005.md) | GAC reference (no HintPath) | Medium | 1 — Certain |
-| [MIG1006](docs/rules/MIG1006.md) | COM reference or interop assembly (Windows lock-in) | Medium | 1 — Certain |
-| [MIG1007](docs/rules/MIG1007.md) | Legacy project type (SSRS, SSIS, setup, Silverlight, Web Site) | High | 1 — Certain |
-| [MIG1010](docs/rules/MIG1010.md) | Vendored DLL with no source and no NuGet equivalent | High | 1 — Certain |
-| [MIG2001](docs/rules/MIG2001.md) | Package has no version supporting the target framework | High | 1 — Certain |
-| [MIG2002](docs/rules/MIG2002.md) | Package marked deprecated on nuget.org (`--online`) | Medium | 1 — Certain |
-| [MIG3001](docs/rules/MIG3001.md) | ASP.NET WebForms | Blocker | 1 — Certain |
-| [MIG3002](docs/rules/MIG3002.md) | `System.Web` dependency outside WebForms | High | 1 — Certain |
-| [MIG3003](docs/rules/MIG3003.md) | ASMX web service | High | 1 — Certain |
-| [MIG3004](docs/rules/MIG3004.md) | WCF service host (server side) | High | 2 — Probable |
-| [MIG3005](docs/rules/MIG3005.md) | .NET Remoting | Blocker | 2 — Probable |
-| [MIG3009](docs/rules/MIG3009.md) | MSMQ (`System.Messaging`) | High | 2 — Probable |
-| [MIG3010](docs/rules/MIG3010.md) | ASP.NET MVC 5 (`System.Web.Mvc`) | High | 2 — Probable |
-| [MIG3015](docs/rules/MIG3015.md) | WCF client (`System.ServiceModel`) | Medium | 2 — Probable |
-| [MIG4001](docs/rules/MIG4001.md) | `System.Drawing.Common` on non-Windows | High | 2 — Probable |
-| [MIG4002](docs/rules/MIG4002.md) | Windows Registry access | High | 2 — Probable |
-| [MIG4003](docs/rules/MIG4003.md) | `System.Management` / WMI | High | 2 — Probable |
-| [MIG4004](docs/rules/MIG4004.md) | `System.DirectoryServices` / Active Directory | High | 2 — Probable |
-| [MIG4005](docs/rules/MIG4005.md) | `EventLog` | Medium | 2 — Probable |
-| [MIG4008](docs/rules/MIG4008.md) | `Thread.Abort` | Medium | 2 — Probable |
-| [MIG4013](docs/rules/MIG4013.md) | P/Invoke to a Windows system DLL (Windows lock-in) | Medium | 2 — Probable |
-| [MIG5001](docs/rules/MIG5001.md) | `ConfigurationManager.AppSettings` usage | Low | 2 — Probable |
-| [MIG6001](docs/rules/MIG6001.md) | `BinaryFormatter` (removed in .NET 9) | Blocker | 2 — Probable |
-| [MIG6004](docs/rules/MIG6004.md) | Code Access Security attributes | Medium | 2 — Probable |
-| [MIG6005](docs/rules/MIG6005.md) | Obsolete cryptography types | Medium | 2 — Probable |
-| [MIG7001](docs/rules/MIG7001.md) | `System.Data.SqlClient` | Medium | 2 — Probable |
-| [MIG7003](docs/rules/MIG7003.md) | `System.Data.OleDb` on non-Windows | Medium | 2 — Probable |
-| [MIG7006](docs/rules/MIG7006.md) | LINQ to SQL (`System.Data.Linq`) | High | 2 — Probable |
-| [MIG8002](docs/rules/MIG8002.md) | `Encoding.Default` behavior change | Medium | 2 — Probable |
-| [MIG8003](docs/rules/MIG8003.md) | Code-page encoding without provider registration | Medium | 2 — Probable |
+| [MIG1001](docs/rules/MIG1001.md) | Non-SDK-style project file | Medium | 1 Certain |
+| [MIG1002](docs/rules/MIG1002.md) | `packages.config` instead of PackageReference | Medium | 1 Certain |
+| [MIG1003](docs/rules/MIG1003.md) | Target framework below 4.6.2 | Medium | 1 Certain |
+| [MIG1005](docs/rules/MIG1005.md) | GAC reference (no HintPath) | Medium | 1 Certain |
+| [MIG1006](docs/rules/MIG1006.md) | COM reference or interop assembly (Windows lock-in) | Medium | 1 Certain |
+| [MIG1007](docs/rules/MIG1007.md) | Legacy project type (SSRS, SSIS, setup, Silverlight, Web Site) | High | 1 Certain |
+| [MIG1010](docs/rules/MIG1010.md) | Vendored DLL with no source and no NuGet equivalent | High | 1 Certain |
+| [MIG2001](docs/rules/MIG2001.md) | Package has no version supporting the target framework | High | 1 Certain |
+| [MIG2002](docs/rules/MIG2002.md) | Package marked deprecated on nuget.org (`--online`) | Medium | 1 Certain |
+| [MIG3001](docs/rules/MIG3001.md) | ASP.NET WebForms | Blocker | 1 Certain |
+| [MIG3002](docs/rules/MIG3002.md) | `System.Web` dependency outside WebForms | High | 1 Certain |
+| [MIG3003](docs/rules/MIG3003.md) | ASMX web service | High | 1 Certain |
+| [MIG3004](docs/rules/MIG3004.md) | WCF service host (server side) | High | 2 Probable |
+| [MIG3005](docs/rules/MIG3005.md) | .NET Remoting | Blocker | 2 Probable |
+| [MIG3009](docs/rules/MIG3009.md) | MSMQ (`System.Messaging`) | High | 2 Probable |
+| [MIG3010](docs/rules/MIG3010.md) | ASP.NET MVC 5 (`System.Web.Mvc`) | High | 2 Probable |
+| [MIG3015](docs/rules/MIG3015.md) | WCF client (`System.ServiceModel`) | Medium | 2 Probable |
+| [MIG4001](docs/rules/MIG4001.md) | `System.Drawing.Common` on non-Windows | High | 2 Probable |
+| [MIG4002](docs/rules/MIG4002.md) | Windows Registry access | High | 2 Probable |
+| [MIG4003](docs/rules/MIG4003.md) | `System.Management` / WMI | High | 2 Probable |
+| [MIG4004](docs/rules/MIG4004.md) | `System.DirectoryServices` / Active Directory | High | 2 Probable |
+| [MIG4005](docs/rules/MIG4005.md) | `EventLog` | Medium | 2 Probable |
+| [MIG4008](docs/rules/MIG4008.md) | `Thread.Abort` | Medium | 2 Probable |
+| [MIG4013](docs/rules/MIG4013.md) | P/Invoke to a Windows system DLL (Windows lock-in) | Medium | 2 Probable |
+| [MIG5001](docs/rules/MIG5001.md) | `ConfigurationManager.AppSettings` usage | Low | 2 Probable |
+| [MIG6001](docs/rules/MIG6001.md) | `BinaryFormatter` (removed in .NET 9) | Blocker | 2 Probable |
+| [MIG6004](docs/rules/MIG6004.md) | Code Access Security attributes | Medium | 2 Probable |
+| [MIG6005](docs/rules/MIG6005.md) | Obsolete cryptography types | Medium | 2 Probable |
+| [MIG7001](docs/rules/MIG7001.md) | `System.Data.SqlClient` | Medium | 2 Probable |
+| [MIG7003](docs/rules/MIG7003.md) | `System.Data.OleDb` on non-Windows | Medium | 2 Probable |
+| [MIG7006](docs/rules/MIG7006.md) | LINQ to SQL (`System.Data.Linq`) | High | 2 Probable |
+| [MIG8002](docs/rules/MIG8002.md) | `Encoding.Default` behavior change | Medium | 2 Probable |
+| [MIG8003](docs/rules/MIG8003.md) | Code-page encoding without provider registration | Medium | 2 Probable |
 
 More rules land phase by phase; see the [full catalog in the spec](migrationscan-spec.md#6-rule-catalog).
 
@@ -134,7 +133,7 @@ migrationscan [path] [options]
                           Defaults to the current directory.
 
   --target <tfm>          .NET version to assess against (default: net10.0). Both
-                          portability stances are always reported — see below.
+                          portability stances always reported. See below.
   --format <fmt>          console | markdown | json | sarif (repeatable). Omit for the
                           default: a console summary plus migrationscan-report.json.
   --output <path>         Output file or directory
@@ -144,8 +143,8 @@ migrationscan [path] [options]
   --include-paths         Keep real file paths in the JSON (off by default)
 ```
 
-That is the whole surface — `--help` is the authority. `--fail-on` is evaluated against the
-stance `--target` names, so adding the second stance to the report never changes an exit code.
+That is the whole surface, and `--help` is the authority. `--fail-on` looks only at the stance
+`--target` names, so carrying the second stance in the report never moves an exit code.
 
 `console` always writes to stdout. For `json`/`markdown`, `--output` may be a **file**
 (written as-is for a single format) or a **directory** (receives `report.json` /
@@ -154,12 +153,11 @@ its own extension so they don't overwrite each other.
 
 ### Cross-platform vs. staying on Windows
 
-Modern .NET can still target Windows (`net10.0-windows`), where COM interop, P/Invoke to
-Win32, the Registry, WMI, and similar continue to work. Those APIs are **Windows lock-in** —
-they are only migration cost if you also need to leave Windows.
+Modern .NET still targets Windows through `net10.0-windows`, where COM interop, P/Invoke to
+Win32, the Registry and WMI keep working. Those APIs are **Windows lock-in**. They cost you
+something only if you also need to leave Windows.
 
-**You do not have to choose, and you do not have to scan twice.** Every report covers both
-stances:
+**You never have to choose, and you never have to scan twice.** Every report covers both stances:
 
 ```jsonc
 "targets": [
@@ -168,25 +166,25 @@ stances:
 ]
 ```
 
-The difference between those two numbers is the price of portability, and it comes from a
-single scan: the target changes what a finding *costs*, never what was found, so the second
-stance is an exact re-evaluation rather than a second analysis.
+The gap between those two numbers is what portability costs you, and one scan produces it. The
+target changes what a finding *costs*, never what the scan found, so the second stance is an
+exact re-evaluation of the same analysis.
 
-The console and Markdown reports show the stance named by `--target` (cross-platform by
-default, the loud one), where Windows lock-in findings are **downgraded**: still listed under a
-"satisfied by target" section and flagged `satisfiedByTarget` in JSON / suppressed in SARIF, but
-excluded from the severity counts, the effort estimate, and `--fail-on`. Gone-everywhere
-findings — WebForms, `BinaryFormatter`, Remoting, MVC 5, and the rest — stay at full severity
-regardless of stance.
+Your console and Markdown reports show the stance `--target` names, cross-platform by default.
+There, Windows lock-in findings drop out of the severity counts, the effort estimate and
+`--fail-on`. They still appear under a "satisfied by target" section, flagged
+`satisfiedByTarget` in the JSON and suppressed in SARIF, so nothing hides from you. Findings
+that break everywhere keep full severity either way: WebForms, `BinaryFormatter`, Remoting,
+MVC 5 and the rest.
 
-`--target` selects the .NET *version* (`net8.0` vs `net10.0`); the platform axis is always
-reported both ways. If you want the console summary from the Windows stance instead:
+`--target` picks the .NET *version*, `net8.0` against `net10.0`. The platform axis always
+reports both ways. To read the console summary from the Windows stance:
 
 ```console
 migrationscan MyApp.sln --target net10.0-windows
 ```
 
-The JSON is identical either way — both stances are in it regardless.
+The JSON comes out identical either way. Both stances are in it regardless.
 
 ### Exit codes
 
@@ -200,21 +198,21 @@ The JSON is identical either way — both stances are in it regardless.
 ### Online package checks (`--online`)
 
 By default MigrationScan makes **no network calls** and the output is fully deterministic.
-Passing `--online` opts in to nuget.org lookups for package status — currently flagging
-packages the maintainers have marked **deprecated** ([MIG2002](docs/rules/MIG2002.md)):
+Pass `--online` and MigrationScan will ask nuget.org about package status. Today that means
+flagging packages the maintainers marked **deprecated** ([MIG2002](docs/rules/MIG2002.md)):
 
 ```console
 migrationscan . --online
 ```
 
 Because these findings reflect live nuget.org state, they are not part of the deterministic
-default path. If a lookup fails (offline, rate-limited), the scan degrades gracefully — it
-prints a warning and continues without package status rather than failing.
+default path. When a lookup fails, because you are offline or rate-limited, the scan prints a
+warning and carries on without package status instead of failing.
 
 ### Scanning compiled binaries
 
-When you don't have the source — a third-party component, or an early look at a client's
-build output — point MigrationScan at a compiled assembly:
+Sometimes you have no source: a third-party component, or an early look at a client's build
+output. Point MigrationScan at the compiled assembly instead:
 
 ```console
 migrationscan path/to/YourApp.dll
@@ -222,8 +220,8 @@ migrationscan path/to/YourApp.dll
 
 It reads the assembly with Mono.Cecil and flags references to assemblies that aren't available
 on modern .NET (`System.Web`, `System.Drawing`, `System.Management`, `System.Messaging`, …).
-These are **Tier 3 — Verified** findings: read from the compiled metadata rather than inferred
-from syntax. Source-based scanning (a `.sln`/`.csproj`) remains richer; binary analysis is the
+Those come back as **Tier 3, Verified**, read from compiled metadata rather than guessed from
+syntax. Source-based scanning (a `.sln`/`.csproj`) remains richer; binary analysis is the
 fallback for when source isn't on hand.
 
 ## Continuous integration
@@ -233,7 +231,7 @@ and no interactive prompts.
 
 ### GitHub code scanning
 
-Emit SARIF and upload it — findings show up inline on the **Security → Code scanning** tab
+Emit SARIF and upload it. Findings then show up inline on the **Security → Code scanning** tab,
 and as annotations on pull requests:
 
 ```yaml
@@ -286,43 +284,43 @@ unrelated edits that shift lines.)
 
 ### Building on the output
 
-The JSON is a stable, versioned, deterministic feed meant to be consumed by other tools —
+The JSON is a stable, versioned, deterministic feed for other tools:
 dashboards, portfolio rollups, or your own scoping/estimating layer. Alongside the findings it
 carries an effort rollup (`summary.effort` and a per-`projects` breakdown, in engineer-day
 ranges) and a `notAssessed` list of non-C#/VB projects (SQL, deployment, …) that need planning
-of their own — so coverage gaps are explicit, not silent. It also carries the full `references`
+of their own, so coverage gaps stay visible. It also carries the full `references`
 inventory, flat and per-project, for feeding a dependency-research workflow. See the
 [output schema](docs/schema) for the full shape and consumer notes. Effort figures are
-heuristic planning aids, not a quote — apply your own rates and judgment downstream.
+planning aids rather than a quote, so apply your own rates and judgment downstream.
 
 ## What's in the report (for your security review)
 
-**The JSON report contains no file paths.** Each one is replaced by a stable opaque id, so the
-file can be shared without anyone reading several thousand lines of JSON to approve it. Every run
-says so, and every Markdown report ends with a "What this report contains" section.
+**The JSON report holds no file paths.** Each one becomes a stable opaque id, so you can clear the
+file without anyone reading several thousand lines of JSON. Every run says so on screen, and every
+Markdown report ends with a "What this report contains" section.
 
-**It includes:** project names, line numbers, rule identifiers and their fixed remediation text,
-and the names and versions of dependencies your projects declare (NuGet packages, referenced
-assemblies, COM components, web-service endpoints, Windows system libraries called via P/Invoke).
-Those are *identities, not locations*, and they are kept deliberately — a component cannot be
-assessed without knowing which one it is.
+**It includes:** project names, line numbers, rule identifiers with their remediation text, and
+the names and versions of the dependencies your projects declare. That covers NuGet packages,
+referenced assemblies, COM components, web-service endpoints and the Windows system libraries you
+call through P/Invoke. A name identifies a component; it says nothing about where it sits on disk.
+We keep names because nobody can assess a component without knowing which one it is.
 
-**It does not include:** source file paths, any source code or file contents, connection strings,
+**It does not include:** source file paths, source code, file contents, connection strings,
 credentials, configuration values, web-service hosts and URLs, customer or business data, machine
-or user names, or anything from outside the folder you scanned.
+or user names, or anything outside the folder you scanned.
 
-Redaction applies to the **JSON** — the file you share. The console, the Markdown report and the
-SARIF output keep full paths on purpose: they stay on your machine, SARIF exists to annotate a
-specific line in a specific file, and withholding paths from your own developers would help
-nobody. `--include-paths` keeps them in the JSON too.
+Redaction covers the **JSON**, which is the file you send on. Your console, Markdown report and
+SARIF output keep full paths. They stay on your machine, SARIF exists to point at a line in a
+file, and hiding paths from your own developers would protect nobody. Add `--include-paths` if
+you want the JSON to keep them too.
 
-Two details worth knowing: a `fileId` is stable, so two findings in the same file still visibly
-share a file — real signal for estimating, at no disclosure. And a redacted report still works as
-a `--baseline`, because each finding records its own fingerprint rather than having one derived
-from the path.
+Two details worth knowing. A `fileId` stays stable, so you can still see that two findings share a
+file, which helps when sizing work and discloses nothing. And a redacted report still works as a
+`--baseline`, because each finding records its own fingerprint instead of deriving one from the
+path.
 
-Each report also records what produced it — the tool version, and the commit the scanned tree was
-checked out at when it is a git working tree:
+Each report also records what produced it: the tool version, plus the commit you had checked out
+if you scanned a git working tree.
 
 ```jsonc
 "scan": { "toolVersion": "0.1.0", "commit": "0fc6524d7b26ccd2f1eca0d18d8b3792dc6dc675" }
@@ -334,31 +332,31 @@ scan stale?" anyway, since it names the exact revision assessed.
 
 ## Scanning a whole estate
 
-Point MigrationScan at a directory and it assesses everything under it in one pass — every
-solution, and every project, in one report:
+Point MigrationScan at a directory and it assesses everything under it in one pass. Every
+solution, every project, one report:
 
 ```console
 migrationscan C:\code\LegacyEstate
 ```
 
-Projects are the unit of truth and solutions are the grouping, not the other way round. A project
-is assessed because it exists on disk, so **a project no solution references is still scanned** —
-those are exactly the ones that surface halfway through a migration and blow the plan. They are
-called out in the warnings so you can confirm whether they are in scope. A project shared by
-several solutions is scanned once, not once per solution.
+Projects are the unit of truth here; solutions just group them. MigrationScan assesses a project
+because it exists on disk, so **it still scans a project no solution references**. Those are the
+ones that surface halfway through a migration and wreck the plan. You get them in the warnings, so
+you can decide whether they belong in scope. A project shared by several solutions gets scanned
+once.
 
-Build output, restored `packages/`, `node_modules`, and dot-directories are skipped, so a vendored
-source tree is never mistaken for your own code.
+MigrationScan skips build output, restored `packages/`, `node_modules` and dot-directories, so it
+never mistakes a vendored source tree for your own code.
 
 ## Limitations
 
-Static analysis without resolved references cannot see everything, and MigrationScan is honest about that rather than pretending to certainty:
+Static analysis without resolved references cannot see everything, so here is where MigrationScan stops short:
 
-- **Tier 2 findings can be false positives.** A reference to a type named `Registry` might be your own class, not `Microsoft.Win32.Registry`. These are reported as *probable*, never certain.
-- **Source scanning has no resolved compilation.** Tier 2 findings come from syntax alone. For extra confidence you can also scan compiled binaries (Tier 3, via `migrationscan YourApp.dll`), which reads referenced assemblies from the assembly metadata.
-- **Effort figures are heuristic.** They are planning aids derived from static analysis, not a quote.
-- **The reference inventory is what projects *declare*.** Transitive package dependencies, `<Import>`ed build targets, and binding redirects are not collected — see [what isn't collected](docs/references.md#what-isnt-collected). Resolving the full package graph would need a restore, and therefore the network.
-- **Architectural decisions are yours.** MigrationScan flags what blocks a migration; it does not decide how to redesign around it.
+- **Tier 2 findings can be false positives.** A reference to a type named `Registry` might be your own class rather than `Microsoft.Win32.Registry`. MigrationScan reports these as *probable* and never claims certainty.
+- **Source scanning has no resolved compilation.** Tier 2 findings come from syntax alone. Scan a compiled binary with `migrationscan YourApp.dll` for Tier 3 confidence, which reads referenced assemblies out of the assembly metadata.
+- **Effort figures are heuristic.** Treat them as planning aids, not a quote.
+- **The reference inventory covers what your projects *declare*.** It leaves out transitive package dependencies, `<Import>`ed build targets and binding redirects. See [what isn't collected](docs/references.md#what-isnt-collected). Resolving the full package graph would need a restore, and a restore needs the network.
+- **Architectural decisions stay yours.** MigrationScan flags what blocks a migration. It will not tell you how to redesign around it.
 
 ## Building from source
 
@@ -371,28 +369,29 @@ dotnet build
 dotnet test
 ```
 
-Releases ship from a `v*` tag — see [publishing](docs/PUBLISHING.md). Changes are recorded in
-the [changelog](CHANGELOG.md).
+Releases ship from a `v*` tag. See [publishing](docs/PUBLISHING.md) for how, and the
+[changelog](CHANGELOG.md) for what changed.
 
 ## Roadmap
 
-Development proceeds in ordered phases (see the spec for detail):
+Development runs in ordered phases. The [spec](migrationscan-spec.md) has the detail.
 
-- [x] **Phase 0** — Foundation: repo, license, CI on Linux/Windows/macOS, empty solution
-- [x] **Phase 1** — Walking skeleton: parse `.sln`/`.csproj`, first rule (MIG1001), console + JSON output
-- [x] **Phase 2** — Rule engine (project-file + Roslyn syntax rules) and the first rule batch
-- [x] **Phase 3** — Roslyn syntax rules (Tier 2): 12 runtime/blocking-framework detectors
-- [x] **Phase 4** — Effort model and Markdown report (golden-file tested)
-- [x] **Phase 5** — CI integration: SARIF, `--fail-on` exit codes, `--baseline`
-- [x] **Phase 6** — Post-v1: `--online` NuGet deprecation lookups, VB.NET support (projects + source), Mono.Cecil binary analysis, and an expanded rule catalog (28 rules). Further catalog rules land as needed.
+- [x] **Phase 0.** Foundation: repo, license, CI on Linux, Windows and macOS
+- [x] **Phase 1.** Walking skeleton: parse `.sln`/`.csproj`, first rule, console and JSON output
+- [x] **Phase 2.** Rule engine for project-file and Roslyn syntax rules, plus the first rule batch
+- [x] **Phase 3.** Roslyn syntax rules at Tier 2: 12 runtime and blocking-framework detectors
+- [x] **Phase 4.** Effort model and Markdown report, golden-file tested
+- [x] **Phase 5.** CI integration: SARIF, `--fail-on` exit codes, `--baseline`
+- [x] **Phase 6.** `--online` NuGet deprecation lookups, VB.NET support, Mono.Cecil binary analysis, expanded rule catalog
+- [x] **Phase 7.** Redaction: the shared JSON carries opaque ids instead of paths (schema 1.6)
 
-## Open questions
+Next up is a wider rule catalog. Open an issue if a pattern in your estate goes unflagged.
 
-A few decisions from the spec are still open and will be resolved before v1:
+## Design decisions worth knowing
 
-- **VB.NET support** — `.vbproj` projects are discovered and their `.vb` source is analyzed by the same rules as C#: the syntax queries are language-neutral, so VB gets the runtime-failure (Tier 2) rules too, honouring VB's case-insensitive matching.
-- **Default target framework** — pinned to `net10.0` (LTS) for now; may float to whatever is current LTS.
-- **Schema distribution** — ship a `--json-schema` command vs. publish the schema as a static file.
+- **VB.NET gets the same treatment as C#.** MigrationScan discovers `.vbproj` projects and reads `.vb` source. The syntax queries are language-neutral, so VB picks up the Tier 2 runtime rules too, with VB's case-insensitive matching honoured.
+- **The default target stays pinned at `net10.0`** and moves only in a release you can see. A floating default would mean two versions of the tool disagreeing about your codebase for a reason the report never mentions, which would break the determinism promise everything else rests on.
+- **The schema ships as a file, not a command.** [`docs/schema`](docs/schema) carries a JSON Schema per minor version, validated against real output in CI. You can link to it, reference it from a `$schema` key, and generate against it.
 
 ## License
 

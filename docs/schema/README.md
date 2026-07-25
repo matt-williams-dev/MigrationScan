@@ -11,7 +11,7 @@ and estimating tools) should consume this rather than parsing the console or Mar
 
 ## Current version: `1.6`
 
-**Machine-readable:** [`migrationscan-1.6.schema.json`](migrationscan-1.6.schema.json) — a JSON
+**Machine-readable:** [`migrationscan-1.6.schema.json`](migrationscan-1.6.schema.json) is a JSON
 Schema (draft 2020-12) you can validate or generate against. Every report the tool produces is
 validated against it in CI, so a change that breaks the contract fails a build rather than
 reaching you.
@@ -22,18 +22,18 @@ artifact with nothing to describe.
 
 Each version is additive and backward-compatible:
 
-- `1.1` — added the effort rollup (`summary.effort` and the `projects` array).
-- `1.2` — added `summary.projectsNotAssessed` and the `notAssessed` array (non-C#/VB projects
+- `1.1` added the effort rollup (`summary.effort` and the `projects` array).
+- `1.2` added `summary.projectsNotAssessed` and the `notAssessed` array (non-C#/VB projects
   the scan could not analyze, which still need migration planning).
-- `1.3` — added portability awareness: `finding.platform`, `finding.satisfiedByTarget`, and
+- `1.3` added portability awareness: `finding.platform`, `finding.satisfiedByTarget`, and
   `summary.windowsLockInSatisfied`.
-- `1.4` — added the `references` inventory and `summary.thirdPartyReferences`.
-- `1.5` — added the `targets` array: both portability stances in one document, so a single
+- `1.4` added the `references` inventory and `summary.thirdPartyReferences`.
+- `1.5` added the `targets` array: both portability stances in one document, so a single
   scan answers both "what does it cost to modernize?" and "what does portability add?".
-- `1.6` — added `redacted`, `finding.fingerprint`, and `finding.fileId`. **Paths are now
-  redacted by default**: `file` is *omitted* and `fileId` carries a stable opaque id in its
-  place. `file` was not redefined — a field that sometimes holds a path and sometimes a hash
-  would be a breaking change wearing an additive one's clothes.
+- `1.6` added `redacted`, `finding.fingerprint` and `finding.fileId`. **Paths are redacted by
+  default**: `file` is omitted and `fileId` carries a stable opaque id in its place. We did not
+  redefine `file`, because a field holding a path one day and a hash the next breaks every
+  consumer that resolves it.
 
 Consumers written against an earlier version keep working unchanged.
 
@@ -46,13 +46,13 @@ code would help nobody.
 
 | | Redacted | Kept |
 | --- | --- | --- |
-| Source file paths | `file` omitted, `fileId` opaque id | — |
-| Project paths | — | identity; grouping by project is what makes a proposal readable |
-| Dependency name + version | — | identity; a component cannot be researched without it |
-| `source` — HintPath | opaque id | — |
-| `source` — COM type-library GUID | — | identity, not location; same value on every machine |
-| `source` — service URL | scheme only (`https://<redacted>`) | — |
-| Warning text and `path` | opaque id, substituted in the prose too | — |
+| Source file paths | `file` omitted, `fileId` opaque id | |
+| Project paths | | identity; grouping by project keeps a downstream proposal readable |
+| Dependency name + version | | identity; nobody researches a component without it |
+| `source`, a HintPath | opaque id | |
+| `source`, a COM type-library GUID | | identifies the component; same value on every machine |
+| `source`, a service URL | scheme only (`https://<redacted>`) | |
+| Warning text and `path` | opaque id, substituted in the prose too | |
 
 Two consequences worth knowing:
 
@@ -62,8 +62,8 @@ Two consequences worth knowing:
   a redacted report serve as a `--baseline`. Reconstructing an identity from a one-way hash is
   not possible, so a baseline whose paths were redacted would otherwise match nothing.
 
-A warning that still names a path after substitution — one listing several at once — is dropped
-rather than published half-redacted.
+A warning listing several paths at once cannot be cleaned by substituting the single path it
+carries, so MigrationScan drops it rather than publishing it half-redacted.
 
 ## Shape
 
@@ -134,7 +134,7 @@ rather than published half-redacted.
       "reason": "Not a C#/VB project; its contents were not analyzed and must be scoped separately."
     }
   ],
-  "references": [                      // dependency inventory — not findings
+  "references": [                      // dependency inventory, not findings
     {
       "kind": "package",               // package | assembly | vendoredAssembly | com | project | webService
       "name": "Newtonsoft.Json",
@@ -163,13 +163,13 @@ rather than published half-redacted.
   findings whose effort is unbounded until an architectural decision is made; a finding can
   be a severity `blocker` yet still estimable (bounded effort). Don't conflate the two.
 - **Tier matters.** `probable` (Tier 2) findings are matched on syntax without a resolved
-  compilation and may include false positives — discount or verify before acting on them.
+  compilation and may include false positives, so discount or verify them before acting.
 - **Portfolio rollups:** scan each solution/repo separately and aggregate the `projects`
   arrays; the occurrence factor is scoped per project by design.
 - **`targets` carries both stances; `findings` is not duplicated.** A stance satisfies exactly
   the findings whose `platform` equals its `satisfiedPlatform`, so the active set for a stance is
   `findings.filter(f => f.platform !== stance.satisfiedPlatform)`. Only `summary` and `projects`
-  differ between stances — the findings, references, not-assessed projects and warnings are
+  differ between stances. The findings, references, not-assessed projects and warnings stay
   identical either way, because the target changes what a finding *costs*, never what was found.
   Use `targets` for the portability comparison rather than scanning twice.
 - **The root is still the requested target.** `target`, `summary` and `projects` at the document
@@ -177,7 +177,7 @@ rather than published half-redacted.
   The matching `targets` entry is flagged `default: true`. A pre-1.5 consumer can ignore
   `targets` entirely and behave exactly as before.
 - **`references` is inventory, not findings.** Entries have no severity, no effort, and never
-  affect `--fail-on`. The array is flat and per-project — one entry per declaration site — so a
+  affect `--fail-on`. The array is flat and per-project, one entry per declaration site, so a
   package used by six projects appears six times. Group on `(kind, name)` for a solution-wide
   view; `summary.thirdPartyReferences` is already that count. See
   [the references doc](../references.md) for what each kind covers and what isn't collected.

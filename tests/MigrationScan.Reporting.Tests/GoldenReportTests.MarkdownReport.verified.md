@@ -130,17 +130,17 @@ For the security review before you send this on.
 
 - Project names, as they appear in your solution and project files.
 - Line numbers of the code that matched a rule.
-- Rule identifiers, titles and their fixed remediation text (the same for every scan).
-- Names and versions of dependencies your projects declare: NuGet packages, referenced assemblies, COM components, web-service endpoints, and Windows system libraries called via P/Invoke. These are identities, not locations, and they are kept deliberately — a component cannot be assessed without knowing which one it is.
+- Rule identifiers, titles and their remediation text. These read the same in every scan.
+- Names and versions of the dependencies your projects declare: NuGet packages, referenced assemblies, COM components, web-service endpoints, and the Windows system libraries you call through P/Invoke. A name identifies a component; it does not say where it sits on disk. We keep names because nobody can assess a component without knowing which one it is.
 
 **It does not include:**
 
-- Source file paths. Each is replaced by a stable opaque id, so two findings in the same file are still visibly in the same file, without naming it.
-- Any source code, or any part of the contents of any file.
-- Connection strings, credentials, secrets, or configuration values.
-- Web-service endpoint hosts and URLs — only the scheme is kept.
+- Source file paths. Each becomes a stable opaque id, so you can still see that two findings share a file without the report naming that file.
+- Source code, and any part of the contents of any file.
+- Connection strings, credentials, secrets and configuration values.
+- Web-service hosts and URLs. Only the scheme survives.
 - Customer, business or personal data of any kind.
-- Machine names, user names, or environment details.
-- Anything from outside the folder you scanned.
+- Machine names, user names and environment details.
+- Anything outside the folder you scanned.
 
-Redaction applies to the JSON report — the file you share. The console output, this Markdown report and the SARIF output keep full paths on purpose: they stay on your machine, SARIF exists to annotate a specific line in a specific file, and withholding paths from your own developers would help nobody. Run with --include-paths if you want the JSON to keep them too.
+Redaction covers the JSON report, which is the file you send on. Your console output, this Markdown report and the SARIF output all keep full paths. They stay on your machine, SARIF exists to point at a line in a file, and hiding paths from your own developers would protect nobody. Add --include-paths if you want the JSON to keep them too.

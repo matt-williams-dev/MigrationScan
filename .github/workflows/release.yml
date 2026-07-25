@@ -1,7 +1,7 @@
 name: Release
 
 # Publishes the artifacts a customer actually downloads: self-contained executables that need
-# no .NET SDK, no install, and no admin rights — plus the NuGet tool package for people who
+# no .NET SDK, no install, and no admin rights, plus the NuGet tool package for people who
 # already have the SDK. Runs on a version tag, or by hand for a dry run.
 on:
   push:
@@ -86,8 +86,8 @@ jobs:
           path: dist/*
 
   # The tag must match the version the code declares, or the release page and nuget.org
-  # disagree about what v0.1.0 contains — and nuget.org is immutable, so that is not
-  # fixable after the fact. Fails before anything is published.
+  # disagree about what v0.1.0 contains, and nuget.org is immutable, so nobody can fix that
+  # after the fact. Fails before anything is published.
   verify-version:
     name: verify tag matches version
     needs: test
@@ -137,21 +137,20 @@ jobs:
           cat > /tmp/notes.md <<'NOTES'
           ## Which download do I want?
 
-          **Just assessing a solution?** Take `migrationscan-win-x64.zip`. It is a single
-          executable — no .NET install, no admin rights. Unzip it into the folder you want to
-          scan and run it:
+          **Assessing a solution?** Take `migrationscan-win-x64.zip`. One executable, no .NET
+          install, no admin rights. Unzip it into the folder you want to scan and run it:
 
           ```
           migrationscan.exe path\to\YourSolution.sln
           ```
 
-          Or drop it in the folder and double-click — with no arguments it scans the current
-          directory. Either way it writes one file, `migrationscan-report.json`, covering both
-          staying on Windows and going cross-platform. That is the file to send on.
+          Or drop it in the folder and double-click it. With no arguments it scans the current
+          directory. Either way you get one file, `migrationscan-report.json`, pricing both
+          options: stay on Windows, or go cross-platform. That is the file to send on.
 
           **Already have the .NET 10 SDK?** `dotnet tool install -g MigrationScan.Tool`
 
-          Verify a download against the matching `.sha256` file before running it.
+          Check a download against its `.sha256` file before you run it.
 
           ---
           NOTES
@@ -163,7 +162,7 @@ jobs:
           shopt -s nullglob
           assets=(dist/*)
           if [ ${#assets[@]} -eq 0 ]; then
-            echo "::error::No artifacts to attach — the publish job produced nothing."
+            echo "::error::No artifacts to attach: the publish job produced nothing."
             exit 1
           fi
           gh release create "$GITHUB_REF_NAME" \
@@ -179,7 +178,7 @@ jobs:
   # Publishes via Trusted Publishing: the job proves its identity to nuget.org with a
   # short-lived GitHub OIDC token and gets back an API key valid for one hour, instead of a
   # long-lived key sitting in repository secrets waiting to leak. Configured on nuget.org
-  # against this owner, this repository, this workflow file and this environment — see
+  # against this owner, this repository, this workflow file and this environment. See
   # docs/PUBLISHING.md.
   nuget:
     name: publish to nuget.org
