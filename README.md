@@ -138,13 +138,13 @@ migrationscan [path] [options]
   --format <fmt>          console | markdown | json | sarif (repeatable). Omit for the
                           default: a console summary plus migrationscan-report.json.
   --output <path>         Output file or directory
-  --rules <ids>           Include only these rule IDs
-  --exclude <ids>         Exclude these rule IDs
   --fail-on <severity>    blocker | high | medium | low
   --online                Allow NuGet.org lookups for package compatibility
   --baseline <path>       Suppress findings present in a baseline file
-  --verbosity <level>     quiet | normal | detailed
 ```
+
+That is the whole surface — `--help` is the authority. `--fail-on` is evaluated against the
+stance `--target` names, so adding the second stance to the report never changes an exit code.
 
 `console` always writes to stdout. For `json`/`markdown`, `--output` may be a **file**
 (written as-is for a single format) or a **directory** (receives `report.json` /
