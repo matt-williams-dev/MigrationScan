@@ -1,5 +1,5 @@
 ﻿{
-  "schemaVersion": "1.4",
+  "schemaVersion": "1.5",
   "target": "net10.0-windows",
   "summary": {
     "projectsScanned": 1,
@@ -28,6 +28,75 @@
         "maxDays": 2,
         "needsDecision": 1
       }
+    }
+  ],
+  "targets": [
+    {
+      "target": "net10.0",
+      "stance": "crossPlatform",
+      "summary": {
+        "projectsScanned": 1,
+        "totalFindings": 5,
+        "findingsBySeverity": {
+          "blocker": 1,
+          "high": 2,
+          "medium": 2,
+          "low": 0
+        },
+        "effort": {
+          "minDays": 3.3,
+          "maxDays": 10,
+          "needsDecision": 1
+        },
+        "projectsNotAssessed": 0,
+        "thirdPartyReferences": 2
+      },
+      "projects": [
+        {
+          "path": "Scan.App/Scan.App.csproj",
+          "findingCount": 5,
+          "effort": {
+            "minDays": 3.3,
+            "maxDays": 10,
+            "needsDecision": 1
+          }
+        }
+      ]
+    },
+    {
+      "target": "net10.0-windows",
+      "stance": "windows",
+      "default": true,
+      "satisfiedPlatform": "windows",
+      "summary": {
+        "projectsScanned": 1,
+        "totalFindings": 2,
+        "findingsBySeverity": {
+          "blocker": 1,
+          "high": 0,
+          "medium": 1,
+          "low": 0
+        },
+        "effort": {
+          "minDays": 0.5,
+          "maxDays": 2,
+          "needsDecision": 1
+        },
+        "projectsNotAssessed": 0,
+        "windowsLockInSatisfied": 3,
+        "thirdPartyReferences": 2
+      },
+      "projects": [
+        {
+          "path": "Scan.App/Scan.App.csproj",
+          "findingCount": 2,
+          "effort": {
+            "minDays": 0.5,
+            "maxDays": 2,
+            "needsDecision": 1
+          }
+        }
+      ]
     }
   ],
   "findings": [

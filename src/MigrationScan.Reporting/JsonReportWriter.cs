@@ -16,11 +16,13 @@ public static class JsonReportWriter
     /// Schema version. 1.1 added the effort rollup; 1.2 added the `notAssessed` array and
     /// `summary.projectsNotAssessed`; 1.3 added portability awareness — `finding.platform`,
     /// `finding.satisfiedByTarget`, and `summary.windowsLockInSatisfied`; 1.4 added the
-    /// `references` inventory and `summary.thirdPartyReferences`. `summary.totalFindings`
-    /// and `project.findingCount` count only active findings (a Windows target's satisfied
-    /// lock-in findings are excluded). All additive, backward-compatible over 1.0.
+    /// `references` inventory and `summary.thirdPartyReferences`; 1.5 added the `targets`
+    /// array, which carries both portability stances in one document.
+    /// `summary.totalFindings` and `project.findingCount` count only active findings (a
+    /// Windows target's satisfied lock-in findings are excluded). All additive,
+    /// backward-compatible over 1.0.
     /// </summary>
-    public const string SchemaVersion = "1.4";
+    public const string SchemaVersion = "1.5";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -35,34 +37,24 @@ public static class JsonReportWriter
 
     public static string Write(AnalysisResult result)
     {
-        IReadOnlyDictionary<Severity, int> counts = result.CountsBySeverity();
-        int satisfiedCount = result.SatisfiedFindings.Count();
+        (string crossPlatform, string windows) = TargetPlatform.Stances(result.Target);
 
         ReportDocument document = new(
             SchemaVersion: SchemaVersion,
             Target: result.Target,
-            Summary: new ReportSummary(
-                ProjectsScanned: result.Projects.Count,
-                TotalFindings: result.ActiveFindings.Count(),
-                FindingsBySeverity: new SeverityCounts(
-                    Blocker: counts[Severity.Blocker],
-                    High: counts[Severity.High],
-                    Medium: counts[Severity.Medium],
-                    Low: counts[Severity.Low]),
-                Effort: ToEffort(EffortModel.ForSolution(result)),
-                ProjectsNotAssessed: result.NotAssessed.Count,
-                // Omitted entirely on a cross-platform target (nothing is satisfied).
-                WindowsLockInSatisfied: satisfiedCount == 0 ? null : satisfiedCount,
-                // Distinct components, not declaration sites — the `references` array below is
-                // per-project and will be longer.
-                ThirdPartyReferences: result.DistinctThirdPartyCount()),
-            Projects: result.Projects
-                .OrderBy(p => p.Path, StringComparer.Ordinal)
-                .Select(p => new ReportProject(
-                    Path: p.Path,
-                    FindingCount: result.ActiveFindings.Count(f => f.ProjectPath == p.Path),
-                    Effort: ToEffort(EffortModel.ForProject(result, p.Path))))
-                .ToList(),
+            // Omitted entirely when the result was not produced by a scan, so a hand-built
+            // report never claims a provenance it does not have.
+            Scan: result.Provenance is { } p ? new ReportScan(p.ToolVersion, p.Commit) : null,
+            Summary: Summarize(result),
+            Projects: ProjectRollup(result),
+            // Both portability stances, from the one analysis. The target affects only whether a
+            // Windows lock-in finding counts as cost, so the alternate stance is an exact
+            // re-evaluation rather than a second scan — which is why the customer runs the tool once.
+            Targets:
+            [
+                ToTarget(result.ForTarget(crossPlatform), "crossPlatform", result.Target),
+                ToTarget(result.ForTarget(windows), "windows", result.Target),
+            ],
             Findings: result.Findings.Select(ToDto).ToList(),
             NotAssessed: result.NotAssessed
                 .Select(p => new ReportNotAssessed(p.Name, p.Path, p.ProjectType, p.Reason))
@@ -77,6 +69,54 @@ public static class JsonReportWriter
         // formatting newlines are affected.
         return JsonSerializer.Serialize(document, SerializerOptions).Replace("\r\n", "\n");
     }
+
+    /// <summary>
+    /// One portability stance: the counts and effort that hold if the migration is assessed
+    /// against <paramref name="view"/>'s target. The findings themselves are not repeated —
+    /// a stance satisfies exactly the findings whose <c>platform</c> matches its
+    /// <c>satisfiedPlatform</c>, so a consumer derives the active set rather than reconciling
+    /// two copies of the same array.
+    /// </summary>
+    private static ReportTarget ToTarget(AnalysisResult view, string stance, string documentTarget) => new(
+        Target: view.Target,
+        Stance: stance,
+        // Marks the stance the top-level target/summary/projects describe, so a consumer that
+        // reads only the document root knows which one it got.
+        Default: view.Target == documentTarget ? true : null,
+        SatisfiedPlatform: TargetPlatform.IsWindows(view.Target) ? "windows" : null,
+        Summary: Summarize(view),
+        Projects: ProjectRollup(view));
+
+    private static ReportSummary Summarize(AnalysisResult result)
+    {
+        IReadOnlyDictionary<Severity, int> counts = result.CountsBySeverity();
+        int satisfiedCount = result.SatisfiedFindings.Count();
+
+        return new ReportSummary(
+            ProjectsScanned: result.Projects.Count,
+            TotalFindings: result.ActiveFindings.Count(),
+            FindingsBySeverity: new SeverityCounts(
+                Blocker: counts[Severity.Blocker],
+                High: counts[Severity.High],
+                Medium: counts[Severity.Medium],
+                Low: counts[Severity.Low]),
+            Effort: ToEffort(EffortModel.ForSolution(result)),
+            ProjectsNotAssessed: result.NotAssessed.Count,
+            // Omitted entirely on a cross-platform target (nothing is satisfied).
+            WindowsLockInSatisfied: satisfiedCount == 0 ? null : satisfiedCount,
+            // Distinct components, not declaration sites — the `references` array is
+            // per-project and will be longer.
+            ThirdPartyReferences: result.DistinctThirdPartyCount());
+    }
+
+    private static IReadOnlyList<ReportProject> ProjectRollup(AnalysisResult result) =>
+        result.Projects
+            .OrderBy(p => p.Path, StringComparer.Ordinal)
+            .Select(p => new ReportProject(
+                Path: p.Path,
+                FindingCount: result.ActiveFindings.Count(f => f.ProjectPath == p.Path),
+                Effort: ToEffort(EffortModel.ForProject(result, p.Path))))
+            .ToList();
 
     // Effort as heuristic engineer-day ranges, rounded for display; "needsDecision" is the
     // count of blocking issues that need an architectural decision before they can be estimated.
@@ -117,8 +157,10 @@ public static class JsonReportWriter
     private sealed record ReportDocument(
         string SchemaVersion,
         string Target,
+        ReportScan? Scan,
         ReportSummary Summary,
         IReadOnlyList<ReportProject> Projects,
+        IReadOnlyList<ReportTarget> Targets,
         IReadOnlyList<ReportFinding> Findings,
         IReadOnlyList<ReportNotAssessed> NotAssessed,
         IReadOnlyList<ReportReference> References,
@@ -134,6 +176,16 @@ public static class JsonReportWriter
         string Project,
         string DeclaredIn,
         int? Line);
+
+    private sealed record ReportScan(string ToolVersion, string? Commit);
+
+    private sealed record ReportTarget(
+        string Target,
+        string Stance,
+        bool? Default,
+        string? SatisfiedPlatform,
+        ReportSummary Summary,
+        IReadOnlyList<ReportProject> Projects);
 
     private sealed record ReportWarning(string Message, string? Path);
 

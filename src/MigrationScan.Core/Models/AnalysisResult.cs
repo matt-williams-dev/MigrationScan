@@ -12,6 +12,12 @@ public sealed record AnalysisResult(
     IReadOnlyList<ScanWarning> Warnings)
 {
     /// <summary>
+    /// What produced this report and from which revision. Null when the result was constructed
+    /// directly rather than by a scan (as the report writers' own test fixtures are).
+    /// </summary>
+    public ScanProvenance? Provenance { get; init; }
+
+    /// <summary>
     /// Projects the scan could not analyze (non-C#/VB, e.g. SQL or deployment projects). Not
     /// findings — explicit scoping inputs, surfaced so coverage isn't silently overstated.
     /// </summary>
@@ -45,6 +51,28 @@ public sealed record AnalysisResult(
     /// and <c>--fail-on</c> threshold operate on.
     /// </summary>
     public IEnumerable<Finding> ActiveFindings => Findings.Where(f => !f.SatisfiedByTarget);
+
+    /// <summary>
+    /// The same analysis evaluated against a different target framework.
+    /// </summary>
+    /// <remarks>
+    /// Nothing is re-analyzed, and nothing needs to be: the target affects exactly one thing —
+    /// whether a Windows lock-in finding counts as migration cost. The findings themselves, the
+    /// discovered projects, the reference inventory and the warnings are identical whichever
+    /// stance you assess from. So this is an exact re-evaluation, not an approximation of a
+    /// second scan, which is what lets one scan report both portability stances.
+    /// </remarks>
+    public AnalysisResult ForTarget(string targetFramework)
+    {
+        bool isWindows = TargetPlatform.IsWindows(targetFramework);
+        return this with
+        {
+            Target = targetFramework,
+            Findings = Findings
+                .Select(f => f with { SatisfiedByTarget = isWindows && f.Rule.Platform == RulePlatform.Windows })
+                .ToList(),
+        };
+    }
 
     /// <summary>
     /// Windows lock-in findings that the current (Windows) target satisfies. Still reported,

@@ -16,7 +16,8 @@ const int ExitBadUsage = 64;
 
 var pathArgument = new Argument<string>("path")
 {
-    Description = "A .sln, .csproj, or directory to scan recursively.",
+    Description = "A .sln, .csproj, or directory to scan recursively. Defaults to the current directory.",
+    DefaultValueFactory = _ => ".",
 };
 
 var targetOption = new Option<string>("--target")
@@ -27,10 +28,14 @@ var targetOption = new Option<string>("--target")
     DefaultValueFactory = _ => "net10.0",
 };
 
+// Left empty by default rather than defaulting to "console", so the code can tell "the user
+// asked for console" apart from "the user asked for nothing" — the latter is the customer path,
+// which prints a summary *and* writes the report file.
 var formatOption = new Option<string[]>("--format", "-f")
 {
-    Description = "Output format(s): console | json | markdown | sarif. Repeatable.",
-    DefaultValueFactory = _ => ["console"],
+    Description = "Output format(s): console | json | markdown | sarif. Repeatable. "
+        + $"Omit for the default: a console summary plus {DefaultReport.FileName}.",
+    DefaultValueFactory = _ => [],
     AllowMultipleArgumentsPerToken = true,
 };
 
@@ -72,7 +77,7 @@ rootCommand.SetAction(parseResult =>
 {
     string path = parseResult.GetValue(pathArgument)!;
     string target = parseResult.GetValue(targetOption)!;
-    string[] formats = parseResult.GetValue(formatOption) ?? ["console"];
+    string[] formats = parseResult.GetValue(formatOption) ?? [];
     string? output = parseResult.GetValue(outputOption);
     string? failOnValue = parseResult.GetValue(failOnOption);
     string? baselinePath = parseResult.GetValue(baselineOption);
@@ -124,7 +129,14 @@ rootCommand.SetAction(parseResult =>
             result = ApplyBaseline(result, baselinePath);
         }
 
-        Emit(result, normalizedFormats, output);
+        if (normalizedFormats.Length == 0)
+        {
+            EmitDefault(result, output);
+        }
+        else
+        {
+            Emit(result, normalizedFormats, output);
+        }
 
         return failOn is { } threshold && result.FailsThreshold(threshold)
             ? ExitFindingsAboveThreshold
@@ -137,7 +149,31 @@ rootCommand.SetAction(parseResult =>
     }
 });
 
-return rootCommand.Parse(args).Invoke();
+int exitCode = rootCommand.Parse(args).Invoke();
+
+// Double-clicked from a file manager, the window closes the instant this returns and the user
+// sees nothing. Only when *no* arguments were given, and only for a real console — a redirected
+// or piped run must never block waiting for a keypress that isn't coming.
+if (args.Length == 0 && !Console.IsOutputRedirected && !Console.IsInputRedirected)
+{
+    Console.Out.WriteLine();
+    Console.Out.Write("Press Enter to close...");
+    Console.In.ReadLine();
+}
+
+return exitCode;
+
+// The no-flags path: a summary on screen, and one file to send on. Everything a customer needs
+// from the tool without them having to learn any of its options.
+static void EmitDefault(AnalysisResult result, string? outputPath)
+{
+    Console.Out.Write(ConsoleReporter.Render(result));
+    Console.Out.WriteLine();
+    foreach (string line in DefaultReport.Write(result, outputPath))
+    {
+        Console.Out.WriteLine(line);
+    }
+}
 
 static void Emit(AnalysisResult result, string[] formats, string? outputPath)
 {

@@ -1,5 +1,5 @@
 ﻿{
-  "schemaVersion": "1.4",
+  "schemaVersion": "1.5",
   "target": "net10.0",
   "summary": {
     "projectsScanned": 2,
@@ -36,6 +36,92 @@
         "maxDays": 5,
         "needsDecision": 1
       }
+    }
+  ],
+  "targets": [
+    {
+      "target": "net10.0",
+      "stance": "crossPlatform",
+      "default": true,
+      "summary": {
+        "projectsScanned": 2,
+        "totalFindings": 7,
+        "findingsBySeverity": {
+          "blocker": 2,
+          "high": 0,
+          "medium": 2,
+          "low": 3
+        },
+        "effort": {
+          "minDays": 6.8,
+          "maxDays": 22,
+          "needsDecision": 1
+        },
+        "projectsNotAssessed": 1,
+        "thirdPartyReferences": 5
+      },
+      "projects": [
+        {
+          "path": "Shop.Core/Shop.Core.csproj",
+          "findingCount": 2,
+          "effort": {
+            "minDays": 5.5,
+            "maxDays": 17,
+            "needsDecision": 0
+          }
+        },
+        {
+          "path": "Shop.Web/Shop.Web.csproj",
+          "findingCount": 5,
+          "effort": {
+            "minDays": 1.3,
+            "maxDays": 5,
+            "needsDecision": 1
+          }
+        }
+      ]
+    },
+    {
+      "target": "net10.0-windows",
+      "stance": "windows",
+      "satisfiedPlatform": "windows",
+      "summary": {
+        "projectsScanned": 2,
+        "totalFindings": 7,
+        "findingsBySeverity": {
+          "blocker": 2,
+          "high": 0,
+          "medium": 2,
+          "low": 3
+        },
+        "effort": {
+          "minDays": 6.8,
+          "maxDays": 22,
+          "needsDecision": 1
+        },
+        "projectsNotAssessed": 1,
+        "thirdPartyReferences": 5
+      },
+      "projects": [
+        {
+          "path": "Shop.Core/Shop.Core.csproj",
+          "findingCount": 2,
+          "effort": {
+            "minDays": 5.5,
+            "maxDays": 17,
+            "needsDecision": 0
+          }
+        },
+        {
+          "path": "Shop.Web/Shop.Web.csproj",
+          "findingCount": 5,
+          "effort": {
+            "minDays": 1.3,
+            "maxDays": 5,
+            "needsDecision": 1
+          }
+        }
+      ]
     }
   ],
   "findings": [

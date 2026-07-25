@@ -13,6 +13,13 @@
 
   <!-- Package metadata shared across the shippable assemblies. -->
   <PropertyGroup>
+    <!-- Pinned rather than derived from the build, so a report's toolVersion is stable and
+         two people on the same release produce byte-identical output. -->
+    <Version>0.1.0</Version>
+    <!-- The SDK otherwise appends "+<commit>" to the informational version, which would put the
+         tool's own commit next to the scanned repository's in the report. Two different commits
+         one line apart is a trap. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>MigrationScan contributors</Authors>
     <Product>MigrationScan</Product>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
