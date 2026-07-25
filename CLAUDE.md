@@ -45,6 +45,23 @@ costs nothing. A Tier 2 finding presented as certain costs the user's trust.
 - When a rule's detection is ambiguous, say so in the rule's docs page rather than silently
   guessing.
 
+## Writing that reaches the public
+
+Run it through the `/humanize-writing` skill **before** publishing, not after. This repo is
+public and the tool asks strangers to trust it with their source code, so prose that reads as
+machine-generated costs credibility before anyone runs a scan.
+
+Public surfaces, roughly in the order somebody meets them:
+
+- The NuGet `<Description>`, which is the first paragraph on the package page.
+- `README.md`, which is also the package readme.
+- **Strings the tool prints or writes into its own reports** — `PrivacyNotice`,
+  `ConsoleReporter`, `MarkdownReportWriter`. Easy to overlook because they live in source, and
+  read by more people than the docs.
+- `CHANGELOG.md`, `docs/`, and the release-notes template in `.github/workflows/release.yml`,
+  which generates published notes on every tag.
+- GitHub releases, issues and PR bodies.
+
 ## Build / test
 
 - Target `net10.0`, C# 14, nullable enabled, warnings as errors (see `Directory.Build.props`).
