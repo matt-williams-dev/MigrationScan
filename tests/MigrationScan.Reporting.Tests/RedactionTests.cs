@@ -174,25 +174,90 @@ public class RedactionTests
     }
 
     [Fact]
-    public void AWarningThatStillNamesPathsIsDroppedRatherThanHalfRedacted()
+    public void AWarningNamingSeveralProjectsSurvivesRedactionWithItsMeaningIntact()
     {
-        // The orphan-projects warning lists several paths in one sentence, so substituting the
-        // single path it carries cannot clean it. Dropping costs the reader context; publishing
-        // it half-scrubbed costs exactly what redaction exists to prevent.
+        // The orphan-projects warning lists several paths in one sentence and carries no single
+        // path to swap out. It declares them instead, so each becomes an id and the sentence
+        // still says which projects and how many.
         AnalysisResult result = Sample() with
         {
             Warnings =
             [
                 new ScanWarning(
                     "2 project(s) are not referenced by any solution: Orphan/Orphan.csproj, Loose/Loose.csproj",
-                    Path: null),
+                    Path: null)
+                {
+                    MentionedPaths = ["Orphan/Orphan.csproj", "Loose/Loose.csproj"],
+                },
             ],
         };
 
         string json = JsonReportWriter.Write(result);
 
         Assert.DoesNotContain("Orphan/Orphan.csproj", json, StringComparison.Ordinal);
-        Assert.Empty(Root(json).GetProperty("warnings").EnumerateArray());
+        Assert.DoesNotContain("Loose/Loose.csproj", json, StringComparison.Ordinal);
+
+        JsonElement warning = Assert.Single(Root(json).GetProperty("warnings").EnumerateArray().ToList());
+        string message = warning.GetProperty("message").GetString()!;
+        Assert.Contains("2 project(s) are not referenced", message, StringComparison.Ordinal);
+        // Two distinct ids, so the reader can still tell two projects apart.
+        Assert.Equal(2, message.Split("f:").Length - 1);
+    }
+
+    [Fact]
+    public void AWarningThatCannotBeCleanedIsReplacedRatherThanRemoved()
+    {
+        // Free text the analyzer passed through, a parser's own error naming a path it found.
+        // Nothing declares that path, so the sentence cannot be scrubbed and must not ship.
+        // Removing the warning outright is the failure this design exists to prevent: a reader
+        // is told to check warnings before trusting coverage, and a silently shorter list reads
+        // as a clean scan.
+        AnalysisResult result = Sample() with
+        {
+            Warnings =
+            [
+                new ScanWarning(@"Skipped: malformed project XML in C:\build\Acme.Payroll\Acme.Payroll.csproj.",
+                    Path: null),
+            ],
+        };
+
+        string json = JsonReportWriter.Write(result);
+
+        Assert.DoesNotContain("Acme.Payroll", json, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(@"C:\build", json, StringComparison.OrdinalIgnoreCase);
+
+        JsonElement warning = Assert.Single(Root(json).GetProperty("warnings").EnumerateArray().ToList());
+        Assert.Contains("withheld", warning.GetProperty("message").GetString()!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ARedactedReportCarriesAsManyWarningsAsAnUnredactedOne()
+    {
+        // The invariant behind both tests above, stated once: redaction changes what a warning
+        // says, never how many there are. Counting warnings is how somebody decides whether a
+        // scan covered the estate.
+        AnalysisResult result = Sample() with
+        {
+            Warnings =
+            [
+                new ScanWarning("Skipped 'A/A.csproj': project file not found.", "A/A.csproj")
+                {
+                    MentionedPaths = ["A/A.csproj"],
+                },
+                new ScanWarning("3 project(s) are not referenced by any solution: B/B.csproj", Path: null)
+                {
+                    MentionedPaths = ["B/B.csproj"],
+                },
+                new ScanWarning(@"Skipped: malformed project XML in D:\src\C\C.csproj.", Path: null),
+            ],
+        };
+
+        int redacted = Root(JsonReportWriter.Write(result)).GetProperty("warnings").GetArrayLength();
+        int withPaths = Root(JsonReportWriter.Write(result, includePaths: true))
+            .GetProperty("warnings").GetArrayLength();
+
+        Assert.Equal(3, withPaths);
+        Assert.Equal(withPaths, redacted);
     }
 
     [Fact]

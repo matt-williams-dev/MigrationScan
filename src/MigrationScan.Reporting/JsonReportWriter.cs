@@ -179,8 +179,8 @@ public static class JsonReportWriter
 
     /// <summary>
     /// Warnings, with paths removed from the prose as well as the field. One that still names a
-    /// path afterwards — a warning listing several at once cannot be fixed by substituting the
-    /// single path it carries — is dropped rather than published half-redacted.
+    /// path afterwards is replaced by a placeholder, never removed: a redacted report carries the
+    /// same number of warnings as an unredacted one, so nobody reads a short list as a clean scan.
     /// </summary>
     private static IReadOnlyList<ReportWarning> Warnings(AnalysisResult result, bool includePaths)
     {
@@ -191,7 +191,7 @@ public static class JsonReportWriter
 
         return result.Warnings
             .Select(Redaction.Warning)
-            .Where(w => !Redaction.StillNamesAPath(w))
+            .Select(w => Redaction.StillNamesAPath(w) ? Redaction.Withheld() : w)
             .Select(w => new ReportWarning(w.Message, w.Path))
             .ToList();
     }
