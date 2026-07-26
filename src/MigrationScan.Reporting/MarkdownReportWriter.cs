@@ -8,7 +8,7 @@ namespace MigrationScan.Reporting;
 /// <summary>
 /// Renders an <see cref="AnalysisResult"/> as a shareable Markdown report (spec §8, §13):
 /// executive summary, blockers, findings by project, effort breakdown, remediation, and a
-/// methodology/limitations section. Deterministic — no timestamps or machine-specific data.
+/// methodology/limitations section. Deterministic: no timestamps or machine-specific data.
 /// </summary>
 public static class MarkdownReportWriter
 {
@@ -64,12 +64,12 @@ public static class MarkdownReportWriter
         {
             md.AppendLine(
                 $"- **Windows lock-in satisfied by `{result.Target}`:** {satisfiedCount} " +
-                "(supported on this target — see below, not counted or estimated)");
+                "(supported on this target, listed below and not counted or estimated)");
         }
 
         if (result.NotAssessed.Count > 0)
         {
-            md.AppendLine($"- **Projects not assessed:** {result.NotAssessed.Count} (see below — scope separately)");
+            md.AppendLine($"- **Projects not assessed:** {result.NotAssessed.Count} (listed below, scope separately)");
         }
 
         int thirdPartyCount = result.DistinctThirdPartyCount();
@@ -77,7 +77,7 @@ public static class MarkdownReportWriter
         {
             md.AppendLine(
                 $"- **Third-party references:** {thirdPartyCount} distinct " +
-                "(see below — inventory, not counted or estimated)");
+                "(listed below as inventory, not counted or estimated)");
         }
 
         md.AppendLine();
@@ -92,7 +92,7 @@ public static class MarkdownReportWriter
             return;
         }
 
-        md.AppendLine("## Not assessed — scope separately");
+        md.AppendLine("## Not assessed, scope separately");
         md.AppendLine();
         md.AppendLine(
             "These projects are part of the solution but are not C#/VB, so their contents were not " +
@@ -173,7 +173,7 @@ public static class MarkdownReportWriter
         md.AppendLine();
         foreach (Finding finding in blockers)
         {
-            md.AppendLine($"- {RuleLink(finding.Rule)} — `{Location(finding)}` — {EscapeInline(finding.Message)}");
+            md.AppendLine($"- {RuleLink(finding.Rule)} · `{Location(finding)}` · {EscapeInline(finding.Message)}");
         }
 
         md.AppendLine();
@@ -239,7 +239,7 @@ public static class MarkdownReportWriter
     }
 
     // The dependency catalog. Deliberately separate from findings: most third-party references
-    // are perfectly fine, but every one of them is a question a migration has to answer — does
+    // are perfectly fine, but every one of them is a question a migration has to answer: does
     // this ship a modern .NET build, is the vendor still around, is there a successor?
     private static void WriteReferences(StringBuilder md, AnalysisResult result)
     {
@@ -253,7 +253,7 @@ public static class MarkdownReportWriter
         md.AppendLine(
             "Everything the scanned projects declare a dependency on, read from the project files. " +
             "This is an inventory, not findings: nothing here is counted, estimated, or a build failure. " +
-            "It's the list to research — check each third-party component for a supported .NET 10 release " +
+            "This is the list to research. Check each third-party component for a supported .NET 10 release " +
             "before committing to a plan.");
         md.AppendLine();
 
@@ -264,7 +264,7 @@ public static class MarkdownReportWriter
 
     private static void WriteThirdPartyReferences(StringBuilder md, AnalysisResult result)
     {
-        // One row per distinct component across the solution — the same package referenced by
+        // One row per distinct component across the solution. The same package referenced by
         // six projects is one thing to research, not six.
         // Case-insensitive on the name so "newtonsoft.json" and "Newtonsoft.Json" are one row.
         var groups = result.ThirdPartyReferences
@@ -297,8 +297,8 @@ public static class MarkdownReportWriter
         md.AppendLine("| --- | --- | --- | --- | --- |");
         foreach (var group in groups)
         {
-            string versions = group.Versions.Count == 0 ? "—" : string.Join(", ", group.Versions);
-            string sources = group.Sources.Count == 0 ? "—" : string.Join("<br>", group.Sources.Select(s => $"`{s}`"));
+            string versions = group.Versions.Count == 0 ? "n/a" : string.Join(", ", group.Versions);
+            string sources = group.Sources.Count == 0 ? "n/a" : string.Join("<br>", group.Sources.Select(s => $"`{s}`"));
             string projects = group.Projects == 1 ? "1 project" : $"{group.Projects} projects";
             md.AppendLine(
                 $"| {EscapeCell(group.Name)} | {KindLabel(group.Kind)} | {EscapeCell(versions)} | {projects} | {EscapeCell(sources)} |");
@@ -320,7 +320,7 @@ public static class MarkdownReportWriter
 
         md.AppendLine("### Solution-internal project references");
         md.AppendLine();
-        md.AppendLine("This solution's own code. Already in scope — listed to show the build order dependencies:");
+        md.AppendLine("This solution's own code, already in scope. Listed to show the build order dependencies:");
         md.AppendLine();
         md.AppendLine("| Project | Depends on |");
         md.AppendLine("| --- | --- |");
@@ -348,10 +348,10 @@ public static class MarkdownReportWriter
         }
 
         string sentence = frameworkCount == 1
-            ? "1 framework assembly reference was also read (`System.*`, `mscorlib`, WPF, …) and is not listed — " +
+            ? "1 framework assembly reference was also read (`System.*`, `mscorlib`, WPF, …) and is not listed. " +
               "it moves with the runtime rather than needing research."
             : $"{frameworkCount} framework assembly references were also read (`System.*`, `mscorlib`, WPF, …) and are " +
-              "not listed — they move with the runtime rather than needing research.";
+              "not listed. They move with the runtime rather than needing research.";
 
         md.AppendLine($"_{sentence}_");
         md.AppendLine();
@@ -385,7 +385,7 @@ public static class MarkdownReportWriter
         md.AppendLine();
         foreach (RuleMetadata rule in rules)
         {
-            md.AppendLine($"**{RuleLink(rule)} — {EscapeInline(rule.Title)}**");
+            md.AppendLine($"**{RuleLink(rule)} · {EscapeInline(rule.Title)}**");
             md.AppendLine();
             md.AppendLine(EscapeInline(rule.Remediation));
             md.AppendLine();
@@ -427,19 +427,19 @@ public static class MarkdownReportWriter
         md.AppendLine("## Methodology & limitations");
         md.AppendLine();
         md.AppendLine(
-            "MigrationScan parses `.sln` and `.csproj` files as XML and reads `.cs` files with Roslyn — " +
+            "MigrationScan parses `.sln` and `.csproj` files as XML and reads `.cs` files with Roslyn. " +
             "no MSBuild or Visual Studio required, and no source code leaves the machine. Every finding " +
             "carries a **confidence tier**:");
         md.AppendLine();
-        md.AppendLine("- **Tier 1 — Certain:** read directly from project, config, or solution files.");
-        md.AppendLine("- **Tier 2 — Probable:** matched on the syntax tree without a resolved compilation, so some may be false positives.");
+        md.AppendLine("- **Tier 1, Certain:** read directly from project, config, or solution files.");
+        md.AppendLine("- **Tier 2, Probable:** matched on the syntax tree without a resolved compilation, so some may be false positives.");
         md.AppendLine();
         md.AppendLine(
             "Effort figures apply a per-rule range and a flattening occurrence factor, aggregated per project " +
             "and across the solution. Two things are tracked separately and can differ: **severity** (the " +
             "*Blockers* section lists the highest-impact findings) and **estimability** (the *Needs decision* " +
             "count is the subset whose effort is unbounded until an architectural decision is made). A finding " +
-            "can be a severity blocker yet still estimable — for example replacing `BinaryFormatter` is high " +
+            "can be a severity blocker yet still estimable. Replacing `BinaryFormatter` is high " +
             "impact but a bounded change.");
         md.AppendLine();
         md.AppendLine($"_{Disclaimer}_");
@@ -468,7 +468,7 @@ public static class MarkdownReportWriter
     {
         double min = EffortModel.Round(effort.MinDays);
         double max = EffortModel.Round(effort.MaxDays);
-        return min == 0 && max == 0 ? "—" : $"{Number(min)}–{Number(max)}";
+        return min == 0 && max == 0 ? "n/a" : $"{Number(min)}–{Number(max)}";
     }
 
     private static string Number(double value) => value.ToString("0.#", CultureInfo.InvariantCulture);

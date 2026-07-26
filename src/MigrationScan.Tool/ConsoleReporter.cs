@@ -17,7 +17,7 @@ internal static class ConsoleReporter
     {
         StringBuilder output = new();
 
-        output.AppendLine($"MigrationScan — target {result.Target}");
+        output.AppendLine($"MigrationScan · target {result.Target}");
         output.AppendLine();
 
         int projectCount = result.Projects.Count;
@@ -35,16 +35,16 @@ internal static class ConsoleReporter
         {
             output.AppendLine(
                 $"Windows lock-in satisfied by target {result.Target}: {satisfiedCount} " +
-                $"(supported on this target — listed below, not counted above)");
+                $"(supported on this target, listed below and not counted above)");
         }
 
         if (result.NotAssessed.Count > 0)
         {
             output.AppendLine();
-            output.AppendLine($"Not assessed — scope separately ({result.NotAssessed.Count}):");
+            output.AppendLine($"Not assessed, scope separately ({result.NotAssessed.Count}):");
             foreach (NotAssessedProject project in result.NotAssessed)
             {
-                output.AppendLine($"  • {project.Name} ({project.ProjectType}) — {project.Path}");
+                output.AppendLine($"  • {project.Name} ({project.ProjectType}) · {project.Path}");
             }
         }
 
@@ -106,7 +106,7 @@ internal static class ConsoleReporter
                 // Messages differ per site (e.g. a package or assembly name): show each.
                 foreach (Finding item in items)
                 {
-                    output.AppendLine($"    {Location(item)} — {item.Message}");
+                    output.AppendLine($"    {Location(item)} · {item.Message}");
                 }
             }
 
@@ -120,7 +120,7 @@ internal static class ConsoleReporter
         return output.ToString();
     }
 
-    // The third-party dependency catalog. Not findings — this is the list to research for
+    // The third-party dependency catalog. Inventory, not findings: the list to research for
     // modern .NET support. Framework assemblies and this solution's own project references are
     // excluded (noted, not silently dropped); the full inventory is in the JSON and Markdown.
     private static void WriteReferences(StringBuilder output, AnalysisResult result)
@@ -145,7 +145,7 @@ internal static class ConsoleReporter
         }
 
         output.AppendLine();
-        output.AppendLine($"Third-party references ({groups.Count} distinct) — inventory, not counted above:");
+        output.AppendLine($"Third-party references ({groups.Count} distinct), inventory only, not counted above:");
 
         foreach (var group in groups)
         {
@@ -186,7 +186,7 @@ internal static class ConsoleReporter
 
         output.AppendLine();
         output.AppendLine(
-            $"Satisfied by target {result.Target} — Windows lock-in, supported on this target ({satisfied.Count}):");
+            $"Satisfied by target {result.Target}. Windows lock-in, supported here ({satisfied.Count}):");
         output.AppendLine(
             "  These would be migration cost only if you moved off Windows. Not counted above.");
 

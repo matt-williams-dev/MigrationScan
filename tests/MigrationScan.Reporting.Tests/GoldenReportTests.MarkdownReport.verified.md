@@ -7,12 +7,12 @@ Static analysis of a solution's readiness to move to `net10.0`, produced by Migr
 - **Projects scanned:** 2
 - **Findings:** 7 (blocker 2 · high 0 · medium 2 · low 3)
 - **Estimated effort:** 6.8–22 engineer-days, plus 1 item requiring an architectural decision before they can be estimated
-- **Projects not assessed:** 1 (see below — scope separately)
-- **Third-party references:** 5 distinct (see below — inventory, not counted or estimated)
+- **Projects not assessed:** 1 (listed below, scope separately)
+- **Third-party references:** 5 distinct (listed below as inventory, not counted or estimated)
 
 > These figures are heuristic planning aids derived from static analysis and are not a quote.
 
-## Not assessed — scope separately
+## Not assessed, scope separately
 
 These projects are part of the solution but are not C#/VB, so their contents were not analyzed. They still need migration planning of their own and are **not** in the effort estimate:
 
@@ -30,8 +30,8 @@ The following were skipped and are not reflected in the findings below:
 
 These need an architectural decision before migration can proceed:
 
-- [MIG3001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md) — `Shop.Web/Shop.Web.csproj:2` — Project 'Shop.Web' is an ASP.NET WebForms application (.aspx present).
-- [MIG6001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6001.md) — `Shop.Core/Cache.cs:33` — Uses BinaryFormatter, which is removed in .NET 9.
+- [MIG3001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md) · `Shop.Web/Shop.Web.csproj:2` · Project 'Shop.Web' is an ASP.NET WebForms application (.aspx present).
+- [MIG6001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6001.md) · `Shop.Core/Cache.cs:33` · Uses BinaryFormatter, which is removed in .NET 9.
 
 ## Findings by project
 
@@ -68,58 +68,58 @@ _These figures are heuristic planning aids derived from static analysis and are 
 
 ## References
 
-Everything the scanned projects declare a dependency on, read from the project files. This is an inventory, not findings: nothing here is counted, estimated, or a build failure. It's the list to research — check each third-party component for a supported .NET 10 release before committing to a plan.
+Everything the scanned projects declare a dependency on, read from the project files. This is an inventory, not findings: nothing here is counted, estimated, or a build failure. This is the list to research. Check each third-party component for a supported .NET 10 release before committing to a plan.
 
 ### Third-party (5 distinct)
 
 | Reference | Kind | Version | Used by | Resolved from |
 | --- | --- | --- | --- | --- |
-| Newtonsoft.Json | NuGet package | 13.0.3 | 2 projects | — |
-| Telerik.Web.UI | GAC assembly | 2015.3.930.45 | 1 project | — |
+| Newtonsoft.Json | NuGet package | 13.0.3 | 2 projects | n/a |
+| Telerik.Web.UI | GAC assembly | 2015.3.930.45 | 1 project | n/a |
 | Contoso.Payments | Vendored DLL | 2.1.0.0 | 1 project | `libs/Contoso.Payments.dll` |
 | MSXML2 | COM / ActiveX | 6.0 | 1 project | `{f5078f18-c551-11d3-89b9-0000f81fe221}` |
-| PricingService | Service proxy | — | 1 project | `http://pricing.internal/Pricing.asmx` |
+| PricingService | Service proxy | n/a | 1 project | `http://pricing.internal/Pricing.asmx` |
 
 ### Solution-internal project references
 
-This solution's own code. Already in scope — listed to show the build order dependencies:
+This solution's own code, already in scope. Listed to show the build order dependencies:
 
 | Project | Depends on |
 | --- | --- |
 | `Shop.Web/Shop.Web.csproj` | Shop.Core |
 
-_1 framework assembly reference was also read (`System.*`, `mscorlib`, WPF, …) and is not listed — it moves with the runtime rather than needing research._
+_1 framework assembly reference was also read (`System.*`, `mscorlib`, WPF, …) and is not listed. it moves with the runtime rather than needing research._
 
 ## Remediation guidance
 
-**[MIG1001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1001.md) — Non-SDK-style project file**
+**[MIG1001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1001.md) · Non-SDK-style project file**
 
 Convert the project to the SDK style.
 
-**[MIG3001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md) — ASP.NET WebForms**
+**[MIG3001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md) · ASP.NET WebForms**
 
 Re-architect to Razor Pages, MVC, or Blazor.
 
-**[MIG5001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md) — ConfigurationManager.AppSettings usage**
+**[MIG5001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md) · ConfigurationManager.AppSettings usage**
 
 Add System.Configuration.ConfigurationManager or migrate to Microsoft.Extensions.Configuration.
 
-**[MIG6001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6001.md) — BinaryFormatter**
+**[MIG6001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6001.md) · BinaryFormatter**
 
 Replace with a safe serializer such as System.Text.Json.
 
-**[MIG7001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md) — System.Data.SqlClient**
+**[MIG7001](https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md) · System.Data.SqlClient**
 
 Switch to Microsoft.Data.SqlClient.
 
 ## Methodology & limitations
 
-MigrationScan parses `.sln` and `.csproj` files as XML and reads `.cs` files with Roslyn — no MSBuild or Visual Studio required, and no source code leaves the machine. Every finding carries a **confidence tier**:
+MigrationScan parses `.sln` and `.csproj` files as XML and reads `.cs` files with Roslyn. no MSBuild or Visual Studio required, and no source code leaves the machine. Every finding carries a **confidence tier**:
 
-- **Tier 1 — Certain:** read directly from project, config, or solution files.
-- **Tier 2 — Probable:** matched on the syntax tree without a resolved compilation, so some may be false positives.
+- **Tier 1, Certain:** read directly from project, config, or solution files.
+- **Tier 2, Probable:** matched on the syntax tree without a resolved compilation, so some may be false positives.
 
-Effort figures apply a per-rule range and a flattening occurrence factor, aggregated per project and across the solution. Two things are tracked separately and can differ: **severity** (the *Blockers* section lists the highest-impact findings) and **estimability** (the *Needs decision* count is the subset whose effort is unbounded until an architectural decision is made). A finding can be a severity blocker yet still estimable — for example replacing `BinaryFormatter` is high impact but a bounded change.
+Effort figures apply a per-rule range and a flattening occurrence factor, aggregated per project and across the solution. Two things are tracked separately and can differ: **severity** (the *Blockers* section lists the highest-impact findings) and **estimability** (the *Needs decision* count is the subset whose effort is unbounded until an architectural decision is made). A finding can be a severity blocker yet still estimable. Replacing `BinaryFormatter` is high impact but a bounded change.
 
 _These figures are heuristic planning aids derived from static analysis and are not a quote._
 ## What this report contains
