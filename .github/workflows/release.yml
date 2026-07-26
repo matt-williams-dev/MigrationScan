@@ -10,6 +10,10 @@ on:
 
 permissions:
   contents: write   # required to create the release and upload assets
+  # OIDC. Two jobs trade this token for a short-lived credential: publish, for Azure Artifact
+  # Signing, and nuget, for trusted publishing. Both are listed here because a job-level
+  # permissions block replaces these defaults rather than adding to them.
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -32,6 +36,10 @@ jobs:
     name: publish (${{ matrix.rid }})
     needs: test
     runs-on: ${{ matrix.os }}
+    # The signing credentials live here: the Apple certificate and App Store Connect key, and
+    # the Azure federated credential, whose subject is scoped to this environment. A job that
+    # does not declare it gets a token Azure will not accept.
+    environment: release
     strategy:
       fail-fast: false
       matrix:
@@ -42,7 +50,17 @@ jobs:
           - { rid: win-x64,   os: windows-latest, archive: zip    }
           - { rid: win-arm64, os: windows-latest, archive: zip    }
           - { rid: linux-x64, os: ubuntu-latest,  archive: tar.gz }
-          - { rid: osx-arm64, os: macos-latest,   archive: tar.gz }
+          # macos-latest is Apple silicon, so osx-x64 is cross-published there. A single-file
+          # publish lays down the osx-x64 apphost out of the runtime pack, so the architecture
+          # of the machine that built it does not reach the output, and codesign and notarytool
+          # are equally happy signing an x86_64 binary from an arm64 host.
+          - { rid: osx-x64,   os: macos-latest,   archive: pkg    }
+          - { rid: osx-arm64, os: macos-latest,   archive: pkg    }
+
+    env:
+      # A step-level `if` cannot read the secrets context, so the Windows signing gate reads
+      # this instead. It holds the string "true" or "false", never the secret.
+      AZURE_SIGNING_CONFIGURED: ${{ secrets.AZURE_CLIENT_ID != '' && secrets.AZURE_TENANT_ID != '' && secrets.AZURE_SUBSCRIPTION_ID != '' }}
 
     steps:
       - uses: actions/checkout@v7
@@ -59,22 +77,209 @@ jobs:
             --runtime ${{ matrix.rid }} \
             --output publish/${{ matrix.rid }}
 
-      # A checksum a customer can verify against the release page before running an executable
-      # somebody emailed them a link to.
+      # ---- macOS signing -------------------------------------------------------------------
+      #
+      # Nothing here needs Azure, so it runs first and fails early if the Apple side is wrong.
+
+      - name: Create a temporary signing keychain
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTS_P12_BASE64: ${{ secrets.APPLE_CERTS_P12_BASE64 }}
+          APPLE_CERTS_P12_PASSWORD: ${{ secrets.APPLE_CERTS_P12_PASSWORD }}
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+
+          keychain="$RUNNER_TEMP/migrationscan-signing.keychain-db"
+          password="$(openssl rand -base64 24)"
+          echo "::add-mask::$password"
+
+          security create-keychain -p "$password" "$keychain"
+          # No arguments means no idle timeout and no lock on sleep. A keychain that locks
+          # partway through reports a user-interaction error, which reads like a certificate
+          # problem and is not one.
+          security set-keychain-settings "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+
+          printf '%s' "$APPLE_CERTS_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/certs.p12"
+          # One .p12, two identities: Developer ID Application signs the executable, Developer
+          # ID Installer signs the .pkg.
+          security import "$RUNNER_TEMP/certs.p12" -k "$keychain" -P "$APPLE_CERTS_P12_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/pkgbuild -T /usr/bin/productbuild
+          rm -f "$RUNNER_TEMP/certs.p12"
+
+          # Without this the first signing operation waits on a GUI prompt nobody is there to
+          # answer, and the job sits until it times out.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
+
+          # codesign searches the keychain list rather than a path, so the temporary keychain
+          # has to join that list.
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | sed 's/"//g')
+          echo "KEYCHAIN_PATH=$keychain" >> "$GITHUB_ENV"
+
+          # Selected by SHA-1 rather than by name, so a same-named identity elsewhere in the
+          # search list cannot be picked up by accident. The team ID disambiguates.
+          identities="$(security find-identity -v "$keychain")"
+          app="$(printf '%s\n' "$identities" | awk -v t="($APPLE_TEAM_ID)" '/Developer ID Application/ && index($0, t) { print $2; exit }')"
+          installer="$(printf '%s\n' "$identities" | awk -v t="($APPLE_TEAM_ID)" '/Developer ID Installer/ && index($0, t) { print $2; exit }')"
+          if [ -z "$app" ] || [ -z "$installer" ]; then
+            echo "::error::The imported .p12 does not hold both a Developer ID Application and a Developer ID Installer identity for team $APPLE_TEAM_ID. Found:"
+            printf '%s\n' "$identities"
+            exit 1
+          fi
+          echo "APP_IDENTITY=$app" >> "$GITHUB_ENV"
+          echo "INSTALLER_IDENTITY=$installer" >> "$GITHUB_ENV"
+
+      - name: Sign the macOS executable
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+
+          # A single-file build extracts its native libraries and loads them at run time, which
+          # the hardened runtime refuses unless the binary asks for these three exemptions.
+          cat > "$RUNNER_TEMP/entitlements.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>com.apple.security.cs.allow-jit</key>
+            <true/>
+            <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+            <true/>
+            <key>com.apple.security.cs.disable-library-validation</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+
+          # --timestamp is what keeps the signature valid past 2027-02-01, when the certificate
+          # expires. Without it every copy already downloaded stops verifying on that date.
+          codesign --force --timestamp --options runtime \
+            --entitlements "$RUNNER_TEMP/entitlements.plist" \
+            --sign "$APP_IDENTITY" \
+            "publish/${{ matrix.rid }}/migrationscan"
+
+      # ---- Windows signing -----------------------------------------------------------------
+
+      - name: Sign in to Azure
+        if: runner.os == 'Windows' && env.AZURE_SIGNING_CONFIGURED == 'true'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign the Windows executable
+        if: runner.os == 'Windows' && env.AZURE_SIGNING_CONFIGURED == 'true'
+        uses: azure/trusted-signing-action@v0
+        with:
+          # No trailing slash. The service rejects the request if one is added here.
+          endpoint: ${{ vars.SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\publish\${{ matrix.rid }}
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Verify the Windows signature
+        if: runner.os == 'Windows' && env.AZURE_SIGNING_CONFIGURED == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # signtool ships with the Windows SDK and is not on PATH, so pick the newest x64 copy.
+          $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe' |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { throw 'No signtool.exe under the Windows 10 SDK on this runner.' }
+          & $signtool.FullName verify /pa /v "publish\${{ matrix.rid }}\migrationscan.exe"
+          if ($LASTEXITCODE -ne 0) { throw "signtool verify exited $LASTEXITCODE" }
+
+      # ---- Packaging -----------------------------------------------------------------------
+
       - name: Package
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p dist
           name="migrationscan-${{ matrix.rid }}"
-          cd publish/${{ matrix.rid }}
-          if [ "${{ matrix.archive }}" = "zip" ]; then
-            7z a -tzip "../../dist/$name.zip" migrationscan.exe
-          else
-            chmod +x migrationscan
-            tar -czf "../../dist/$name.tar.gz" migrationscan
+
+          case "${{ matrix.archive }}" in
+            zip)
+              # Relative rather than $GITHUB_WORKSPACE: on the Windows runners that variable
+              # carries a backslash path, which bash reads as escapes.
+              (cd "publish/${{ matrix.rid }}" && 7z a -tzip "../../dist/$name.zip" migrationscan.exe)
+              ;;
+            tar.gz)
+              chmod +x "publish/${{ matrix.rid }}/migrationscan"
+              (cd "publish/${{ matrix.rid }}" && tar -czf "../../dist/$name.tar.gz" migrationscan)
+              ;;
+            pkg)
+              # A notarization ticket cannot be stapled to a bare Mach-O executable, only to a
+              # container, so macOS ships as a .pkg. An unstapled binary sends Gatekeeper to
+              # Apple's servers on first run, and this tool exists for people whose machines
+              # have nowhere to send that.
+              version="$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' Directory.Build.props | head -1)"
+              mkdir -p pkgroot/usr/local/bin
+              cp "publish/${{ matrix.rid }}/migrationscan" pkgroot/usr/local/bin/migrationscan
+              chmod +x pkgroot/usr/local/bin/migrationscan
+              pkgbuild --root pkgroot --install-location / \
+                --identifier com.mwcreative.migrationscan \
+                --version "$version" \
+                --sign "$INSTALLER_IDENTITY" --timestamp \
+                "dist/$name.pkg"
+              ;;
+          esac
+
+      - name: Notarize and staple the package
+        if: runner.os == 'macOS'
+        env:
+          APPLE_API_KEY_P8_BASE64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/appstoreconnect.p8"
+          trap 'rm -f "$key"' EXIT
+          printf '%s' "$APPLE_API_KEY_P8_BASE64" | base64 --decode > "$key"
+
+          pkg="dist/migrationscan-${{ matrix.rid }}.pkg"
+          # --wait turns a rejection into a failed job here rather than a failed install on
+          # somebody's laptop.
+          xcrun notarytool submit "$pkg" \
+            --key "$key" \
+            --key-id "$APPLE_API_KEY_ID" \
+            --issuer "$APPLE_API_ISSUER_ID" \
+            --wait --timeout 30m
+          xcrun stapler staple "$pkg"
+
+      - name: Verify the macOS signatures
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          codesign --verify --deep --strict --verbose=4 "publish/${{ matrix.rid }}/migrationscan"
+          spctl --assess --type install --verbose=4 "dist/migrationscan-${{ matrix.rid }}.pkg"
+          # The ticket is the whole point of shipping a .pkg, so confirm it is attached rather
+          # than assuming stapler succeeded quietly.
+          xcrun stapler validate "dist/migrationscan-${{ matrix.rid }}.pkg"
+
+      - name: Delete the signing keychain
+        if: always() && runner.os == 'macOS'
+        run: |
+          if [ -n "${KEYCHAIN_PATH:-}" ] && [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH"
           fi
-          cd ../../dist
-          if command -v sha256sum >/dev/null; then
+
+      # Last, so the digest covers the asset as published: signature, notarization ticket and
+      # all. A customer verifying a download somebody emailed them a link to is comparing
+      # against this file.
+      - name: Checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          name="migrationscan-${{ matrix.rid }}"
+          if command -v sha256sum > /dev/null; then
             sha256sum "$name."* > "$name.sha256"
           else
             shasum -a 256 "$name."* > "$name.sha256"
@@ -148,9 +353,15 @@ jobs:
           directory. Either way you get one file, `migrationscan-report.json`, pricing both
           options: stay on Windows, or go cross-platform. That is the file to send on.
 
+          **On a Mac?** Take the `.pkg` for your chip: `osx-arm64` for Apple silicon,
+          `osx-x64` for Intel. It installs `migrationscan` into `/usr/local/bin`, and it is
+          notarized and stapled, so it opens on a machine with no route to the internet.
+
           **Already have the .NET 10 SDK?** `dotnet tool install -g MigrationScan.Tool`
 
-          Check a download against its `.sha256` file before you run it.
+          Matthew Williams, owner of MW Creative LLC, the parent company of MW Consulting,
+          signs the Windows and macOS downloads. Check any download against its `.sha256`
+          file before you run it.
 
           ---
           NOTES
@@ -189,9 +400,9 @@ jobs:
     # cannot obtain a key even if it is otherwise identical.
     environment: nuget
 
-    # Job-level, and deliberately not workflow-level: id-token: write lets anything in the job
-    # mint an identity token, so only the job that actually publishes should hold it. Declaring
-    # permissions here replaces the workflow default entirely, hence contents: read for checkout.
+    # Restated at job level to drop contents: write, which this job has no use for. A job-level
+    # permissions block replaces the workflow defaults rather than adding to them, so id-token
+    # has to be repeated here or the OIDC exchange below has no token to trade.
     permissions:
       id-token: write
       contents: read
