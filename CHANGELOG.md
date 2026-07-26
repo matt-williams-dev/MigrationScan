@@ -10,6 +10,26 @@ consumer change.
 
 ## [Unreleased]
 
+## [0.1.2]
+
+Corrects a factual error about a competing tool. No change to how the scanner behaves; report
+schema stays at **1.6**.
+
+### Fixed
+
+- **The "Why this exists" section made a false claim.** It said the GitHub Copilot modernization
+  agent, which replaced the deprecated .NET Upgrade Assistant, "needs a paid subscription".
+  Microsoft's install documentation lists the prerequisite as "GitHub Copilot subscription (paid
+  or free)" in all four supported environments, so a free tier works. The claim appears to have
+  been true when that agent launched in late 2025 and is not true now.
+
+  The section now states what is verifiable, links Microsoft's deprecation notice so you can
+  check it, and rests on the point that actually matters to the teams this tool is for: code
+  going to a model service is a policy problem no budget solves.
+
+  A package readme is embedded at build time and nuget.org holds published versions immutable, so
+  0.1.0 and 0.1.1 keep the wrong text. This release is the correction.
+
 ## [0.1.1]
 
 No change to how the tool behaves. Report schema stays at **1.6**, and output is byte-identical
@@ -82,6 +102,7 @@ Report schema **1.6**.
 - The README no longer documents `--rules`, `--exclude` or `--verbosity`, which were never
   implemented.
 
-[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.2
 [0.1.1]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.1
 [0.1.0]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.0
