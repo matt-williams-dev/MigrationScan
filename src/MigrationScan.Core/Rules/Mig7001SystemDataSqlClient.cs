@@ -21,7 +21,7 @@ public sealed class Mig7001SystemDataSqlClient : SyntaxRule
                 context,
                 source,
                 "Uses System.Data.SqlClient, which is in maintenance mode. Switch to Microsoft.Data.SqlClient " +
-                "(note its Encrypt=true default change — see MIG7002).",
+                "(note its Encrypt=true default change, see MIG7002).",
                 line);
         }
     }

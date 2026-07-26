@@ -313,7 +313,7 @@
       "severity": "medium",
       "effort": "medium",
       "tier": "certain",
-      "remediation": "COM interop is supported on modern .NET only when targeting Windows (net-windows) — regenerate the interop assembly there. It is a Windows lock-in: if the app must run cross-platform there is no COM support off Windows, so the component must be replaced. Very old or ActiveX components may also need updating even on Windows.",
+      "remediation": "COM interop is supported on modern .NET only when targeting Windows (net-windows), so regenerate the interop assembly there. It is a Windows lock-in: if the app must run cross-platform there is no COM support off Windows, so the component must be replaced. Very old or ActiveX components may also need updating even on Windows.",
       "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1006.md",
       "platform": "windows"
     },

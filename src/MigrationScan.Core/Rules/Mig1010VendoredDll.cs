@@ -37,7 +37,7 @@ public sealed class Mig1010VendoredDll : ProjectRule
             yield return Report(
                 context,
                 $"Project '{context.Project.Name}' references a vendored assembly ('{name}') from a checked-in " +
-                "path, not a NuGet package. Confirm it runs on modern .NET — many such " +
+                "path, not a NuGet package. Confirm it runs on modern .NET, since many such " +
                 "assemblies are Framework-only or ActiveX/COM with no supported successor.",
                 line: LineOf(reference));
         }
