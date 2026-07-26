@@ -78,7 +78,10 @@ public sealed class SolutionAnalyzer
             }
             catch (Exception ex) when (IsRecoverable(ex))
             {
-                warnings.Add(new ScanWarning($"Skipped '{relativePath}': {Describe(ex)}", relativePath));
+                warnings.Add(new ScanWarning($"Skipped '{relativePath}': {Describe(ex)}", relativePath)
+                {
+                    MentionedPaths = [relativePath],
+                });
             }
         }
 
@@ -120,9 +123,10 @@ public sealed class SolutionAnalyzer
         }
 
         const int shown = 5;
-        IEnumerable<string> names = input.OrphanProjects
+        IReadOnlyList<string> names = input.OrphanProjects
             .Take(shown)
-            .Select(p => PathUtilities.ToRelative(input.RootDirectory, p));
+            .Select(p => PathUtilities.ToRelative(input.RootDirectory, p))
+            .ToList();
         string list = string.Join(", ", names);
         int remaining = input.OrphanProjects.Count - shown;
         if (remaining > 0)
@@ -133,7 +137,12 @@ public sealed class SolutionAnalyzer
         return new ScanWarning(
             $"{input.OrphanProjects.Count} project(s) are not referenced by any solution in the scan " +
             $"and may not be part of a shipping build — confirm whether they are in scope: {list}",
-            Path: null);
+            Path: null)
+        {
+            // Only the names actually written into the sentence. The "(and N more)" tail spells
+            // out no path, so it needs no substitution.
+            MentionedPaths = names,
+        };
     }
 
     // A broken individual project is recoverable — skip it and warn. Anything else

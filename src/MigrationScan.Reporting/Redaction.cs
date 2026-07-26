@@ -54,30 +54,51 @@ public static class Redaction
     /// </summary>
     /// <remarks>
     /// Warning text is the easiest disclosure to miss: it reads like tooling chatter and it
-    /// embeds a path in prose. The path is replaced by exact-string substitution of the value the
-    /// warning already carries, not by pattern-matching prose — a regex over free text would both
-    /// miss real paths and mangle innocent sentences.
+    /// embeds paths in prose. Each path is replaced by exact-string substitution of a value the
+    /// warning declares, not by pattern-matching prose — a regex over free text would both miss
+    /// real paths and mangle innocent sentences. A warning naming several projects declares all
+    /// of them, so it survives redaction rather than being withheld for carrying more than one.
     /// </remarks>
     public static ScanWarning Warning(ScanWarning warning)
     {
         string message = warning.Message;
 
-        if (warning.Path is { Length: > 0 } path)
+        // Longest first: where one path is a prefix of another, substituting the short one first
+        // would leave the tail of the longer path sitting in the sentence.
+        foreach (string path in PathsNamedBy(warning)
+                     .OrderByDescending(p => p.Length)
+                     .ThenBy(p => p, StringComparer.Ordinal))
         {
             message = message.Replace(path, Fingerprints.FileId(path), StringComparison.Ordinal);
         }
 
-        return new ScanWarning(message, Path(warning.Path));
+        return warning with { Message = message, Path = Path(warning.Path), MentionedPaths = [] };
     }
 
     /// <summary>
-    /// True when <paramref name="warning"/> still names a path after redaction — a warning that
-    /// lists several paths in one sentence cannot be scrubbed by substituting the single path it
-    /// carries. Such a warning is dropped rather than published half-redacted.
+    /// A stand-in for a warning whose text still named a path after redaction. The warning is
+    /// replaced rather than removed.
     /// </summary>
     /// <remarks>
-    /// Errs towards dropping. Losing a warning costs the reader a little context; publishing one
-    /// that still names a directory tree costs exactly what redaction exists to prevent.
+    /// Dropping the warning entirely would be the one failure this whole design exists to
+    /// prevent. The README tells readers to check the warnings before trusting a scan's coverage,
+    /// so a redacted report that quietly loses "this project failed to load" invites somebody to
+    /// scope against partial coverage with nothing on the page suggesting anything is missing.
+    /// The text goes; the fact that a warning happened stays.
+    /// </remarks>
+    public static ScanWarning Withheld() => new(
+        "A scan warning is withheld here because its text still named a file path after "
+        + "redaction, and publishing it would defeat the redaction. Re-run with --include-paths "
+        + "to read it in full.",
+        Path: null);
+
+    /// <summary>
+    /// True when <paramref name="warning"/> still names a path after redaction, which is the
+    /// signal to swap it for <see cref="Withheld"/>.
+    /// </summary>
+    /// <remarks>
+    /// The check runs over the whole sentence rather than the declared paths, so free text the
+    /// analyzer passed through (a parser's own error message, say) is caught as well.
     /// </remarks>
     public static bool StillNamesAPath(ScanWarning warning) =>
         warning.Message.Contains(".csproj", StringComparison.OrdinalIgnoreCase)
@@ -85,4 +106,9 @@ public static class Redaction
         || warning.Message.Contains(".sln", StringComparison.OrdinalIgnoreCase)
         || warning.Message.Contains('/')
         || warning.Message.Contains('\\');
+
+    private static IEnumerable<string> PathsNamedBy(ScanWarning warning) =>
+        (warning.Path is { Length: > 0 } path ? (string[])[path] : [])
+            .Concat(warning.MentionedPaths.Where(p => p.Length > 0))
+            .Distinct(StringComparer.Ordinal);
 }
