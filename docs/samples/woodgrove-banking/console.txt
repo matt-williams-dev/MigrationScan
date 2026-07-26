@@ -1,0 +1,108 @@
+MigrationScan · target net10.0
+
+Scanned 3 projects.
+
+Findings by severity:  blocker 3 · high 7 · medium 11 · low 2   (23 total)
+
+Not assessed, scope separately (1):
+  • Woodgrove.Database (SQL Server database project) · Woodgrove.Database/Woodgrove.Database.sqlproj
+
+Third-party references (6 distinct), inventory only, not counted above:
+  • nuget   Litware.Web.Controls 2018.2.611.40
+  • nuget   Microsoft.AspNet.Mvc 5.2.9
+  • nuget   Microsoft.AspNet.Web.Optimization 1.1.3
+  • nuget   Proseware.Json 9.1.2  [3 projects]
+  • dll     Litware.ChequeScanner 3.0.0.0
+  • com     FabrikamImagingLib 3.0
+  (Also read, not listed: 11 framework, 1 solution-internal.)
+
+MIG3001  blocker · certain · effort blocker
+  ASP.NET WebForms
+  Project 'Woodgrove.Web' is an ASP.NET WebForms application (.aspx/.ascx present). WebForms has no equivalent on modern .NET and needs re-architecting (e.g. to Razor Pages, MVC, or Blazor).
+    Woodgrove.Web/Woodgrove.Web.csproj:2
+  → WebForms has no counterpart on modern .NET. Plan a re-architecture to Razor Pages, MVC, or Blazor. This is an architectural decision, not a mechanical port.
+
+MIG6001  blocker · probable · effort large  (2 occurrences)
+  BinaryFormatter
+  Uses BinaryFormatter, which is removed in .NET 9 and throws when used. Replace it with a safe serializer such as System.Text.Json, MessagePack, or protobuf.
+    Woodgrove.Domain/StatementArchive.cs:21
+    Woodgrove.Domain/StatementArchive.cs:29
+  → BinaryFormatter is removed in .NET 9 and throws when invoked (it was also a well-known security risk). Replace it with a safe serializer: System.Text.Json, MessagePack, or protobuf. Changing serialization format may require a data migration.
+
+MIG1010  high · certain · effort large
+  Vendored DLL with no source and no NuGet equivalent
+  Project 'Woodgrove.Interop' references a vendored assembly ('Litware.ChequeScanner') from a checked-in path, not a NuGet package. Confirm it runs on modern .NET, since many such assemblies are Framework-only or ActiveX/COM with no supported successor.
+    Woodgrove.Interop/Woodgrove.Interop.csproj:34
+  → A third-party assembly referenced from a checked-in path rather than a NuGet package. Assess it per assembly: confirm it loads on modern .NET (many Framework-only or ActiveX/COM assemblies do not), find a supported successor or NuGet package, or plan a replacement. If the vendor is defunct and there is no equivalent, this can block the migration.
+
+MIG2001  high · certain · effort medium  (2 occurrences)
+  Package has no version supporting the target framework
+    Woodgrove.Web/packages.config:3 · Package 'Microsoft.AspNet.Mvc' has no version that supports net10.0. ASP.NET MVC 5 runs only on .NET Framework. Consider: ASP.NET Core MVC.
+    Woodgrove.Web/packages.config:4 · Package 'Microsoft.AspNet.Web.Optimization' has no version that supports net10.0. System.Web bundling/minification runs only on .NET Framework. Consider: A build-time bundler or ASP.NET Core static asset pipeline.
+  → Replace the package with a version or successor that targets modern .NET, or remove the dependency. See the suggested replacement in the finding message.
+
+MIG3002  high · certain · effort medium
+  System.Web dependency outside WebForms
+  Project 'Woodgrove.Domain' references System.Web outside of WebForms. System.Web is not available on modern .NET; the dependent code needs replacing.
+    Woodgrove.Domain/Woodgrove.Domain.csproj:19
+  → System.Web is not available on modern .NET. Replace the dependent code: HttpContext usage moves to Microsoft.AspNetCore.Http, HttpUtility to System.Web.HttpUtility's modern equivalents or System.Net.WebUtility.
+
+MIG4002  high · probable · effort small  (2 occurrences)
+  Windows Registry access
+  Accesses the Windows Registry (Microsoft.Win32.Registry). The registry does not exist on non-Windows platforms; the call throws PlatformNotSupportedException there.
+    Woodgrove.Interop/TerminalProfile.cs:15
+    Woodgrove.Interop/TerminalProfile.cs:23
+  → The Windows Registry does not exist on other platforms; Microsoft.Win32.Registry throws PlatformNotSupportedException there. Move configuration/state to a cross-platform store (config files, environment variables, a database).
+
+MIG4003  high · probable · effort medium
+  System.Management / WMI
+  Uses WMI (System.Management). On modern .NET this is Windows-only (via the System.Management package) and throws PlatformNotSupportedException elsewhere.
+    Woodgrove.Interop/BranchHostInventory.cs:2
+  → WMI (System.Management) is Windows-only on modern .NET and throws PlatformNotSupportedException elsewhere. If the app must run cross-platform, replace WMI queries with platform-appropriate APIs.
+
+MIG1001  medium · certain · effort small  (3 occurrences)
+  Non-SDK-style project file
+    Woodgrove.Domain/Woodgrove.Domain.csproj:2 · Project 'Woodgrove.Domain' uses the legacy non-SDK project format.
+    Woodgrove.Interop/Woodgrove.Interop.csproj:2 · Project 'Woodgrove.Interop' uses the legacy non-SDK project format.
+    Woodgrove.Web/Woodgrove.Web.csproj:2 · Project 'Woodgrove.Web' uses the legacy non-SDK project format.
+  → Convert the project to the SDK style (<Project Sdk="Microsoft.NET.Sdk">). Replace TargetFrameworkVersion with a TargetFramework moniker, move packages.config entries to PackageReference, and let the SDK glob source files instead of listing them. Do this before other migration work: nearly every later step assumes an SDK-style project.
+
+MIG1002  medium · certain · effort small  (3 occurrences)
+  packages.config instead of PackageReference
+    Woodgrove.Domain/packages.config:1 · Project 'Woodgrove.Domain' declares NuGet dependencies in packages.config rather than PackageReference.
+    Woodgrove.Interop/packages.config:1 · Project 'Woodgrove.Interop' declares NuGet dependencies in packages.config rather than PackageReference.
+    Woodgrove.Web/packages.config:1 · Project 'Woodgrove.Web' declares NuGet dependencies in packages.config rather than PackageReference.
+  → Migrate packages.config to PackageReference (Visual Studio offers an in-place migration, or run 'dotnet migrate'-style tooling). PackageReference is required for SDK-style projects and gives transitive restore.
+
+MIG1005  medium · certain · effort medium
+  GAC reference (no HintPath)
+  Assembly 'Litware.Web.Controls' is referenced from the GAC (strong-named, no HintPath). The GAC does not exist on modern .NET.
+    Woodgrove.Web/Woodgrove.Web.csproj:21
+  → Replace the GAC reference with a NuGet package or an explicit HintPath to a checked-in assembly. The Global Assembly Cache does not exist on modern .NET, so GAC-resolved dependencies will not load.
+
+MIG1006  medium · certain · effort medium
+  COM reference or interop assembly
+  Project 'Woodgrove.Interop' has a COM reference ('FabrikamImagingLib'). COM interop works on modern .NET only when targeting Windows (net-windows); it is a Windows lock-in and unavailable elsewhere.
+    Woodgrove.Interop/Woodgrove.Interop.csproj:22
+  → COM interop is supported on modern .NET only when targeting Windows (net-windows), so regenerate the interop assembly there. It is a Windows lock-in: if the app must run cross-platform there is no COM support off Windows, so the component must be replaced. Very old or ActiveX components may also need updating even on Windows.
+
+MIG4013  medium · probable · effort small  (2 occurrences)
+  P/Invoke to a Windows system DLL
+    Woodgrove.Interop/ChequeScannerInterop.cs:12 · P/Invokes the Windows system library 'kernel32.dll' via [DllImport]. This works on modern .NET only when targeting Windows (net-windows); it is a Windows lock-in and won't run cross-platform.
+    Woodgrove.Interop/ChequeScannerInterop.cs:16 · P/Invokes the Windows system library 'advapi32.dll' via [DllImport]. This works on modern .NET only when targeting Windows (net-windows); it is a Windows lock-in and won't run cross-platform.
+  → P/Invoke to a Windows system library (kernel32/user32/advapi32/...) works on modern .NET when targeting Windows (net-windows). It is a Windows lock-in: for cross-platform, guard the call with OperatingSystem.IsWindows() and provide a non-Windows path, or replace it with a cross-platform .NET API.
+
+MIG7001  medium · probable · effort small
+  System.Data.SqlClient
+  Uses System.Data.SqlClient, which is in maintenance mode. Switch to Microsoft.Data.SqlClient (note its Encrypt=true default change, see MIG7002).
+    Woodgrove.Domain/LedgerGateway.cs:3
+  → System.Data.SqlClient is in maintenance mode. Switch to Microsoft.Data.SqlClient, and review the Encrypt=true default change in 4.0+ that can break existing connection strings (see MIG7002).
+
+MIG5001  low · probable · effort small  (2 occurrences)
+  ConfigurationManager.AppSettings usage
+  Reads configuration via ConfigurationManager.AppSettings. On modern .NET this requires the System.Configuration.ConfigurationManager package, or migration to Microsoft.Extensions.Configuration.
+    Woodgrove.Web/AccountPortalConfig.cs:8
+    Woodgrove.Web/AccountPortalConfig.cs:11
+  → On modern .NET, either add the System.Configuration.ConfigurationManager package to keep reading app.config, or migrate to Microsoft.Extensions.Configuration (appsettings.json, environment variables, options pattern).
+
+These figures are heuristic planning aids derived from static analysis and are not a quote.
