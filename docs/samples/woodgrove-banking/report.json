@@ -1,0 +1,715 @@
+{
+  "schemaVersion": "1.6",
+  "target": "net10.0",
+  "redacted": true,
+  "scan": {
+    "toolVersion": "0.1.3",
+    "commit": "ab5d7707939c1e8253dde10324425975807dd4b8"
+  },
+  "summary": {
+    "projectsScanned": 3,
+    "totalFindings": 23,
+    "findingsBySeverity": {
+      "blocker": 3,
+      "high": 7,
+      "medium": 11,
+      "low": 2
+    },
+    "effort": {
+      "minDays": 29.3,
+      "maxDays": 88,
+      "needsDecision": 1
+    },
+    "projectsNotAssessed": 1,
+    "thirdPartyReferences": 6
+  },
+  "projects": [
+    {
+      "path": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "findingCount": 6,
+      "effort": {
+        "minDays": 11,
+        "maxDays": 33.5,
+        "needsDecision": 0
+      }
+    },
+    {
+      "path": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "findingCount": 9,
+      "effort": {
+        "minDays": 11.5,
+        "maxDays": 35,
+        "needsDecision": 0
+      }
+    },
+    {
+      "path": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "findingCount": 8,
+      "effort": {
+        "minDays": 6.8,
+        "maxDays": 19.5,
+        "needsDecision": 1
+      }
+    }
+  ],
+  "targets": [
+    {
+      "target": "net10.0",
+      "stance": "crossPlatform",
+      "default": true,
+      "summary": {
+        "projectsScanned": 3,
+        "totalFindings": 23,
+        "findingsBySeverity": {
+          "blocker": 3,
+          "high": 7,
+          "medium": 11,
+          "low": 2
+        },
+        "effort": {
+          "minDays": 29.3,
+          "maxDays": 88,
+          "needsDecision": 1
+        },
+        "projectsNotAssessed": 1,
+        "thirdPartyReferences": 6
+      },
+      "projects": [
+        {
+          "path": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+          "findingCount": 6,
+          "effort": {
+            "minDays": 11,
+            "maxDays": 33.5,
+            "needsDecision": 0
+          }
+        },
+        {
+          "path": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+          "findingCount": 9,
+          "effort": {
+            "minDays": 11.5,
+            "maxDays": 35,
+            "needsDecision": 0
+          }
+        },
+        {
+          "path": "Woodgrove.Web/Woodgrove.Web.csproj",
+          "findingCount": 8,
+          "effort": {
+            "minDays": 6.8,
+            "maxDays": 19.5,
+            "needsDecision": 1
+          }
+        }
+      ]
+    },
+    {
+      "target": "net10.0-windows",
+      "stance": "windows",
+      "satisfiedPlatform": "windows",
+      "summary": {
+        "projectsScanned": 3,
+        "totalFindings": 17,
+        "findingsBySeverity": {
+          "blocker": 3,
+          "high": 4,
+          "medium": 8,
+          "low": 2
+        },
+        "effort": {
+          "minDays": 23.8,
+          "maxDays": 72,
+          "needsDecision": 1
+        },
+        "projectsNotAssessed": 1,
+        "windowsLockInSatisfied": 6,
+        "thirdPartyReferences": 6
+      },
+      "projects": [
+        {
+          "path": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+          "findingCount": 6,
+          "effort": {
+            "minDays": 11,
+            "maxDays": 33.5,
+            "needsDecision": 0
+          }
+        },
+        {
+          "path": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+          "findingCount": 3,
+          "effort": {
+            "minDays": 6,
+            "maxDays": 19,
+            "needsDecision": 0
+          }
+        },
+        {
+          "path": "Woodgrove.Web/Woodgrove.Web.csproj",
+          "findingCount": 8,
+          "effort": {
+            "minDays": 6.8,
+            "maxDays": 19.5,
+            "needsDecision": 1
+          }
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "ruleId": "MIG1001",
+      "title": "Non-SDK-style project file",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "small",
+      "message": "Project 'Woodgrove.Domain' uses the legacy non-SDK project format.",
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "fileId": "f:47bcb996f6cf2181",
+      "line": 2,
+      "fingerprint": "c0e43b1f7f782e7a0eecf5031e0ffd3d",
+      "remediation": "Convert the project to the SDK style (<Project Sdk=\"Microsoft.NET.Sdk\">). Replace TargetFrameworkVersion with a TargetFramework moniker, move packages.config entries to PackageReference, and let the SDK glob source files instead of listing them. Do this before other migration work: nearly every later step assumes an SDK-style project.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1001.md"
+    },
+    {
+      "ruleId": "MIG1002",
+      "title": "packages.config instead of PackageReference",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "small",
+      "message": "Project 'Woodgrove.Domain' declares NuGet dependencies in packages.config rather than PackageReference.",
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "fileId": "f:f4e68bdc82a384d4",
+      "line": 1,
+      "fingerprint": "475c95db628f0eaeb79fea3d52bdb7f6",
+      "remediation": "Migrate packages.config to PackageReference (Visual Studio offers an in-place migration, or run 'dotnet migrate'-style tooling). PackageReference is required for SDK-style projects and gives transitive restore.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1002.md"
+    },
+    {
+      "ruleId": "MIG3002",
+      "title": "System.Web dependency outside WebForms",
+      "category": "Blocking frameworks",
+      "severity": "high",
+      "tier": "certain",
+      "effort": "medium",
+      "message": "Project 'Woodgrove.Domain' references System.Web outside of WebForms. System.Web is not available on modern .NET; the dependent code needs replacing.",
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "fileId": "f:47bcb996f6cf2181",
+      "line": 19,
+      "fingerprint": "a97788252597296eaad49b6308b4c4be",
+      "remediation": "System.Web is not available on modern .NET. Replace the dependent code: HttpContext usage moves to Microsoft.AspNetCore.Http, HttpUtility to System.Web.HttpUtility's modern equivalents or System.Net.WebUtility.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3002.md"
+    },
+    {
+      "ruleId": "MIG6001",
+      "title": "BinaryFormatter",
+      "category": "Serialization and security",
+      "severity": "blocker",
+      "tier": "probable",
+      "effort": "large",
+      "message": "Uses BinaryFormatter, which is removed in .NET 9 and throws when used. Replace it with a safe serializer such as System.Text.Json, MessagePack, or protobuf.",
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "fileId": "f:4d33ef794a6c5316",
+      "line": 21,
+      "fingerprint": "e0b7af1737aef137c50894aae79b5ce7",
+      "remediation": "BinaryFormatter is removed in .NET 9 and throws when invoked (it was also a well-known security risk). Replace it with a safe serializer: System.Text.Json, MessagePack, or protobuf. Changing serialization format may require a data migration.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6001.md"
+    },
+    {
+      "ruleId": "MIG6001",
+      "title": "BinaryFormatter",
+      "category": "Serialization and security",
+      "severity": "blocker",
+      "tier": "probable",
+      "effort": "large",
+      "message": "Uses BinaryFormatter, which is removed in .NET 9 and throws when used. Replace it with a safe serializer such as System.Text.Json, MessagePack, or protobuf.",
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "fileId": "f:4d33ef794a6c5316",
+      "line": 29,
+      "fingerprint": "e0b7af1737aef137c50894aae79b5ce7",
+      "remediation": "BinaryFormatter is removed in .NET 9 and throws when invoked (it was also a well-known security risk). Replace it with a safe serializer: System.Text.Json, MessagePack, or protobuf. Changing serialization format may require a data migration.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG6001.md"
+    },
+    {
+      "ruleId": "MIG7001",
+      "title": "System.Data.SqlClient",
+      "category": "Data access",
+      "severity": "medium",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Uses System.Data.SqlClient, which is in maintenance mode. Switch to Microsoft.Data.SqlClient (note its Encrypt=true default change, see MIG7002).",
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "fileId": "f:bb84d584986ce479",
+      "line": 3,
+      "fingerprint": "431b942506f63f0125a3ff19a987f55d",
+      "remediation": "System.Data.SqlClient is in maintenance mode. Switch to Microsoft.Data.SqlClient, and review the Encrypt=true default change in 4.0+ that can break existing connection strings (see MIG7002).",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG7001.md"
+    },
+    {
+      "ruleId": "MIG1001",
+      "title": "Non-SDK-style project file",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "small",
+      "message": "Project 'Woodgrove.Interop' uses the legacy non-SDK project format.",
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "fileId": "f:cde8d1a21a93a347",
+      "line": 2,
+      "fingerprint": "5540b14058771c6a617833268709b20a",
+      "remediation": "Convert the project to the SDK style (<Project Sdk=\"Microsoft.NET.Sdk\">). Replace TargetFrameworkVersion with a TargetFramework moniker, move packages.config entries to PackageReference, and let the SDK glob source files instead of listing them. Do this before other migration work: nearly every later step assumes an SDK-style project.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1001.md"
+    },
+    {
+      "ruleId": "MIG1002",
+      "title": "packages.config instead of PackageReference",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "small",
+      "message": "Project 'Woodgrove.Interop' declares NuGet dependencies in packages.config rather than PackageReference.",
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "fileId": "f:b63b55187a227b7f",
+      "line": 1,
+      "fingerprint": "1d1008d2137c2023a44ce31e9feb1e30",
+      "remediation": "Migrate packages.config to PackageReference (Visual Studio offers an in-place migration, or run 'dotnet migrate'-style tooling). PackageReference is required for SDK-style projects and gives transitive restore.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1002.md"
+    },
+    {
+      "ruleId": "MIG1006",
+      "title": "COM reference or interop assembly",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "medium",
+      "message": "Project 'Woodgrove.Interop' has a COM reference ('FabrikamImagingLib'). COM interop works on modern .NET only when targeting Windows (net-windows); it is a Windows lock-in and unavailable elsewhere.",
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "fileId": "f:cde8d1a21a93a347",
+      "line": 22,
+      "fingerprint": "fe016cefe3c4ab4fb42743757129675e",
+      "remediation": "COM interop is supported on modern .NET only when targeting Windows (net-windows), so regenerate the interop assembly there. It is a Windows lock-in: if the app must run cross-platform there is no COM support off Windows, so the component must be replaced. Very old or ActiveX components may also need updating even on Windows.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1006.md",
+      "platform": "windows"
+    },
+    {
+      "ruleId": "MIG1010",
+      "title": "Vendored DLL with no source and no NuGet equivalent",
+      "category": "Project and build",
+      "severity": "high",
+      "tier": "certain",
+      "effort": "large",
+      "message": "Project 'Woodgrove.Interop' references a vendored assembly ('Litware.ChequeScanner') from a checked-in path, not a NuGet package. Confirm it runs on modern .NET, since many such assemblies are Framework-only or ActiveX/COM with no supported successor.",
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "fileId": "f:cde8d1a21a93a347",
+      "line": 34,
+      "fingerprint": "e8af63351c1d0de9677fc37db6c33455",
+      "remediation": "A third-party assembly referenced from a checked-in path rather than a NuGet package. Assess it per assembly: confirm it loads on modern .NET (many Framework-only or ActiveX/COM assemblies do not), find a supported successor or NuGet package, or plan a replacement. If the vendor is defunct and there is no equivalent, this can block the migration.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1010.md"
+    },
+    {
+      "ruleId": "MIG4002",
+      "title": "Windows Registry access",
+      "category": "Runtime failures",
+      "severity": "high",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Accesses the Windows Registry (Microsoft.Win32.Registry). The registry does not exist on non-Windows platforms; the call throws PlatformNotSupportedException there.",
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "fileId": "f:5c2d88224d1f56d6",
+      "line": 15,
+      "fingerprint": "517ef863a9c345b326f2b99c1e53ac50",
+      "remediation": "The Windows Registry does not exist on other platforms; Microsoft.Win32.Registry throws PlatformNotSupportedException there. Move configuration/state to a cross-platform store (config files, environment variables, a database).",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md",
+      "platform": "windows"
+    },
+    {
+      "ruleId": "MIG4002",
+      "title": "Windows Registry access",
+      "category": "Runtime failures",
+      "severity": "high",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Accesses the Windows Registry (Microsoft.Win32.Registry). The registry does not exist on non-Windows platforms; the call throws PlatformNotSupportedException there.",
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "fileId": "f:5c2d88224d1f56d6",
+      "line": 23,
+      "fingerprint": "517ef863a9c345b326f2b99c1e53ac50",
+      "remediation": "The Windows Registry does not exist on other platforms; Microsoft.Win32.Registry throws PlatformNotSupportedException there. Move configuration/state to a cross-platform store (config files, environment variables, a database).",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4002.md",
+      "platform": "windows"
+    },
+    {
+      "ruleId": "MIG4003",
+      "title": "System.Management / WMI",
+      "category": "Runtime failures",
+      "severity": "high",
+      "tier": "probable",
+      "effort": "medium",
+      "message": "Uses WMI (System.Management). On modern .NET this is Windows-only (via the System.Management package) and throws PlatformNotSupportedException elsewhere.",
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "fileId": "f:ec8376a29e37ec46",
+      "line": 2,
+      "fingerprint": "d16207aa9a413595a420e8678d044702",
+      "remediation": "WMI (System.Management) is Windows-only on modern .NET and throws PlatformNotSupportedException elsewhere. If the app must run cross-platform, replace WMI queries with platform-appropriate APIs.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4003.md",
+      "platform": "windows"
+    },
+    {
+      "ruleId": "MIG4013",
+      "title": "P/Invoke to a Windows system DLL",
+      "category": "Runtime failures",
+      "severity": "medium",
+      "tier": "probable",
+      "effort": "small",
+      "message": "P/Invokes the Windows system library 'kernel32.dll' via [DllImport]. This works on modern .NET only when targeting Windows (net-windows); it is a Windows lock-in and won't run cross-platform.",
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "fileId": "f:3b26c4a840efd6c2",
+      "line": 12,
+      "fingerprint": "339f126a5992499887515302ab7abd17",
+      "remediation": "P/Invoke to a Windows system library (kernel32/user32/advapi32/...) works on modern .NET when targeting Windows (net-windows). It is a Windows lock-in: for cross-platform, guard the call with OperatingSystem.IsWindows() and provide a non-Windows path, or replace it with a cross-platform .NET API.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4013.md",
+      "platform": "windows"
+    },
+    {
+      "ruleId": "MIG4013",
+      "title": "P/Invoke to a Windows system DLL",
+      "category": "Runtime failures",
+      "severity": "medium",
+      "tier": "probable",
+      "effort": "small",
+      "message": "P/Invokes the Windows system library 'advapi32.dll' via [DllImport]. This works on modern .NET only when targeting Windows (net-windows); it is a Windows lock-in and won't run cross-platform.",
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "fileId": "f:3b26c4a840efd6c2",
+      "line": 16,
+      "fingerprint": "e26148ac6459340b3a7d5a48a7c8ef62",
+      "remediation": "P/Invoke to a Windows system library (kernel32/user32/advapi32/...) works on modern .NET when targeting Windows (net-windows). It is a Windows lock-in: for cross-platform, guard the call with OperatingSystem.IsWindows() and provide a non-Windows path, or replace it with a cross-platform .NET API.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG4013.md",
+      "platform": "windows"
+    },
+    {
+      "ruleId": "MIG1001",
+      "title": "Non-SDK-style project file",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "small",
+      "message": "Project 'Woodgrove.Web' uses the legacy non-SDK project format.",
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "fileId": "f:11ce735267746ad2",
+      "line": 2,
+      "fingerprint": "77f533aa7c7f27b5f1b244e299fa4920",
+      "remediation": "Convert the project to the SDK style (<Project Sdk=\"Microsoft.NET.Sdk\">). Replace TargetFrameworkVersion with a TargetFramework moniker, move packages.config entries to PackageReference, and let the SDK glob source files instead of listing them. Do this before other migration work: nearly every later step assumes an SDK-style project.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1001.md"
+    },
+    {
+      "ruleId": "MIG1002",
+      "title": "packages.config instead of PackageReference",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "small",
+      "message": "Project 'Woodgrove.Web' declares NuGet dependencies in packages.config rather than PackageReference.",
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "fileId": "f:b965f8662e834729",
+      "line": 1,
+      "fingerprint": "c145796dba101db11e88b83cd553dd7b",
+      "remediation": "Migrate packages.config to PackageReference (Visual Studio offers an in-place migration, or run 'dotnet migrate'-style tooling). PackageReference is required for SDK-style projects and gives transitive restore.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1002.md"
+    },
+    {
+      "ruleId": "MIG1005",
+      "title": "GAC reference (no HintPath)",
+      "category": "Project and build",
+      "severity": "medium",
+      "tier": "certain",
+      "effort": "medium",
+      "message": "Assembly 'Litware.Web.Controls' is referenced from the GAC (strong-named, no HintPath). The GAC does not exist on modern .NET.",
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "fileId": "f:11ce735267746ad2",
+      "line": 21,
+      "fingerprint": "2134841a83f02edf925327da190e8d93",
+      "remediation": "Replace the GAC reference with a NuGet package or an explicit HintPath to a checked-in assembly. The Global Assembly Cache does not exist on modern .NET, so GAC-resolved dependencies will not load.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG1005.md"
+    },
+    {
+      "ruleId": "MIG2001",
+      "title": "Package has no version supporting the target framework",
+      "category": "Dependencies",
+      "severity": "high",
+      "tier": "certain",
+      "effort": "medium",
+      "message": "Package 'Microsoft.AspNet.Mvc' has no version that supports net10.0. ASP.NET MVC 5 runs only on .NET Framework. Consider: ASP.NET Core MVC.",
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "fileId": "f:b965f8662e834729",
+      "line": 3,
+      "fingerprint": "2344cedd78b9935c93ab35071a7be10e",
+      "remediation": "Replace the package with a version or successor that targets modern .NET, or remove the dependency. See the suggested replacement in the finding message.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG2001.md"
+    },
+    {
+      "ruleId": "MIG2001",
+      "title": "Package has no version supporting the target framework",
+      "category": "Dependencies",
+      "severity": "high",
+      "tier": "certain",
+      "effort": "medium",
+      "message": "Package 'Microsoft.AspNet.Web.Optimization' has no version that supports net10.0. System.Web bundling/minification runs only on .NET Framework. Consider: A build-time bundler or ASP.NET Core static asset pipeline.",
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "fileId": "f:b965f8662e834729",
+      "line": 4,
+      "fingerprint": "a1b2231d5ef4f37d647c6ba872529f30",
+      "remediation": "Replace the package with a version or successor that targets modern .NET, or remove the dependency. See the suggested replacement in the finding message.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG2001.md"
+    },
+    {
+      "ruleId": "MIG3001",
+      "title": "ASP.NET WebForms",
+      "category": "Blocking frameworks",
+      "severity": "blocker",
+      "tier": "certain",
+      "effort": "blocker",
+      "message": "Project 'Woodgrove.Web' is an ASP.NET WebForms application (.aspx/.ascx present). WebForms has no equivalent on modern .NET and needs re-architecting (e.g. to Razor Pages, MVC, or Blazor).",
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "fileId": "f:11ce735267746ad2",
+      "line": 2,
+      "fingerprint": "3165fed91ffe97e33ffabe86e94c73e5",
+      "remediation": "WebForms has no counterpart on modern .NET. Plan a re-architecture to Razor Pages, MVC, or Blazor. This is an architectural decision, not a mechanical port.",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG3001.md"
+    },
+    {
+      "ruleId": "MIG5001",
+      "title": "ConfigurationManager.AppSettings usage",
+      "category": "Configuration",
+      "severity": "low",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Reads configuration via ConfigurationManager.AppSettings. On modern .NET this requires the System.Configuration.ConfigurationManager package, or migration to Microsoft.Extensions.Configuration.",
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "fileId": "f:445730653de435e5",
+      "line": 8,
+      "fingerprint": "6f4d3c41106f6e14e8c534fd4a33194b",
+      "remediation": "On modern .NET, either add the System.Configuration.ConfigurationManager package to keep reading app.config, or migrate to Microsoft.Extensions.Configuration (appsettings.json, environment variables, options pattern).",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md"
+    },
+    {
+      "ruleId": "MIG5001",
+      "title": "ConfigurationManager.AppSettings usage",
+      "category": "Configuration",
+      "severity": "low",
+      "tier": "probable",
+      "effort": "small",
+      "message": "Reads configuration via ConfigurationManager.AppSettings. On modern .NET this requires the System.Configuration.ConfigurationManager package, or migration to Microsoft.Extensions.Configuration.",
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "fileId": "f:445730653de435e5",
+      "line": 11,
+      "fingerprint": "6f4d3c41106f6e14e8c534fd4a33194b",
+      "remediation": "On modern .NET, either add the System.Configuration.ConfigurationManager package to keep reading app.config, or migrate to Microsoft.Extensions.Configuration (appsettings.json, environment variables, options pattern).",
+      "docsUrl": "https://github.com/matt-williams-dev/MigrationScan/blob/main/docs/rules/MIG5001.md"
+    }
+  ],
+  "notAssessed": [
+    {
+      "name": "Woodgrove.Database",
+      "path": "Woodgrove.Database/Woodgrove.Database.sqlproj",
+      "projectType": "SQL Server database project",
+      "reason": "Not a C#/VB project; its contents were not analyzed and must be scoped separately."
+    }
+  ],
+  "references": [
+    {
+      "kind": "package",
+      "name": "Proseware.Json",
+      "version": "9.1.2",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "declaredIn": "f:f4e68bdc82a384d4",
+      "line": 3
+    },
+    {
+      "kind": "assembly",
+      "name": "System",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "declaredIn": "f:47bcb996f6cf2181",
+      "line": 15
+    },
+    {
+      "kind": "assembly",
+      "name": "System.Configuration",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "declaredIn": "f:47bcb996f6cf2181",
+      "line": 16
+    },
+    {
+      "kind": "assembly",
+      "name": "System.Runtime.Serialization",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "declaredIn": "f:47bcb996f6cf2181",
+      "line": 17
+    },
+    {
+      "kind": "assembly",
+      "name": "System.Web",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Domain/Woodgrove.Domain.csproj",
+      "declaredIn": "f:47bcb996f6cf2181",
+      "line": 19
+    },
+    {
+      "kind": "package",
+      "name": "Proseware.Json",
+      "version": "9.1.2",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "declaredIn": "f:b63b55187a227b7f",
+      "line": 3
+    },
+    {
+      "kind": "assembly",
+      "name": "System",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "declaredIn": "f:cde8d1a21a93a347",
+      "line": 15
+    },
+    {
+      "kind": "assembly",
+      "name": "System.Configuration",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "declaredIn": "f:cde8d1a21a93a347",
+      "line": 16
+    },
+    {
+      "kind": "assembly",
+      "name": "System.Management",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "declaredIn": "f:cde8d1a21a93a347",
+      "line": 18
+    },
+    {
+      "kind": "vendoredAssembly",
+      "name": "Litware.ChequeScanner",
+      "version": "3.0.0.0",
+      "source": "f:9ac7135ff72c2a31",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "declaredIn": "f:cde8d1a21a93a347",
+      "line": 34
+    },
+    {
+      "kind": "com",
+      "name": "FabrikamImagingLib",
+      "version": "3.0",
+      "source": "{7c2f4a10-0000-0000-0000-0000000000a1}",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Woodgrove.Interop/Woodgrove.Interop.csproj",
+      "declaredIn": "f:cde8d1a21a93a347",
+      "line": 22
+    },
+    {
+      "kind": "package",
+      "name": "Litware.Web.Controls",
+      "version": "2018.2.611.40",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "declaredIn": "f:b965f8662e834729",
+      "line": 6
+    },
+    {
+      "kind": "package",
+      "name": "Microsoft.AspNet.Mvc",
+      "version": "5.2.9",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "declaredIn": "f:b965f8662e834729",
+      "line": 3
+    },
+    {
+      "kind": "package",
+      "name": "Microsoft.AspNet.Web.Optimization",
+      "version": "1.1.3",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "declaredIn": "f:b965f8662e834729",
+      "line": 4
+    },
+    {
+      "kind": "package",
+      "name": "Proseware.Json",
+      "version": "9.1.2",
+      "isFrameworkAssembly": false,
+      "isThirdParty": true,
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "declaredIn": "f:b965f8662e834729",
+      "line": 5
+    },
+    {
+      "kind": "assembly",
+      "name": "System",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "declaredIn": "f:11ce735267746ad2",
+      "line": 16
+    },
+    {
+      "kind": "assembly",
+      "name": "System.Configuration",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "declaredIn": "f:11ce735267746ad2",
+      "line": 17
+    },
+    {
+      "kind": "assembly",
+      "name": "System.Web",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "declaredIn": "f:11ce735267746ad2",
+      "line": 18
+    },
+    {
+      "kind": "assembly",
+      "name": "System.Web.Extensions",
+      "isFrameworkAssembly": true,
+      "isThirdParty": false,
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "declaredIn": "f:11ce735267746ad2",
+      "line": 19
+    },
+    {
+      "kind": "project",
+      "name": "Woodgrove.Domain",
+      "source": "f:47bcb996f6cf2181",
+      "isFrameworkAssembly": false,
+      "isThirdParty": false,
+      "project": "Woodgrove.Web/Woodgrove.Web.csproj",
+      "declaredIn": "f:11ce735267746ad2",
+      "line": 37
+    }
+  ],
+  "warnings": []
+}
