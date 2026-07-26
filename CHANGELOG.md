@@ -10,6 +10,11 @@ consumer change.
 
 ## [Unreleased]
 
+## [0.1.3]
+
+Signed downloads on Windows and macOS, and a build for Intel Macs. The scanner itself is
+untouched: same rules, same findings, same report schema at **1.6**.
+
 ### Added
 
 - **Signed downloads.** Matthew Williams, owner of MW Creative LLC, the parent company of MW
@@ -120,7 +125,8 @@ Report schema **1.6**.
 - The README no longer documents `--rules`, `--exclude` or `--verbosity`, which were never
   implemented.
 
-[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.3
 [0.1.2]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.2
 [0.1.1]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.1
 [0.1.0]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.0
