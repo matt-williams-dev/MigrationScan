@@ -26,7 +26,7 @@ public sealed partial class Mig1003OldTargetFramework : ProjectRule
             yield return Report(
                 context,
                 $"Project '{context.Project.Name}' targets .NET Framework {version} (below 4.6.2). " +
-                "Retarget to at least 4.6.2 before migrating — earlier versions lack the .NET Standard 2.0 " +
+                "Retarget to at least 4.6.2 before migrating. Earlier versions lack the .NET Standard 2.0 " +
                 "surface that migration relies on.",
                 line: context.Project.RootElementLine);
         }
