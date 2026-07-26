@@ -10,6 +10,24 @@ consumer change.
 
 ## [Unreleased]
 
+### Added
+
+- **Signed downloads.** Matthew Williams, owner of MW Creative LLC, the parent company of MW
+  Consulting, signs the Windows and macOS releases. That is the name Windows shows in the
+  SmartScreen prompt and macOS shows when you open the installer. Windows goes through Azure
+  Artifact Signing; macOS uses a Developer ID pair, with Apple notarizing the result. Every
+  asset still ships a `.sha256`, signed or not.
+
+- **A build for Intel Macs.** `osx-x64` joins the release alongside `osx-arm64`.
+
+### Changed
+
+- **macOS ships a `.pkg` instead of a `.tar.gz`.** Apple staples a notarization ticket to a
+  package and not to a bare executable, and without a stapled ticket Gatekeeper asks Apple's
+  servers about the binary the first time you run it. Plenty of the machines this tool is meant
+  for have nowhere to send that question. The package installs `migrationscan` into
+  `/usr/local/bin`.
+
 ## [0.1.2]
 
 Corrects a factual error about a competing tool. No change to how the scanner behaves; report

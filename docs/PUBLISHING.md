@@ -56,7 +56,8 @@ it as one and the workflow fails early with a clear message when it is missing.
 > gradually and your account may not have it. Fall back to an API key: create one at **API Keys**
 > → **Create** (push-only, unscoped for the first publish since the package does not exist yet),
 > store it as `NUGET_API_KEY`, and in the `nuget` job replace the login step with
-> `--api-key ${{ secrets.NUGET_API_KEY }}` and drop the `id-token: write` permission.
+> `--api-key ${{ secrets.NUGET_API_KEY }}` and drop `id-token: write` from that job's
+> `permissions:` block. Leave the workflow-level one alone: the `publish` job signs with it.
 
 ### Reserve the package ID (recommended, after the first publish)
 
@@ -77,6 +78,59 @@ environment, so a workflow running outside it cannot get a key even when everyth
 Create it, or the policy's Environment field will not match and the token exchange will be
 refused.
 
+## Code signing
+
+The `publish` job signs the Windows and macOS builds. Both sets of credentials sit in a GitHub
+environment named `release`, which the job declares, so create it under **Settings →
+Environments** before the next tag. The Azure federated credential names that environment in its
+subject, so a job running without it gets a token Azure refuses.
+
+**Windows** goes through Azure Artifact Signing, formerly Trusted Signing, which is still the name
+on the GitHub Action. Authentication is an OIDC federated credential, so no client secret sits in
+the repository waiting to leak.
+
+| Secret | |
+| --- | --- |
+| `AZURE_CLIENT_ID` | The app registration the federated credential belongs to. |
+| `AZURE_TENANT_ID` | |
+| `AZURE_SUBSCRIPTION_ID` | |
+
+| Variable | |
+| --- | --- |
+| `SIGNING_ENDPOINT` | Regional endpoint for the account, shaped like `https://eus.codesigning.azure.net`. No trailing slash, the service refuses the request with one. |
+| `SIGNING_ACCOUNT` | Trusted Signing account name. |
+| `SIGNING_PROFILE` | Certificate profile name. |
+
+Lose the Azure secrets and the Windows signing steps skip, leaving unsigned binaries and a green
+workflow. macOS gets no such escape hatch: a missing Apple credential fails the job, because a
+download that trips Gatekeeper is worse than no macOS download at all.
+
+**macOS** needs a Developer ID certificate pair for signing and an App Store Connect key for
+notarization.
+
+| Secret | |
+| --- | --- |
+| `APPLE_CERTS_P12_BASE64` | One base64 `.p12` holding both the Developer ID Application and Developer ID Installer identities. |
+| `APPLE_CERTS_P12_PASSWORD` | |
+| `APPLE_API_KEY_P8_BASE64` | The App Store Connect `.p8`, base64. |
+| `APPLE_API_KEY_ID` | |
+| `APPLE_API_ISSUER_ID` | |
+
+| Variable | |
+| --- | --- |
+| `APPLE_TEAM_ID` | Picks the right pair out of the keychain when more than one identity matches. |
+
+The job imports the `.p12` into a keychain it creates with a password generated at run time and
+deletes in an `always()` step. It signs the executable under the hardened runtime with an
+entitlements plist, since a single-file build extracts and loads its own native libraries. It then
+builds a `.pkg`, signs that with the installer identity, sends it to `notarytool submit --wait`
+and staples the ticket.
+
+Two details there are load-bearing. `--timestamp` keeps every copy already downloaded verifying
+after the certificate expires on 2027-02-01. And the ticket staples to the `.pkg` rather than to
+the executable, which is the only way Gatekeeper clears the tool on a machine with no route out,
+which is the machine this tool exists for.
+
 ## What the workflow does
 
 `.github/workflows/release.yml`, on a `v*` tag:
@@ -85,17 +139,17 @@ refused.
 | --- | --- |
 | `test` | Full suite on Ubuntu. Everything else depends on it, so a red build publishes nothing. |
 | `verify-version` | Tag matches `<Version>`. Fails fast, before any artifact exists. |
-| `publish` | Self-contained single-file executables for win-x64, win-arm64, linux-x64, osx-arm64, each on its own OS, archived with a `.sha256`. |
+| `publish` | Self-contained single-file executables for win-x64, win-arm64, linux-x64, osx-x64, osx-arm64. Signs the Windows and macOS builds, notarizes and staples the macOS `.pkg`, and writes a `.sha256` for every asset. |
 | `release` | Creates the GitHub release and attaches the archives, checksums, and the `.nupkg`. |
 | `nuget` | Exchanges an OIDC token for a one-hour key and pushes `.nupkg` + `.snupkg` to nuget.org. Last, and only after the release exists. |
 
 The job asks for the key after packing and immediately before the push. A key lives an hour and
 each token buys exactly one, so asking early risks a slow build expiring it.
 
-Only the `nuget` job holds `id-token: write`, never the workflow as a whole. That permission lets
-anything in the job mint an identity token, so the job that publishes should be the only one with
-it. Declaring `permissions:` on a job replaces the workflow default outright, which is why that
-block also restates `contents: read` for the checkout.
+Two jobs trade an OIDC token for a short-lived credential: `publish`, for Azure Artifact Signing,
+and `nuget`, for the one-hour push key. `id-token: write` therefore sits at workflow level. The
+`nuget` job restates it anyway, because declaring `permissions:` on a job replaces the workflow
+defaults outright rather than adding to them, and that block drops `contents` back to `read`.
 
 `workflow_dispatch` runs everything except `verify-version`, `release` and `nuget`, so you can
 exercise the build and packaging path without minting anything.
