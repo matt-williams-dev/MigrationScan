@@ -20,7 +20,11 @@ Already have the .NET 10 SDK? `dotnet tool install -g MigrationScan.Tool` gets y
 
 ## Why this exists
 
-Microsoft deprecated the .NET Upgrade Assistant in late 2025 and replaced it with the GitHub Copilot app modernization agent. The replacement needs a paid subscription and uploads your source to a cloud service. Teams in finance, healthcare, defense and government cannot agree to that, and those same teams are sitting on the largest .NET Framework estates. If you work at one of them, MigrationScan gives you an assessment you can run yourself, with nothing leaving the building.
+Microsoft [deprecated the .NET Upgrade Assistant](https://learn.microsoft.com/en-us/dotnet/core/porting/upgrade-assistant-overview) and now points teams at the GitHub Copilot modernization agent instead. That agent needs a GitHub account with Copilot access, and it works by sending your code to a model service.
+
+For plenty of teams in finance, healthcare, defense and government, routing source through a third party is not a budget question. It is a policy they cannot get an exception to. Those same teams hold the largest .NET Framework estates, which leaves them the least served by the tooling and the most in need of it.
+
+MigrationScan is what you run when the answer has to stay inside the building.
 
 ## The promise
 

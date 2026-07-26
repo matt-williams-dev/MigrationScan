@@ -14,7 +14,9 @@ Working name. Confirm NuGet ID availability before committing to it.
 
 ## 1. Why this exists
 
-Microsoft deprecated the .NET Upgrade Assistant in late 2025 and replaced it with the GitHub Copilot app modernization agent. The replacement needs a paid subscription and sends source code to a cloud service. Teams in finance, healthcare, defense, and government cannot do that, and they are the teams sitting on the largest .NET Framework estates.
+Microsoft [deprecated the .NET Upgrade Assistant](https://learn.microsoft.com/en-us/dotnet/core/porting/upgrade-assistant-overview) and now points teams at the GitHub Copilot modernization agent instead. That agent needs a GitHub account with Copilot access, and it works by sending code to a model service.
+
+Verified 2026-07-26 against Microsoft's own install docs, which list "GitHub Copilot subscription (paid or free)" as the prerequisite in all four environments. **A free tier exists, so this is not a paywall argument and must never be written as one.** The blocker for the target audience is the model service, not the price: teams in finance, healthcare, defense and government cannot route source through a third party at any cost, and they hold the largest .NET Framework estates.
 
 MigrationScan answers one question: **how much work is it to move this solution off .NET Framework, and what specifically blocks it?**
 
