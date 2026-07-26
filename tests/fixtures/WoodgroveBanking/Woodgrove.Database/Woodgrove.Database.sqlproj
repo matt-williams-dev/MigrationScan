@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Name>Woodgrove.Database</Name>
+    <ProjectGuid>{B1000004-0000-0000-0000-000000000004}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath />
+    <DefaultSchema>dbo</DefaultSchema>
+  </PropertyGroup>
+  <ItemGroup>
+    <Build Include="dbo\Tables\Account.sql" />
+    <Build Include="dbo\Tables\StatementLine.sql" />
+  </ItemGroup>
+</Project>

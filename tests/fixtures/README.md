@@ -49,3 +49,20 @@ Phase 1.
   SDK-style `Shared` with a `<PackageReference>`.
 - **ModernClean** — clean SDK-style app. Must produce **zero** findings; this is the
   false-positive guard (spec §12).
+- **WoodgroveBanking** — the estate behind the published sample report, and the only fixture
+  whose output is public. Four projects modelling a retail bank: a WebForms portal
+  (`Woodgrove.Web`), a class library holding a `System.Web` dependency and a BinaryFormatter
+  archive format (`Woodgrove.Domain`), a branch-hardware layer with a `<COMReference>`, a
+  checked-in vendor SDK, Registry, WMI and P/Invoke (`Woodgrove.Interop`), and a `.sqlproj`
+  nothing can assess (`Woodgrove.Database`). It exists to show all five shapes at once —
+  architectural blocker, decision-needed serialization, third-party references with no upstream
+  to research, a Windows lock-in gap between the two stances, and a non-assessable project —
+  rather than to cover a rule the other fixtures miss.
+
+  Two constraints, both load-bearing. **Every company name is fictional**, in Microsoft's
+  sample-company style (Woodgrove, Litware, Fabrikam, Proseware), because the report goes on a
+  public page. And `SampleEstateTests` guards the shapes, not the totals, so adding a rule does
+  not break it but hollowing out the fixture does. The Microsoft package ids in
+  `Woodgrove.Web/packages.config` are deliberate: MIG2001 only fires on ids in
+  `incompatible-packages.json`, and those are the framework being migrated away from rather
+  than a third-party vendor.
