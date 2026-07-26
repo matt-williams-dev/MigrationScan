@@ -16,7 +16,7 @@
     <!-- The single version knob for the whole repo. Pinned rather than derived from the build,
          so a report's toolVersion is stable and two people on the same release produce
          byte-identical output. Bump this, tag it, push the tag. See docs/PUBLISHING.md. -->
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <!-- The SDK otherwise appends "+<commit>" to the informational version, which would put the
          tool's own commit next to the scanned repository's in the report. Two different commits
          one line apart is a trap. -->
