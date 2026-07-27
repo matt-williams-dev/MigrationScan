@@ -10,6 +10,22 @@ consumer change.
 
 ## [Unreleased]
 
+### Added
+
+- **An index of the rule catalog at [`docs/rules/README.md`](docs/rules/README.md).** All 33 rules
+  grouped by their eight categories, each row carrying the title, severity and confidence tier,
+  linked to its page. Every finding in a report already points at one of those pages; until now
+  there was no way in from the top, so the only route to a rule you had not already hit was
+  guessing its id. The page also explains the three axes people conflate, severity, confidence
+  tier and effort band, in one place rather than a paragraph per report.
+
+- **`RuleDocsTests` keeps the docs honest against the catalog.** A rule cannot ship without a
+  page, without a row in the index, or with a row whose title, severity or tier has drifted from
+  the catalog, and a withdrawn rule cannot leave a dead page behind. The failure message names
+  the exact row to add. It also pins every `docsUrl` to its canonical GitHub page, because those
+  URLs are a permanent contract with every report already generated and both committed sample
+  reports carry them.
+
 ## [0.1.5]
 
 A readable summary on screen, and a Windows download that is one file. Same rules, same findings,
