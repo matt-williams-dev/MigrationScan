@@ -36,11 +36,10 @@ public static class DefaultReport
         string destination = Destination(outputPath);
         File.WriteAllText(destination, JsonReportWriter.Write(result, includePaths));
 
-        return
-        [
-            $"Report written to {Path.GetFullPath(destination)}",
-            "Send this one file on. It prices both options: stay on Windows, or go cross-platform.",
-            includePaths ? PrivacyNotice.SummaryWithPaths : PrivacyNotice.Summary,
-        ];
+        // One line, not three. The summary block above already prices both stances, so repeating
+        // "it covers both options" here says nothing new, and a separate sentence about redaction
+        // put the same claim on screen twice. What is left is the two facts a reader still needs:
+        // where the file went, and what is in it.
+        return [$"wrote {destination}   {(includePaths ? PrivacyNotice.SummaryWithPaths : PrivacyNotice.Summary)}"];
     }
 }

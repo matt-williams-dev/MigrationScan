@@ -84,7 +84,11 @@ public class DefaultReportTests
             // A customer has to clear this file with their security people before sending it, so
             // the claim on screen has to be the one the file backs up: source locations go, and
             // the projects and dependencies stay.
-            Assert.Contains(lines, l => l.Contains("no source code, and source file locations become opaque ids"));
+            Assert.Contains(lines, l => l.Contains("no source code · source file paths as opaque ids"));
+
+            // Said once. Two lines making the same promise trains people to read neither, and the
+            // console block above already prices both stances.
+            Assert.Single(lines);
 
             // ...and the file has to actually back it up.
             string report = File.ReadAllText(Path.Combine(directory, DefaultReport.FileName));

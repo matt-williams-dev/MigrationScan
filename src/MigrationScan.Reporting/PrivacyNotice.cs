@@ -12,17 +12,19 @@ namespace MigrationScan.Reporting;
 /// </remarks>
 public static class PrivacyNotice
 {
-    /// <summary>Single-sentence version, for the end of a default console run.</summary>
-    public const string Summary =
-        "The report holds no source code, and source file locations become opaque ids. It names "
-        + "your projects and the dependencies they declare, so you can send it on without a "
-        + "review.";
+    /// <summary>
+    /// What the file contains, short enough to sit on the line announcing it was written.
+    /// </summary>
+    /// <remarks>
+    /// A phrase rather than a sentence, because the console already states this once and saying
+    /// it twice trains people to skip both. The full account lives in <see cref="Includes"/> and
+    /// <see cref="Excludes"/>, which every Markdown report carries. Note what it does not claim:
+    /// the report keeps each project's path deliberately, so "no file paths" would be wrong.
+    /// </remarks>
+    public const string Summary = "no source code · source file paths as opaque ids";
 
-    /// <summary>The same line when <c>--include-paths</c> turned redaction off.</summary>
-    public const string SummaryWithPaths =
-        "You ran this with --include-paths, so the report holds real source file paths too. It "
-        + "still holds no source code, no file contents, no configuration values and no "
-        + "credentials.";
+    /// <summary>The same phrase when <c>--include-paths</c> turned redaction off.</summary>
+    public const string SummaryWithPaths = "no source code · real file paths, kept by --include-paths";
 
     /// <summary>What is in the file.</summary>
     public static readonly IReadOnlyList<string> Includes =

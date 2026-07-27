@@ -1,8 +1,12 @@
 MigrationScan · target net10.0
 
-Scanned 3 projects.
-
-Findings by severity:  blocker 3 · high 7 · medium 11 · low 2   (23 total)
+Projects scanned    3
+Findings            23   blocker 3 · high 7 · medium 11 · low 2
+Estimated effort    29.3–88 engineer-days
+Needs decision      1    architectural, left unpriced
+Not assessed        1    Woodgrove.Database (.sqlproj)
+Third-party         6    distinct references, inventory only
+Staying on Windows  17 findings · 23.8–72 days · 6 fewer, all in one project
 
 Not assessed, scope separately (1):
   • Woodgrove.Database (SQL Server database project) · Woodgrove.Database/Woodgrove.Database.sqlproj

@@ -1,9 +1,13 @@
 MigrationScan · target net10.0-windows
 
-Scanned 11 projects.
-
-Findings by severity:  blocker 5 · high 49 · medium 29 · low 20   (103 total)
-Windows lock-in satisfied by target net10.0-windows: 5 (supported on this target, listed below and not counted above)
+Projects scanned      11
+Findings              103   blocker 5 · high 49 · medium 29 · low 20
+Satisfied by target   5     Windows lock-in, supported on net10.0-windows
+Estimated effort      78–238.5 engineer-days
+Needs decision        3     architectural, left unpriced
+Not assessed          7     4 .dcproj, 3 .sfproj
+Third-party           197   distinct references, inventory only
+Going cross-platform  108 findings · 88–263.5 days · 5 more, in 5 projects
 
 Not assessed, scope separately (7):
   • eShopModernizedMVC_ServiceFabricApp (SFPROJ project) · ServiceFabric/eShopModernizedMVC-ServiceFabricApp/eShopModernizedMVC_ServiceFabricApp.sfproj
