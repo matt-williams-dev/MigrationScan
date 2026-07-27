@@ -1,8 +1,12 @@
 MigrationScan · target net10.0
 
-Scanned 11 projects.
-
-Findings by severity:  blocker 5 · high 54 · medium 29 · low 20   (108 total)
+Projects scanned    11
+Findings            108   blocker 5 · high 54 · medium 29 · low 20
+Estimated effort    88–263.5 engineer-days
+Needs decision      3     architectural, left unpriced
+Not assessed        7     4 .dcproj, 3 .sfproj
+Third-party         197   distinct references, inventory only
+Staying on Windows  103 findings · 78–238.5 days · 5 fewer, in 5 projects
 
 Not assessed, scope separately (7):
   • eShopModernizedMVC_ServiceFabricApp (SFPROJ project) · ServiceFabric/eShopModernizedMVC-ServiceFabricApp/eShopModernizedMVC_ServiceFabricApp.sfproj

@@ -464,14 +464,8 @@ public static class MarkdownReportWriter
             : $"{days} engineer-days, plus {decisions}";
     }
 
-    private static string FormatDays(EffortEstimate effort)
-    {
-        double min = EffortModel.Round(effort.MinDays);
-        double max = EffortModel.Round(effort.MaxDays);
-        return min == 0 && max == 0 ? "n/a" : $"{Number(min)}–{Number(max)}";
-    }
-
-    private static string Number(double value) => value.ToString("0.#", CultureInfo.InvariantCulture);
+    // Shared with the console reporter, so one estimate never reads two ways.
+    private static string FormatDays(EffortEstimate effort) => EffortFormat.Days(effort);
 
     private static string RuleLink(RuleMetadata rule) => $"[{rule.Id}]({rule.DocsUrl})";
 

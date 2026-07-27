@@ -1,9 +1,13 @@
 MigrationScan · target net10.0-windows
 
-Scanned 3 projects.
-
-Findings by severity:  blocker 3 · high 4 · medium 8 · low 2   (17 total)
-Windows lock-in satisfied by target net10.0-windows: 6 (supported on this target, listed below and not counted above)
+Projects scanned      3
+Findings              17   blocker 3 · high 4 · medium 8 · low 2
+Satisfied by target   6    Windows lock-in, supported on net10.0-windows
+Estimated effort      23.8–72 engineer-days
+Needs decision        1    architectural, left unpriced
+Not assessed          1    Woodgrove.Database (.sqlproj)
+Third-party           6    distinct references, inventory only
+Going cross-platform  23 findings · 29.3–88 days · 6 more, all in one project
 
 Not assessed, scope separately (1):
   • Woodgrove.Database (SQL Server database project) · Woodgrove.Database/Woodgrove.Database.sqlproj
