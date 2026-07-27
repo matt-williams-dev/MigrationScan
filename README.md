@@ -301,11 +301,14 @@ planning aids rather than a quote, so apply your own rates and judgment downstre
 
 ## What's in the report (for your security review)
 
-**The JSON report holds no file paths.** Each one becomes a stable opaque id, so you can clear the
-file without anyone reading several thousand lines of JSON. Every run says so on screen, and every
-Markdown report ends with a "What this report contains" section.
+**The JSON report holds no source file paths.** Every `.cs` and `.vb` location becomes a stable
+opaque id, so you can clear the file without anyone reading several thousand lines of JSON. Every
+run says so on screen, and every Markdown report ends with a "What this report contains" section.
+Project files are the deliberate exception: a report keeps the repo-relative path of each
+`.csproj`, because that path is how a project is identified and grouping by project is what makes
+a proposal readable downstream.
 
-**It includes:** project names, line numbers, rule identifiers with their remediation text, and
+**It includes:** project paths, line numbers, rule identifiers with their remediation text, and
 the names and versions of the dependencies your projects declare. That covers NuGet packages,
 referenced assemblies, COM components, web-service endpoints and the Windows system libraries you
 call through P/Invoke. A name identifies a component; it says nothing about where it sits on disk.

@@ -81,9 +81,10 @@ public class DefaultReportTests
 
             IReadOnlyList<string> lines = DefaultReport.Write(result, directory);
 
-            // A customer has to clear this file with their security people before sending it, and
-            // since redaction the claim they can make is the strong one.
-            Assert.Contains(lines, l => l.Contains("no file paths and no source code"));
+            // A customer has to clear this file with their security people before sending it, so
+            // the claim on screen has to be the one the file backs up: source locations go, and
+            // the projects and dependencies stay.
+            Assert.Contains(lines, l => l.Contains("no source code, and source file locations become opaque ids"));
 
             // ...and the file has to actually back it up.
             string report = File.ReadAllText(Path.Combine(directory, DefaultReport.FileName));

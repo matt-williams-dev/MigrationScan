@@ -28,3 +28,7 @@ coverage*.json
 # OS
 .DS_Store
 Thumbs.db
+
+# The tool writes this into the working directory on a default run. Scanning this repo
+# while developing should not offer to commit its own output.
+migrationscan-report.json

@@ -10,6 +10,28 @@ consumer change.
 
 ## [Unreleased]
 
+## [0.1.4]
+
+Fixes a redacted report quietly carrying fewer warnings than the scan produced. Same rules, same
+findings, report schema stays at **1.6**.
+
+### Fixed
+
+- **A redacted JSON report dropped warnings the console and Markdown showed.** Redaction
+  substituted only the single path a warning carried, then discarded any warning whose text still
+  named a path. The warning listing projects no solution references names several in one sentence
+  and carries none of them, so it vanished from the JSON while appearing everywhere else.
+
+  Warnings are how you learn a scan's coverage was incomplete. A redacted report reaching a
+  colleague without a "this project failed to load" warning invites them to scope against partial
+  coverage with nothing on the page suggesting anything was held back, which is what redaction
+  exists to prevent rather than cause.
+
+  A warning now declares the paths it spells out and redaction replaces each with an id, so the
+  warning survives saying how many projects and which ones. Anything still naming a path
+  afterwards is replaced by a placeholder rather than removed, so a redacted report always carries
+  as many warnings as an unredacted one.
+
 ## [0.1.3]
 
 Signed downloads on Windows and macOS, and a build for Intel Macs. The scanner itself is
@@ -125,7 +147,8 @@ Report schema **1.6**.
 - The README no longer documents `--rules`, `--exclude` or `--verbosity`, which were never
   implemented.
 
-[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.4
 [0.1.3]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.3
 [0.1.2]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.2
 [0.1.1]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.1

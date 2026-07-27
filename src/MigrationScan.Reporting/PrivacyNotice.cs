@@ -14,18 +14,23 @@ public static class PrivacyNotice
 {
     /// <summary>Single-sentence version, for the end of a default console run.</summary>
     public const string Summary =
-        "The report holds no file paths and no source code. File locations become opaque ids, so "
-        + "you can send it on without a review.";
+        "The report holds no source code, and source file locations become opaque ids. It names "
+        + "your projects and the dependencies they declare, so you can send it on without a "
+        + "review.";
 
     /// <summary>The same line when <c>--include-paths</c> turned redaction off.</summary>
     public const string SummaryWithPaths =
-        "You ran this with --include-paths, so the report holds real file paths. It still holds no "
-        + "source code, no file contents, no configuration values and no credentials.";
+        "You ran this with --include-paths, so the report holds real source file paths too. It "
+        + "still holds no source code, no file contents, no configuration values and no "
+        + "credentials.";
 
     /// <summary>What is in the file.</summary>
     public static readonly IReadOnlyList<string> Includes =
     [
-        "Project names, as they appear in your solution and project files.",
+        "Project paths, as they appear in your solution: the repo-relative location of each "
+            + ".csproj or .vbproj. A project keeps its path where a source file does not, because "
+            + "the path is how a project is identified, and findings grouped by project are what "
+            + "make the report readable to somebody scoping the work.",
         "Line numbers of the code that matched a rule.",
         "Rule identifiers, titles and their remediation text. These read the same in every scan.",
         "Names and versions of the dependencies your projects declare: NuGet packages, referenced "
