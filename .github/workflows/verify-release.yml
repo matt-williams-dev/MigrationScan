@@ -1,0 +1,102 @@
+name: Verify release
+
+# Checks the assets a customer actually downloads, after they are published. The release workflow
+# verifies each binary as it signs it, which proves the signing step worked but says nothing about
+# what ended up on the releases page. This closes that gap: it pulls the published archives and
+# verifies those, so a packaging or upload mistake cannot hide behind a green release run.
+#
+# Run by hand against a tag. Windows and macOS verify on their own OS, because signtool and
+# stapler are the tools whose verdicts matter and neither runs anywhere else.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to verify, for example v0.1.4'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: authenticode (${{ matrix.rid }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [win-x64, win-arm64]
+    steps:
+      - name: Download the published archive
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release download "${{ inputs.tag }}" --repo "$env:GITHUB_REPOSITORY" `
+            --pattern "migrationscan-${{ matrix.rid }}.*" --dir .
+          if ($LASTEXITCODE -ne 0) { throw "Could not download assets for ${{ inputs.tag }}" }
+          Get-ChildItem
+
+      - name: Check the published checksum
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $name = "migrationscan-${{ matrix.rid }}"
+          # The .sha256 is written by sha256sum, so it is "<hash> *<file>" with a binary marker.
+          $expected = ((Get-Content "$name.sha256") -split '\s+')[0]
+          $actual = (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower()
+          "expected $expected"
+          "actual   $actual"
+          if ($expected -ne $actual) { throw "Checksum mismatch for $name.zip" }
+
+      - name: Verify the Authenticode signature on the downloaded binary
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Expand-Archive "migrationscan-${{ matrix.rid }}.zip" -DestinationPath extracted
+          # signtool ships with the Windows SDK and is not on PATH, so pick the newest x64 copy.
+          $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe' |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { throw 'No signtool.exe under the Windows 10 SDK on this runner.' }
+          & $signtool.FullName verify /pa /v extracted\migrationscan.exe
+          if ($LASTEXITCODE -ne 0) { throw "signtool verify exited $LASTEXITCODE" }
+
+  macos:
+    name: notarization (${{ matrix.rid }})
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [osx-x64, osx-arm64]
+    steps:
+      - name: Download the published package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download "${{ inputs.tag }}" --repo "$GITHUB_REPOSITORY" \
+            --pattern "migrationscan-${{ matrix.rid }}.*" --dir .
+          ls -l
+
+      - name: Check the published checksum
+        run: |
+          set -euo pipefail
+          shasum -a 256 -c "migrationscan-${{ matrix.rid }}.sha256"
+
+      - name: Verify signature, notarization and staple
+        run: |
+          set -euo pipefail
+          pkg="migrationscan-${{ matrix.rid }}.pkg"
+
+          pkgutil --check-signature "$pkg"
+          spctl --assess --type install --verbose=4 "$pkg"
+          # The staple is what lets Gatekeeper clear the package with no route to Apple, which is
+          # the whole reason macOS ships as a .pkg rather than a bare executable.
+          xcrun stapler validate "$pkg"
+
+          # And the executable inside it: hardened runtime, Developer ID, timestamped.
+          pkgutil --expand-full "$pkg" expanded
+          binary="expanded/Payload/usr/local/bin/migrationscan"
+          codesign --verify --deep --strict --verbose=4 "$binary"
+          codesign -dvvv "$binary" 2>&1 | grep -E 'flags=.*runtime|^Authority=Developer ID Application|^Timestamp'
