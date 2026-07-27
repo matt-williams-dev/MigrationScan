@@ -1,0 +1,391 @@
+MigrationScan · target net10.0
+
+Scanned 11 projects.
+
+Findings by severity:  blocker 5 · high 54 · medium 29 · low 20   (108 total)
+
+Not assessed, scope separately (7):
+  • eShopModernizedMVC_ServiceFabricApp (SFPROJ project) · ServiceFabric/eShopModernizedMVC-ServiceFabricApp/eShopModernizedMVC_ServiceFabricApp.sfproj
+  • eShopModernizedSQL_ServiceFabricApp (SFPROJ project) · ServiceFabric/eShopModernizedSQL_ServiceFabricApp/eShopModernizedSQL_ServiceFabricApp.sfproj
+  • eShopModernizedWebFormsSF (SFPROJ project) · ServiceFabric/eShopModernizedWebForms-ServiceApp/eShopModernizedWebFormsSF.sfproj
+  • docker-compose (DCPROJ project) · eShopModernizedMVCSolution/docker-compose.dcproj
+  • docker-compose (DCPROJ project) · eShopModernizedNTier/docker-compose.dcproj
+  • docker-compose (DCPROJ project) · eShopModernizedNTier/temp/docker-compose.dcproj
+  • docker-compose (DCPROJ project) · eShopModernizedWebFormsSolution/docker-compose.dcproj
+
+Warnings (1):
+  ! 1 project(s) are not referenced by any solution in the scan and may not be part of a shipping build — confirm whether they are in scope: eShopModernizedNTier/src/eShopWinForms/eShopWinForms.fx.csproj
+
+Third-party references (197 distinct), inventory only, not counted above:
+  • nuget   Antlr 3.5.0.2  [5 projects]
+  • nuget   Antlr3.Runtime 3.5.0.2  [3 projects]
+  • nuget   AspNet.ScriptManager.bootstrap 4.3.1  [2 projects]
+  • nuget   AspNet.ScriptManager.jQuery 3.3.1, 3.4.1  [2 projects]
+  • nuget   Autofac 4.9.1, 4.9.4, 6.1.0  [5 projects]
+  • nuget   Autofac.Extensions.DependencyInjection 4.4.0
+  • nuget   Autofac.Integration.Mvc 4.0.0.0  [2 projects]
+  • nuget   Autofac.Integration.Web 4.0.0.0  [2 projects]
+  • nuget   Autofac.Mvc5 4.0.2  [3 projects]
+  • nuget   Autofac.Web 4.0.0  [2 projects]
+  • nuget   autofac.webapi2 6.0.1
+  • nuget   bootstrap 4.3.1  [4 projects]
+  • nuget   EntityFramework 6.1.3, 6.2.0, 6.3.0, 6.4.4  [9 projects]
+  • nuget   EntityFramework.SqlServer 6.0.0.0  [7 projects]
+  • nuget   jQuery 3.5.0  [4 projects]
+  • nuget   jQuery.Validation 1.19.4  [2 projects]
+  • nuget   log4net 2.0.10, 2.0.12  [5 projects]
+  • nuget   log4net.Appender.Azure 1.4.3.0  [2 projects]
+  • nuget   Microsoft.AI.Agent.Intercept 2.4.0.0  [4 projects]
+  • nuget   Microsoft.AI.DependencyCollector 2.11.2.0, 2.9.1.0  [4 projects]
+  • nuget   Microsoft.AI.PerfCounterCollector 2.11.2.0, 2.9.1.0  [4 projects]
+  • nuget   Microsoft.AI.ServerTelemetryChannel 2.11.0.0, 2.9.1.0  [4 projects]
+  • nuget   Microsoft.AI.ServiceFabric 2.3.1.0  [2 projects]
+  • nuget   Microsoft.AI.Web 2.11.2.0, 2.9.1.0  [4 projects]
+  • nuget   Microsoft.AI.WindowsServer 2.11.2.0, 2.9.1.0  [4 projects]
+  • nuget   Microsoft.ApplicationInsights 2.11.0, 2.9.1  [4 projects]
+  • nuget   Microsoft.ApplicationInsights.Agent.Intercept 2.4.0  [4 projects]
+  • nuget   Microsoft.ApplicationInsights.DependencyCollector 2.11.2, 2.9.1  [4 projects]
+  • nuget   Microsoft.ApplicationInsights.Log4NetAppender 2.11.0
+  • nuget   Microsoft.ApplicationInsights.PerfCounterCollector 2.11.2, 2.9.1  [4 projects]
+  • nuget   Microsoft.ApplicationInsights.ServiceFabric 2.3.1  [2 projects]
+  • nuget   Microsoft.ApplicationInsights.TraceListener 2.11.0  [2 projects]
+  • nuget   Microsoft.ApplicationInsights.Web 2.11.2, 2.9.1  [4 projects]
+  • nuget   Microsoft.ApplicationInsights.WindowsServer 2.11.2, 2.9.1  [4 projects]
+  • nuget   Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel 2.11.0, 2.9.1  [4 projects]
+  • nuget   Microsoft.AspNet.FriendlyUrls 1.0.2  [2 projects]
+  • nuget   Microsoft.AspNet.FriendlyUrls.Core 1.0.2  [2 projects]
+  • nuget   Microsoft.AspNet.Mvc 5.2.7  [2 projects]
+  • nuget   Microsoft.AspNet.Razor 3.2.7  [2 projects]
+  • nuget   Microsoft.AspNet.ScriptManager.MSAjax 5.0.0  [2 projects]
+  • nuget   Microsoft.AspNet.ScriptManager.WebForms 5.0.0  [2 projects]
+  • nuget   Microsoft.AspNet.SessionState.SessionStateModule 1.1.0  [4 projects]
+  • nuget   Microsoft.AspNet.TelemetryCorrelation 1.0.5, 1.0.7  [4 projects]
+  • nuget   Microsoft.AspNet.Web.Optimization 1.1.3  [4 projects]
+  • nuget   Microsoft.AspNet.Web.Optimization.WebForms 1.1.3  [2 projects]
+  • nuget   Microsoft.AspNet.WebApi 5.2.7
+  • nuget   Microsoft.AspNet.WebApi.Client 5.2.3, 5.2.7  [4 projects]
+  • nuget   Microsoft.AspNet.WebApi.Core 5.2.7
+  • nuget   Microsoft.AspNet.WebApi.WebHost 5.2.7
+  • nuget   Microsoft.AspNet.WebPages 3.2.7  [2 projects]
+  • nuget   Microsoft.AspNetCore 2.2.0
+  • nuget   Microsoft.AspNetCore.Mvc 2.2.0
+  • nuget   Microsoft.AspNetCore.StaticFiles 2.2.0
+  • nuget   Microsoft.Azure.KeyVault 3.0.4  [2 projects]
+  • nuget   Microsoft.Azure.KeyVault.Core 3.0.4  [2 projects]
+  • nuget   Microsoft.Azure.KeyVault.WebKey 3.0.4  [2 projects]
+  • nuget   Microsoft.Azure.Services.AppAuthentication 1.3.1  [2 projects]
+  • nuget   Microsoft.Bcl.AsyncInterfaces 1.0.0  [2 projects]
+  • nuget   Microsoft.CodeDom.Providers.DotNetCompilerPlatform 2.0.1  [4 projects]
+  • nuget   Microsoft.Configuration.ConfigurationBuilders.Azure 2.0.0-beta  [2 projects]
+  • nuget   Microsoft.Configuration.ConfigurationBuilders.Base 2.0.0-beta  [2 projects]
+  • nuget   Microsoft.Configuration.ConfigurationBuilders.Environment 2.0.0-beta  [2 projects]
+  • nuget   Microsoft.Configuration.ConfigurationBuilders.UserSecrets 2.0.0-beta  [2 projects]
+  • nuget   Microsoft.CSharp 4.7.0
+  • nuget   Microsoft.Data.Edm 5.8.4  [2 projects]
+  • nuget   Microsoft.Data.OData 5.8.4  [2 projects]
+  • nuget   Microsoft.Data.Services.Client 5.8.4  [2 projects]
+  • nuget   Microsoft.EntityFrameworkCore 2.2.6
+  • nuget   Microsoft.EntityFrameworkCore.Design 2.2.6
+  • nuget   Microsoft.EntityFrameworkCore.Relational 2.2.6
+  • nuget   Microsoft.EntityFrameworkCore.SqlServer 2.2.6
+  • nuget   Microsoft.Extensions.Configuration 3.0.0  [2 projects]
+  • nuget   Microsoft.Extensions.Configuration.Abstractions 3.0.0  [2 projects]
+  • nuget   Microsoft.Extensions.Configuration.Binder 3.0.0  [2 projects]
+  • nuget   Microsoft.Extensions.Configuration.FileExtensions 3.0.0  [2 projects]
+  • nuget   Microsoft.Extensions.Configuration.Json 3.0.0  [2 projects]
+  • nuget   Microsoft.Extensions.FileProviders.Abstractions 3.0.0  [2 projects]
+  • nuget   Microsoft.Extensions.FileProviders.Physical 3.0.0  [2 projects]
+  • nuget   Microsoft.Extensions.FileSystemGlobbing 3.0.0  [2 projects]
+  • nuget   Microsoft.Extensions.Primitives 3.0.0  [2 projects]
+  • nuget   Microsoft.IdentityModel.Clients.ActiveDirectory 5.2.4  [2 projects]
+  • nuget   Microsoft.IdentityModel.JsonWebTokens 5.6.0  [2 projects]
+  • nuget   Microsoft.IdentityModel.Logging 5.6.0  [2 projects]
+  • nuget   Microsoft.IdentityModel.Protocol.Extensions 1.0.4.403061554  [2 projects]
+  • nuget   Microsoft.IdentityModel.Protocols 5.6.0  [2 projects]
+  • nuget   Microsoft.IdentityModel.Protocols.OpenIdConnect 5.6.0  [2 projects]
+  • nuget   Microsoft.IdentityModel.Tokens 5.6.0  [2 projects]
+  • nuget   Microsoft.jQuery.Unobtrusive.Validation 3.2.11  [2 projects]
+  • nuget   Microsoft.Net.Compilers 2.10.0, 3.3.1  [4 projects]
+  • nuget   Microsoft.NETCore.Platforms 3.0.0  [2 projects]
+  • nuget   Microsoft.Owin 4.2.2  [2 projects]
+  • nuget   Microsoft.Owin.Host.SystemWeb 4.0.1  [2 projects]
+  • nuget   Microsoft.Owin.Security 4.0.1  [2 projects]
+  • nuget   Microsoft.Owin.Security.Cookies 4.2.2  [2 projects]
+  • nuget   Microsoft.Owin.Security.OpenIdConnect 4.0.1  [2 projects]
+  • nuget   Microsoft.Rest.ClientRuntime 2.3.24  [2 projects]
+  • nuget   Microsoft.Rest.ClientRuntime.Azure 3.3.19  [2 projects]
+  • nuget   Microsoft.ScriptManager.MSAjax 5.0.0.0  [2 projects]
+  • nuget   Microsoft.ScriptManager.WebForms 5.0.0.0  [2 projects]
+  • nuget   Microsoft.ServiceBus 3.0.0.0  [2 projects]
+  • nuget   Microsoft.Web.Infrastructure 1.0.0.0  [4 projects]
+  • nuget   Microsoft.Web.RedisSessionStateProvider 4.0.1  [2 projects]
+  • nuget   Microsoft.Win32.Primitives 4.3.0  [2 projects]
+  • nuget   Microsoft.WindowsAzure.Configuration 3.0.0.0  [2 projects]
+  • nuget   Microsoft.WindowsAzure.ConfigurationManager 3.2.3  [2 projects]
+  • nuget   Microsoft.WindowsAzure.Storage 9.3.2.0  [2 projects]
+  • nuget   Modernizr 2.8.3  [4 projects]
+  • nuget   NETStandard.Library 2.0.3  [2 projects]
+  • nuget   Newtonsoft.Json 12.0.1, 13.0.2, 6.0.4  [6 projects]
+  • nuget   Owin 1.0  [2 projects]
+  • nuget   Pipelines.Sockets.Unofficial 1.0.7, 2.1.0  [4 projects]
+  • nuget   popper.js 1.14.3  [4 projects]
+  • nuget   Respond 1.4.2  [4 projects]
+  • nuget   StackExchange.Redis 2.0.601  [2 projects]
+  • nuget   System.AppContext 4.3.0  [2 projects]
+  • nuget   System.Buffers 4.4.0, 4.5.0, 4.5.1  [4 projects]
+  • nuget   System.Collections 4.3.0  [2 projects]
+  • nuget   System.Collections.Concurrent 4.3.0  [2 projects]
+  • nuget   System.Collections.Immutable 1.6.0  [2 projects]
+  • nuget   System.Collections.NonGeneric 4.3.0  [2 projects]
+  • nuget   System.ComponentModel.EventBasedAsync 4.3.0  [2 projects]
+  • nuget   System.ComponentModel.Primitives 4.3.0  [2 projects]
+  • nuget   System.ComponentModel.TypeConverter 4.3.0  [2 projects]
+  • nuget   System.Console 4.3.1  [2 projects]
+  • nuget   System.Diagnostics.Debug 4.3.0  [2 projects]
+  • nuget   System.Diagnostics.DiagnosticSource 4.5.1, 4.6.0  [4 projects]
+  • nuget   System.Diagnostics.PerformanceCounter 4.5.0, 4.6.0  [4 projects]
+  • nuget   System.Diagnostics.Tools 4.3.0  [2 projects]
+  • nuget   System.Diagnostics.Tracing 4.3.0  [2 projects]
+  • nuget   System.Dynamic.Runtime 4.3.0  [2 projects]
+  • nuget   System.Globalization 4.3.0  [2 projects]
+  • nuget   System.Globalization.Calendars 4.3.0  [2 projects]
+  • nuget   System.IdentityModel.Tokens.Jwt 5.6.0  [2 projects]
+  • nuget   System.IO 4.3.0  [2 projects]
+  • nuget   System.IO.Compression 4.3.0  [4 projects]
+  • nuget   System.IO.Compression.ZipFile 4.3.0  [4 projects]
+  • nuget   System.IO.FileSystem 4.3.0  [2 projects]
+  • nuget   System.IO.FileSystem.Primitives 4.3.0  [2 projects]
+  • nuget   System.IO.Pipelines 4.5.1, 4.6.0  [4 projects]
+  • nuget   System.Linq 4.3.0  [2 projects]
+  • nuget   System.Linq.Expressions 4.3.0  [2 projects]
+  • nuget   System.Linq.Queryable 4.3.0  [2 projects]
+  • nuget   System.Memory 4.5.1, 4.5.3, 4.5.4  [4 projects]
+  • nuget   System.Net.Http 4.3.4  [3 projects]
+  • nuget   System.Net.Http.Formatting 5.2.3.0
+  • nuget   System.Net.Primitives 4.3.1  [2 projects]
+  • nuget   System.Net.Requests 4.3.0  [2 projects]
+  • nuget   System.Net.Sockets 4.3.0  [2 projects]
+  • nuget   System.Numerics.Vectors 4.4.0, 4.5.0  [4 projects]
+  • nuget   System.ObjectModel 4.3.0  [2 projects]
+  • nuget   System.Reflection 4.3.0  [2 projects]
+  • nuget   System.Reflection.Extensions 4.3.0  [2 projects]
+  • nuget   System.Reflection.Primitives 4.3.0  [2 projects]
+  • nuget   System.Resources.ResourceManager 4.3.0  [2 projects]
+  • nuget   System.Runtime 4.3.1  [2 projects]
+  • nuget   System.Runtime.CompilerServices.Unsafe 4.5.0, 4.6.0  [4 projects]
+  • nuget   System.Runtime.Extensions 4.3.1  [2 projects]
+  • nuget   System.Runtime.Handles 4.3.0  [2 projects]
+  • nuget   System.Runtime.InteropServices 4.3.0  [2 projects]
+  • nuget   System.Runtime.InteropServices.RuntimeInformation 4.3.0  [2 projects]
+  • nuget   System.Runtime.Numerics 4.3.0  [2 projects]
+  • nuget   System.Security.Cryptography.Algorithms 4.3.1  [2 projects]
+  • nuget   System.Security.Cryptography.Encoding 4.3.0  [2 projects]
+  • nuget   System.Security.Cryptography.Primitives 4.3.0  [2 projects]
+  • nuget   System.Security.Cryptography.X509Certificates 4.3.2  [2 projects]
+  • nuget   System.ServiceModel.Duplex 4.8.0
+  • nuget   System.ServiceModel.Http 4.8.0
+  • nuget   System.ServiceModel.NetTcp 4.8.0
+  • nuget   System.ServiceModel.Security 4.8.0
+  • nuget   System.Spatial 5.8.4  [2 projects]
+  • nuget   System.Text.Encoding 4.3.0  [2 projects]
+  • nuget   System.Text.Encoding.Extensions 4.3.0  [2 projects]
+  • nuget   System.Text.Encodings.Web 4.7.2  [2 projects]
+  • nuget   System.Text.Json 4.6.0  [2 projects]
+  • nuget   System.Text.RegularExpressions 4.3.1  [2 projects]
+  • nuget   System.Threading 4.3.0  [2 projects]
+  • nuget   System.Threading.Channels 4.5.0, 4.6.0  [4 projects]
+  • nuget   System.Threading.Tasks 4.3.0  [2 projects]
+  • nuget   System.Threading.Tasks.Dataflow 4.10.0  [2 projects]
+  • nuget   System.Threading.Tasks.Extensions 4.5.1, 4.5.3  [4 projects]
+  • nuget   System.Threading.Tasks.Parallel 4.3.0  [2 projects]
+  • nuget   System.Threading.Timer 4.3.0  [2 projects]
+  • nuget   System.ValueTuple 4.5.0  [2 projects]
+  • nuget   System.Web.Helpers 3.0.0.0  [2 projects]
+  • nuget   System.Web.Mvc 5.2.7.0  [2 projects]
+  • nuget   System.Web.Optimization 1.1.0.0  [4 projects]
+  • nuget   System.Web.Razor 3.0.0.0  [2 projects]
+  • nuget   System.Web.WebPages 3.0.0.0  [2 projects]
+  • nuget   System.Web.WebPages.Deployment 3.0.0.0  [2 projects]
+  • nuget   System.Web.WebPages.Razor 3.0.0.0  [2 projects]
+  • nuget   System.Xml.ReaderWriter 4.3.1  [2 projects]
+  • nuget   System.Xml.XDocument 4.3.0  [2 projects]
+  • nuget   Validation 2.4.22  [2 projects]
+  • nuget   WebGrease 1.6.0  [5 projects]
+  • nuget   WindowsAzure.ServiceBus 6.0.0  [2 projects]
+  • nuget   WindowsAzure.Storage 9.3.3  [2 projects]
+  • svc     eShopServiceReference  [2 projects]
+  (Also read, not listed: 186 framework, 2 solution-internal.)
+
+MIG3001  blocker · certain · effort blocker  (2 occurrences)
+  ASP.NET WebForms
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/eShopLegacyWebForms.csproj:2 · Project 'eShopLegacyWebForms' is an ASP.NET WebForms application (.aspx/.ascx present). WebForms has no equivalent on modern .NET and needs re-architecting (e.g. to Razor Pages, MVC, or Blazor).
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/eShopModernizedWebForms.csproj:2 · Project 'eShopModernizedWebForms' is an ASP.NET WebForms application (.aspx/.ascx present). WebForms has no equivalent on modern .NET and needs re-architecting (e.g. to Razor Pages, MVC, or Blazor).
+  → WebForms has no counterpart on modern .NET. Plan a re-architecture to Razor Pages, MVC, or Blazor. This is an architectural decision, not a mechanical port.
+
+MIG3005  blocker · probable · effort blocker
+  .NET Remoting
+  Uses .NET Remoting (System.Runtime.Remoting), which was removed from modern .NET. Replace with a supported transport such as gRPC, WCF-on-CoreWCF, or an HTTP API.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/Controllers/WebApi/BrandsController.cs:7
+  → .NET Remoting was removed entirely and has no modern equivalent. Replace it with a supported transport: gRPC, WCF on CoreWCF, or an HTTP API. This needs an architectural decision.
+
+MIG6001  blocker · probable · effort large  (2 occurrences)
+  BinaryFormatter
+  Uses BinaryFormatter, which is removed in .NET 9 and throws when used. Replace it with a safe serializer such as System.Text.Json, MessagePack, or protobuf.
+    eShopLegacyMVCSolution/eShopLegacy.Utilities/Serializing.cs:11
+    eShopLegacyMVCSolution/eShopLegacy.Utilities/Serializing.cs:19
+  → BinaryFormatter is removed in .NET 9 and throws when invoked (it was also a well-known security risk). Replace it with a safe serializer: System.Text.Json, MessagePack, or protobuf. Changing serialization format may require a data migration.
+
+MIG2001  high · certain · effort medium  (30 occurrences)
+  Package has no version supporting the target framework
+    eShopLegacyMVCSolution/eShopPorted/eShopPorted.csproj:26 · Package 'WebGrease' has no version that supports net10.0. A System.Web bundling dependency with no modern .NET target. Consider: A build-time bundler.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:90 · Package 'Microsoft.AspNet.WebApi' has no version that supports net10.0. ASP.NET Web API 2 runs only on .NET Framework. Consider: ASP.NET Core Web API.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:96 · Package 'Microsoft.AspNet.WebApi.Core' has no version that supports net10.0. ASP.NET Web API 2 runs only on .NET Framework. Consider: ASP.NET Core Web API.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:99 · Package 'Microsoft.AspNet.WebApi.WebHost' has no version that supports net10.0. System.Web-hosted Web API runs only on .NET Framework. Consider: ASP.NET Core Web API.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:233 · Package 'WebGrease' has no version that supports net10.0. A System.Web bundling dependency with no modern .NET target. Consider: A build-time bundler.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:257 · Package 'Microsoft.Web.Infrastructure' has no version that supports net10.0. A System.Web infrastructure shim with no modern .NET target. Consider: None required on modern .NET.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:523 · Package 'Microsoft.AspNet.Mvc' has no version that supports net10.0. ASP.NET MVC 5 runs only on .NET Framework. Consider: ASP.NET Core MVC.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:528 · Package 'Microsoft.AspNet.Razor' has no version that supports net10.0. The System.Web-era Razor engine runs only on .NET Framework. Consider: ASP.NET Core Razor.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:533 · Package 'Microsoft.AspNet.Web.Optimization' has no version that supports net10.0. System.Web bundling/minification runs only on .NET Framework. Consider: A build-time bundler or ASP.NET Core static asset pipeline.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:538 · Package 'Microsoft.AspNet.WebPages' has no version that supports net10.0. ASP.NET Web Pages runs only on .NET Framework. Consider: ASP.NET Core (Razor Pages).
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/packages.config:18 · Package 'Microsoft.AspNet.Mvc' has no version that supports net10.0. ASP.NET MVC 5 runs only on .NET Framework. Consider: ASP.NET Core MVC.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/packages.config:19 · Package 'Microsoft.AspNet.Razor' has no version that supports net10.0. The System.Web-era Razor engine runs only on .NET Framework. Consider: ASP.NET Core Razor.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/packages.config:22 · Package 'Microsoft.AspNet.Web.Optimization' has no version that supports net10.0. System.Web bundling/minification runs only on .NET Framework. Consider: A build-time bundler or ASP.NET Core static asset pipeline.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/packages.config:23 · Package 'Microsoft.AspNet.WebPages' has no version that supports net10.0. ASP.NET Web Pages runs only on .NET Framework. Consider: ASP.NET Core (Razor Pages).
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/packages.config:27 · Package 'Microsoft.Web.Infrastructure' has no version that supports net10.0. A System.Web infrastructure shim with no modern .NET target. Consider: None required on modern .NET.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/packages.config:44 · Package 'WebGrease' has no version that supports net10.0. A System.Web bundling dependency with no modern .NET target. Consider: A build-time bundler.
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/packages.config:25 · Package 'Microsoft.AspNet.Web.Optimization' has no version that supports net10.0. System.Web bundling/minification runs only on .NET Framework. Consider: A build-time bundler or ASP.NET Core static asset pipeline.
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/packages.config:29 · Package 'Microsoft.Web.Infrastructure' has no version that supports net10.0. A System.Web infrastructure shim with no modern .NET target. Consider: None required on modern .NET.
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/packages.config:46 · Package 'WebGrease' has no version that supports net10.0. A System.Web bundling dependency with no modern .NET target. Consider: A build-time bundler.
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/packages.config:22 · Package 'Microsoft.AspNet.Mvc' has no version that supports net10.0. ASP.NET MVC 5 runs only on .NET Framework. Consider: ASP.NET Core MVC.
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/packages.config:23 · Package 'Microsoft.AspNet.Razor' has no version that supports net10.0. The System.Web-era Razor engine runs only on .NET Framework. Consider: ASP.NET Core Razor.
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/packages.config:26 · Package 'Microsoft.AspNet.Web.Optimization' has no version that supports net10.0. System.Web bundling/minification runs only on .NET Framework. Consider: A build-time bundler or ASP.NET Core static asset pipeline.
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/packages.config:27 · Package 'Microsoft.AspNet.WebPages' has no version that supports net10.0. ASP.NET Web Pages runs only on .NET Framework. Consider: ASP.NET Core (Razor Pages).
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/packages.config:61 · Package 'Microsoft.Owin.Host.SystemWeb' has no version that supports net10.0. OWIN hosting on System.Web runs only on .NET Framework. Consider: ASP.NET Core hosting.
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/packages.config:67 · Package 'Microsoft.Web.Infrastructure' has no version that supports net10.0. A System.Web infrastructure shim with no modern .NET target. Consider: None required on modern .NET.
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/packages.config:146 · Package 'WebGrease' has no version that supports net10.0. A System.Web bundling dependency with no modern .NET target. Consider: A build-time bundler.
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/packages.config:28 · Package 'Microsoft.AspNet.Web.Optimization' has no version that supports net10.0. System.Web bundling/minification runs only on .NET Framework. Consider: A build-time bundler or ASP.NET Core static asset pipeline.
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/packages.config:62 · Package 'Microsoft.Owin.Host.SystemWeb' has no version that supports net10.0. OWIN hosting on System.Web runs only on .NET Framework. Consider: ASP.NET Core hosting.
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/packages.config:68 · Package 'Microsoft.Web.Infrastructure' has no version that supports net10.0. A System.Web infrastructure shim with no modern .NET target. Consider: None required on modern .NET.
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/packages.config:147 · Package 'WebGrease' has no version that supports net10.0. A System.Web bundling dependency with no modern .NET target. Consider: A build-time bundler.
+  → Replace the package with a version or successor that targets modern .NET, or remove the dependency. See the suggested replacement in the finding message.
+
+MIG3002  high · certain · effort medium  (4 occurrences)
+  System.Web dependency outside WebForms
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:199 · Project 'eShopLegacyMVC' references System.Web outside of WebForms. System.Web is not available on modern .NET; the dependent code needs replacing.
+    eShopLegacyNTier/src/eShopWCFService/eShopWCFService.csproj:66 · Project 'eShopWCFService' references System.Web outside of WebForms. System.Web is not available on modern .NET; the dependent code needs replacing.
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/eShopModernizedMVC.csproj:446 · Project 'eShopModernizedMVC' references System.Web outside of WebForms. System.Web is not available on modern .NET; the dependent code needs replacing.
+    eShopModernizedNTier/src/eShopWCFService/eShopWCFService.csproj:66 · Project 'eShopWCFService' references System.Web outside of WebForms. System.Web is not available on modern .NET; the dependent code needs replacing.
+  → System.Web is not available on modern .NET. Replace the dependent code: HttpContext usage moves to Microsoft.AspNetCore.Http, HttpUtility to System.Web.HttpUtility's modern equivalents or System.Net.WebUtility.
+
+MIG3003  high · certain · effort large
+  ASMX web service
+  Project 'eShopModernizedWebForms' exposes an ASMX web service (.asmx present). ASMX has no counterpart on modern .NET; re-implement the service as an ASP.NET Core Web API or gRPC.
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/eShopModernizedWebForms.csproj:2
+  → ASMX web services have no counterpart on modern .NET. Re-implement the service as an ASP.NET Core Web API (or gRPC). Clients that consumed the ASMX endpoint need updating too.
+
+MIG3010  high · probable · effort large  (14 occurrences)
+  ASP.NET MVC 5 (System.Web.Mvc)
+  References ASP.NET MVC 5 (System.Web.Mvc), which runs only on .NET Framework. Migrate to ASP.NET Core MVC (Microsoft.AspNetCore.Mvc).
+    eShopLegacyMVCSolution/eShopPorted/Controllers/PicController.cs:5
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/App_Start/FilterConfig.cs:2
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/App_Start/RouteConfig.cs:1
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/Controllers/Api/CatalogController.cs:1
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/Controllers/CatalogController.cs:3
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/Controllers/PicController.cs:5
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/Global.asax.cs:15
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/FilterConfig.cs:2
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/RouteConfig.cs:5
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/Controllers/AccountController.cs:6
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/Controllers/CatalogController.cs:3
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/Controllers/PicController.cs:9
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/Filters/ActionTracerFilter.cs:2
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/Global.asax.cs:13
+  → ASP.NET MVC 5 (System.Web.Mvc) runs only on .NET Framework. Migrate to ASP.NET Core MVC (Microsoft.AspNetCore.Mvc). Controllers and views port with edits; routing, filters, and DI wiring change.
+
+MIG4001  high · probable · effort medium  (5 occurrences)
+  System.Drawing.Common on non-Windows
+  Uses System.Drawing. On modern .NET, System.Drawing.Common is supported only on Windows and throws PlatformNotSupportedException elsewhere. Use a cross-platform imaging library (e.g. ImageSharp, SkiaSharp) if the app must run on Linux.
+    eShopLegacyNTier/src/eShopWinForms/Views/CatalogView.cs:5
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/Controllers/PicController.cs:4
+    eShopModernizedNTier/src/eShopWinForms/Views/CatalogView.cs:5
+    eShopModernizedNTier/src/eShopWinForms/Views/CatalogView.cs:5
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/Catalog/PicUploader.asmx.cs:6
+  → System.Drawing.Common is Windows-only on modern .NET and throws PlatformNotSupportedException elsewhere. If the app must run on Linux, switch to a cross-platform imaging library such as ImageSharp or SkiaSharp.
+
+MIG1001  medium · certain · effort small  (9 occurrences)
+  Non-SDK-style project file
+    eShopLegacyMVCSolution/eShopLegacy.Utilities/eShopLegacy.Utilities.csproj:2 · Project 'eShopLegacy.Utilities' uses the legacy non-SDK project format.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/eShopLegacyMVC.csproj:2 · Project 'eShopLegacyMVC' uses the legacy non-SDK project format.
+    eShopLegacyNTier/src/eShopWCFService/eShopWCFService.csproj:1 · Project 'eShopWCFService' uses the legacy non-SDK project format.
+    eShopLegacyNTier/src/eShopWinForms/eShopWinForms.csproj:2 · Project 'eShopWinForms' uses the legacy non-SDK project format.
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/eShopLegacyWebForms.csproj:2 · Project 'eShopLegacyWebForms' uses the legacy non-SDK project format.
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/eShopModernizedMVC.csproj:2 · Project 'eShopModernizedMVC' uses the legacy non-SDK project format.
+    eShopModernizedNTier/src/eShopWCFService/eShopWCFService.csproj:1 · Project 'eShopWCFService' uses the legacy non-SDK project format.
+    eShopModernizedNTier/src/eShopWinForms/eShopWinForms.fx.csproj:2 · Project 'eShopWinForms.fx' uses the legacy non-SDK project format.
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/eShopModernizedWebForms.csproj:2 · Project 'eShopModernizedWebForms' uses the legacy non-SDK project format.
+  → Convert the project to the SDK style (<Project Sdk="Microsoft.NET.Sdk">). Replace TargetFrameworkVersion with a TargetFramework moniker, move packages.config entries to PackageReference, and let the SDK glob source files instead of listing them. Do this before other migration work: nearly every later step assumes an SDK-style project.
+
+MIG1002  medium · certain · effort small  (7 occurrences)
+  packages.config instead of PackageReference
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/packages.config:1 · Project 'eShopLegacyMVC' declares NuGet dependencies in packages.config rather than PackageReference.
+    eShopLegacyNTier/src/eShopWCFService/packages.config:1 · Project 'eShopWCFService' declares NuGet dependencies in packages.config rather than PackageReference.
+    eShopLegacyNTier/src/eShopWinForms/packages.config:1 · Project 'eShopWinForms' declares NuGet dependencies in packages.config rather than PackageReference.
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/packages.config:1 · Project 'eShopLegacyWebForms' declares NuGet dependencies in packages.config rather than PackageReference.
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/packages.config:1 · Project 'eShopModernizedMVC' declares NuGet dependencies in packages.config rather than PackageReference.
+    eShopModernizedNTier/src/eShopWCFService/packages.config:1 · Project 'eShopWCFService' declares NuGet dependencies in packages.config rather than PackageReference.
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/packages.config:1 · Project 'eShopModernizedWebForms' declares NuGet dependencies in packages.config rather than PackageReference.
+  → Migrate packages.config to PackageReference (Visual Studio offers an in-place migration, or run 'dotnet migrate'-style tooling). PackageReference is required for SDK-style projects and gives transitive restore.
+
+MIG1003  medium · certain · effort small  (4 occurrences)
+  Target framework below 4.6.2
+    eShopLegacyMVCSolution/eShopLegacy.Utilities/eShopLegacy.Utilities.csproj:2 · Project 'eShopLegacy.Utilities' targets .NET Framework 4.6.1 (below 4.6.2). Retarget to at least 4.6.2 before migrating. Earlier versions lack the .NET Standard 2.0 surface that migration relies on.
+    eShopLegacyMVCSolution/eShopPorted/eShopPorted.csproj:1 · Project 'eShopPorted' targets .NET Framework 4.6.1 (below 4.6.2). Retarget to at least 4.6.2 before migrating. Earlier versions lack the .NET Standard 2.0 surface that migration relies on.
+    eShopLegacyNTier/src/eShopWCFService/eShopWCFService.csproj:1 · Project 'eShopWCFService' targets .NET Framework 4.6.1 (below 4.6.2). Retarget to at least 4.6.2 before migrating. Earlier versions lack the .NET Standard 2.0 surface that migration relies on.
+    eShopModernizedNTier/src/eShopWCFService/eShopWCFService.csproj:1 · Project 'eShopWCFService' targets .NET Framework 4.6.1 (below 4.6.2). Retarget to at least 4.6.2 before migrating. Earlier versions lack the .NET Standard 2.0 surface that migration relies on.
+  → Retarget the project to at least .NET Framework 4.6.2 before migrating. Versions below 4.6.2 lack full .NET Standard 2.0 support, which the migration path relies on. This is usually a low-risk retarget-and-rebuild step.
+
+MIG3015  medium · probable · effort small  (6 occurrences)
+  WCF client (System.ServiceModel)
+  Uses WCF (System.ServiceModel). On modern .NET the WCF client is supported by adding the System.ServiceModel.* packages (e.g. System.ServiceModel.Http, .NetTcp) and regenerating the proxy; config-based endpoints usually move to code. Server-side hosting instead needs CoreWCF (see MIG3004).
+    eShopLegacyNTier/src/eShopWCFService/CatalogService.svc.cs:7
+    eShopLegacyNTier/src/eShopWCFService/CatalogServiceClient.cs:9
+    eShopLegacyNTier/src/eShopWCFService/ICatalogService.cs:6
+    eShopModernizedNTier/src/eShopWCFService/CatalogService.svc.cs:7
+    eShopModernizedNTier/src/eShopWCFService/CatalogServiceClient.cs:9
+    eShopModernizedNTier/src/eShopWCFService/ICatalogService.cs:6
+  → WCF client usage is supported on modern .NET via the System.ServiceModel.* packages (System.ServiceModel.Http, .NetTcp, .Primitives). Add them, regenerate the service reference, and move config-based endpoint/binding settings to code. Server-side hosting is not supported and needs CoreWCF (see MIG3004).
+
+MIG7001  medium · probable · effort small  (3 occurrences)
+  System.Data.SqlClient
+  Uses System.Data.SqlClient, which is in maintenance mode. Switch to Microsoft.Data.SqlClient (note its Encrypt=true default change, see MIG7002).
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/Services/CatalogService.cs:5
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/SqlAccessTokenProvider.cs:3
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/App_Start/SqlAccessTokenProvider.cs:3
+  → System.Data.SqlClient is in maintenance mode. Switch to Microsoft.Data.SqlClient, and review the Encrypt=true default change in 4.0+ that can break existing connection strings (see MIG7002).
+
+MIG5001  low · probable · effort small  (20 occurrences)
+  ConfigurationManager.AppSettings usage
+  Reads configuration via ConfigurationManager.AppSettings. On modern .NET this requires the System.Configuration.ConfigurationManager package, or migration to Microsoft.Extensions.Configuration.
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/Global.asax.cs:68
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/Global.asax.cs:85
+    eShopLegacyMVCSolution/src/eShopLegacyMVC/Models/Infrastructure/CatalogDBInitializer.cs:29
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/Global.asax.cs:53
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/Global.asax.cs:61
+    eShopLegacyWebFormsSolution/src/eShopLegacyWebForms/Models/Infrastructure/CatalogDBInitializer.cs:29
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/CatalogConfiguration.cs:44
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/CatalogConfiguration.cs:52
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/CatalogConfiguration.cs:68
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/CatalogConfiguration.cs:76
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/CatalogConfiguration.cs:84
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/CatalogConfiguration.cs:90
+    eShopModernizedMVCSolution/src/eShopModernizedMVC/App_Start/Startup.Auth.cs:38
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/App_Start/CatalogConfiguration.cs:44
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/App_Start/CatalogConfiguration.cs:52
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/App_Start/CatalogConfiguration.cs:68
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/App_Start/CatalogConfiguration.cs:76
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/App_Start/CatalogConfiguration.cs:84
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/App_Start/CatalogConfiguration.cs:90
+    eShopModernizedWebFormsSolution/src/eShopModernizedWebForms/App_Start/Startup.Auth.cs:21
+  → On modern .NET, either add the System.Configuration.ConfigurationManager package to keep reading app.config, or migrate to Microsoft.Extensions.Configuration (appsettings.json, environment variables, options pattern).
+
+These figures are heuristic planning aids derived from static analysis and are not a quote.
