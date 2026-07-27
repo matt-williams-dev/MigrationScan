@@ -9,6 +9,11 @@ hand-edited. If a file looks wrong, regenerate it rather than correcting it in p
 | Estate | What it shows |
 | --- | --- |
 | [`woodgrove-banking`](woodgrove-banking/) | A fictional four-project bank, built as a fixture to carry every shape a report can produce |
+| [`eshop-modernizing`](eshop-modernizing/) | Microsoft's archived eShopModernizing sample, eleven projects, scanned as found |
+
+One is constructed and one is not, on purpose. A fixture can be made to demonstrate everything at
+once and proves nothing about scale. A repository somebody else wrote proves the opposite and
+demonstrates whatever it happens to contain.
 
 ## What may live here
 
