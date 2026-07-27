@@ -128,7 +128,7 @@ For the security review before you send this on.
 
 **It includes:**
 
-- Project names, as they appear in your solution and project files.
+- Project paths, as they appear in your solution: the repo-relative location of each .csproj or .vbproj. A project keeps its path where a source file does not, because the path is how a project is identified, and findings grouped by project are what make the report readable to somebody scoping the work.
 - Line numbers of the code that matched a rule.
 - Rule identifiers, titles and their remediation text. These read the same in every scan.
 - Names and versions of the dependencies your projects declare: NuGet packages, referenced assemblies, COM components, web-service endpoints, and the Windows system libraries you call through P/Invoke. A name identifies a component; it does not say where it sits on disk. We keep names because nobody can assess a component without knowing which one it is.
