@@ -227,6 +227,11 @@ jobs:
               # Relative rather than $GITHUB_WORKSPACE: on the Windows runners that variable
               # carries a backslash path, which bash reads as escapes.
               (cd "publish/${{ matrix.rid }}" && 7z a -tzip "../../dist/$name.zip" migrationscan.exe)
+              # The signed executable on its own as well. The whole pitch is one file you
+              # double-click, and a zip makes that download, unzip, then run. Both ship because
+              # plenty of corporate mail and proxy rules refuse a bare .exe outright, and the
+              # people behind those rules are exactly this tool's audience.
+              cp "publish/${{ matrix.rid }}/migrationscan.exe" "dist/$name.exe"
               ;;
             tar.gz)
               chmod +x "publish/${{ matrix.rid }}/migrationscan"
@@ -360,16 +365,19 @@ jobs:
           cat > /tmp/notes.md <<'NOTES'
           ## Which download do I want?
 
-          **Assessing a solution?** Take `migrationscan-win-x64.zip`. One executable, no .NET
-          install, no admin rights. Unzip it into the folder you want to scan and run it:
+          **Assessing a solution?** Take `migrationscan-win-x64.exe`. One file, no .NET install,
+          no admin rights, nothing to unpack. Drop it in the folder you want to scan and run it:
 
           ```
-          migrationscan.exe path\to\YourSolution.sln
+          migrationscan-win-x64.exe path\to\YourSolution.sln
           ```
 
-          Or drop it in the folder and double-click it. With no arguments it scans the current
-          directory. Either way you get one file, `migrationscan-report.json`, pricing both
-          options: stay on Windows, or go cross-platform. That is the file to send on.
+          Or just double-click it. With no arguments it scans the current directory. Either way
+          you get one file, `migrationscan-report.json`, pricing both options: stay on Windows,
+          or go cross-platform. That is the file to send on.
+
+          `migrationscan-win-x64.zip` holds the same signed executable, for anyone whose mail or
+          proxy rules refuse a bare `.exe`. The `.sha256` covers both.
 
           **On a Mac?** Take the `.pkg` for your chip: `osx-arm64` for Apple silicon,
           `osx-x64` for Intel. It installs `migrationscan` into `/usr/local/bin`, and it is
