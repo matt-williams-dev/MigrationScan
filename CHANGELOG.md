@@ -10,6 +10,43 @@ consumer change.
 
 ## [Unreleased]
 
+## [0.1.5]
+
+A readable summary on screen, and a Windows download that is one file. Same rules, same findings,
+report schema stays at **1.6**. Markdown and JSON output are byte-identical to 0.1.4.
+
+### Changed
+
+- **The console summary prints as an aligned block.** The counts, the effort range, what was left
+  unassessed and what is third-party used to arrive as prose spread over several lines, so the
+  numbers a reader wants first were the numbers hardest to find. They now sit in a fixed-width
+  block that fits 80 columns.
+
+- **Both stances are priced on screen.** A scan has always costed staying on Windows and going
+  cross-platform from the same findings, but the console showed one of them, so the second was
+  reachable only by opening the JSON. A `Staying on Windows` row now carries the other total and
+  says where the difference sits, because six findings in one project is an afternoon and six
+  across six projects is a planning problem. It inverts to `Going cross-platform` when `--target`
+  names the Windows side, and says so plainly when the two price the same.
+
+- **One closing line instead of three.** The old ending printed the report path, a sentence saying
+  the report prices both options, and the redaction note. The block prices both options now, so
+  the middle line said nothing new and the redaction claim appeared twice.
+
+### Added
+
+- **The Windows executable ships bare as well as zipped.** `migrationscan-win-x64.exe` and
+  `migrationscan-win-arm64.exe` are attached to the release alongside the existing `.zip`. The
+  pitch is one file you double-click, and a zip made that download, unpack, then run. The zip
+  stays for anyone whose mail or proxy rules refuse a bare `.exe`. Both hold the same signed
+  binary and are covered by the same `.sha256`.
+
+### Fixed
+
+- **Release verification matched the wrong checksum file.** With two assets sharing one `.sha256`,
+  the check read the first line rather than the line naming the file in hand, so a mismatch on the
+  bare executable could pass.
+
 ## [0.1.4]
 
 Fixes a redacted report quietly carrying fewer warnings than the scan produced. Same rules, same
