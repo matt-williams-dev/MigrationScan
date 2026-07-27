@@ -122,3 +122,57 @@ jobs:
           binary="expanded/Payload/usr/local/bin/migrationscan"
           codesign --verify --deep --strict --verbose=4 "$binary"
           codesign -dvvv "$binary" 2>&1 | grep -E 'flags=.*runtime|^Authority=Developer ID Application|^Timestamp'
+
+  # The published binary, run for real. Every check above proves the asset is intact and signed;
+  # none of them prove it still prints what the README and the landing page say it prints. A
+  # customer downloading today gets this output, so this is the one that decides whether the
+  # marketing and the tool agree.
+  smoke:
+    name: run the published binary (win-x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download the published executable
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release download "${{ inputs.tag }}" --repo "$env:GITHUB_REPOSITORY" `
+            --pattern "migrationscan-win-x64.exe" --dir .
+          if ($LASTEXITCODE -ne 0) { throw "Could not download the executable for ${{ inputs.tag }}" }
+
+      - name: Scan the Woodgrove fixture
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Copy-Item migrationscan-win-x64.exe tests\fixtures\WoodgroveBanking\migrationscan.exe
+          Push-Location tests\fixtures\WoodgroveBanking
+          # The tool exits 1 when findings pass the threshold, which is the expected outcome on
+          # this fixture, so the exit code is not the failure signal here. The output is.
+          & .\migrationscan.exe WoodgroveBanking.sln 2>&1 |
+            Out-File -FilePath $env:GITHUB_WORKSPACE\published-console.txt -Encoding utf8
+          Pop-Location
+          Get-Content published-console.txt
+
+      - name: Compare against the committed sample console
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # The sample stops before the closing "wrote ..." line, so compare the prefix it covers
+          # rather than the whole run.
+          $sample = Get-Content docs\samples\woodgrove-banking\console.txt
+          $actual = Get-Content published-console.txt
+          $prefix = $actual[0..($sample.Length - 1)]
+          $diff = Compare-Object $sample $prefix
+          if ($diff) {
+            $diff | Format-Table -AutoSize | Out-String | Write-Host
+            throw "The published binary's output differs from docs/samples/woodgrove-banking/console.txt"
+          }
+          "published output matches the committed sample console, $($sample.Length) lines"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: published-console
+          path: published-console.txt
