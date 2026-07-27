@@ -38,19 +38,29 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Could not download assets for ${{ inputs.tag }}" }
           Get-ChildItem
 
-      - name: Check the published checksum
+      - name: Check the published checksums
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $name = "migrationscan-${{ matrix.rid }}"
-          # The .sha256 is written by sha256sum, so it is "<hash> *<file>" with a binary marker.
-          $expected = ((Get-Content "$name.sha256") -split '\s+')[0]
-          $actual = (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower()
-          "expected $expected"
-          "actual   $actual"
-          if ($expected -ne $actual) { throw "Checksum mismatch for $name.zip" }
+          # sha256sum writes one line per file as "<hash> *<file>", and Windows publishes two
+          # files now, so match on the filename rather than taking the first line.
+          $lines = Get-Content "$name.sha256"
+          $checked = 0
+          foreach ($file in @("$name.zip", "$name.exe")) {
+            if (-not (Test-Path $file)) { throw "Expected asset $file was not published." }
+            $line = $lines | Where-Object { $_ -match [regex]::Escape($file) + '\s*$' }
+            if (-not $line) { throw "No checksum line for $file in $name.sha256" }
+            $expected = ($line -split '\s+')[0]
+            $actual = (Get-FileHash $file -Algorithm SHA256).Hash.ToLower()
+            "$file expected $expected"
+            "$file actual   $actual"
+            if ($expected -ne $actual) { throw "Checksum mismatch for $file" }
+            $checked++
+          }
+          "verified $checked checksums"
 
-      - name: Verify the Authenticode signature on the downloaded binary
+      - name: Verify the Authenticode signature on both downloaded binaries
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -59,8 +69,20 @@ jobs:
           $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe' |
             Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $signtool) { throw 'No signtool.exe under the Windows 10 SDK on this runner.' }
-          & $signtool.FullName verify /pa /v extracted\migrationscan.exe
-          if ($LASTEXITCODE -ne 0) { throw "signtool verify exited $LASTEXITCODE" }
+
+          # The zipped copy and the bare one are published separately, so verify each rather
+          # than assuming the copy step preserved the signature.
+          foreach ($binary in @("extracted\migrationscan.exe", "migrationscan-${{ matrix.rid }}.exe")) {
+            "--- $binary ---"
+            & $signtool.FullName verify /pa /v $binary
+            if ($LASTEXITCODE -ne 0) { throw "signtool verify exited $LASTEXITCODE for $binary" }
+          }
+
+          # And that they are the same build, so the bare download is not a different artifact.
+          $a = (Get-FileHash "extracted\migrationscan.exe" -Algorithm SHA256).Hash
+          $b = (Get-FileHash "migrationscan-${{ matrix.rid }}.exe" -Algorithm SHA256).Hash
+          if ($a -ne $b) { throw "Zipped and bare executables differ: $a vs $b" }
+          "zipped and bare executables are identical"
 
   macos:
     name: notarization (${{ matrix.rid }})
