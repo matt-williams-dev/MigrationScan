@@ -12,6 +12,24 @@ migrationscan path/to/YourSolution.sln
 
 You get one file, `migrationscan-report.json`, plus a summary on screen. No .NET install, no admin rights, no flags to learn. Run it with no arguments and it scans the current directory, so you can drop the executable into a repository root and double-click it.
 
+The summary is the part you read first:
+
+```
+MigrationScan · target net10.0
+
+Projects scanned    3
+Findings            23   blocker 3 · high 7 · medium 11 · low 2
+Estimated effort    29.3–88 engineer-days
+Needs decision      1    architectural, left unpriced
+Not assessed        1    Woodgrove.Database (.sqlproj)
+Third-party         6    distinct references, inventory only
+Staying on Windows  17 findings · 23.8–72 days · 6 fewer, all in one project
+```
+
+One scan prices both futures. The last row is the same findings read from the other stance, so you
+can see what staying on Windows saves before anyone argues about it. Every finding follows
+underneath, with its tier, effort band, location and remediation.
+
 Already have the .NET 10 SDK? `dotnet tool install -g MigrationScan.Tool` gets you the same tool.
 
 Downloads are signed. Matthew Williams, owner of MW Creative LLC, the parent company of MW Consulting, holds both certificates, so that is the name Windows shows in the SmartScreen prompt and macOS shows when you open the installer. macOS ships as a `.pkg` that installs `migrationscan` into `/usr/local/bin`, because Apple staples a notarization ticket to a package and not to a bare executable, and a stapled ticket means Gatekeeper clears the tool without calling home. Every asset comes with a `.sha256` file, signed or not, to check your download against.
@@ -74,14 +92,14 @@ that folded, or a type library nobody ever built for 64-bit, will cost you weeks
 ones matching a known pattern; the inventory hands you the rest of the list to research.
 
 ```
-Third-party references (10 distinct), inventory only, not counted above:
-  • nuget   Newtonsoft.Json 13.0.3
-  • gac     Telerik.Web.UI 2015.3.930.45
-  • dll     Contoso.Payments 2.1.0.0
-  • com     AxInterop.MSCommLib 1.0.0.0
-  • com     MSXML2 6.0
-  • svc     PricingService
-  (Also read, not listed: 1 framework, 1 solution-internal.)
+Third-party references (6 distinct), inventory only, not counted above:
+  • nuget   Litware.Web.Controls 2018.2.611.40
+  • nuget   Microsoft.AspNet.Mvc 5.2.9
+  • nuget   Microsoft.AspNet.Web.Optimization 1.1.3
+  • nuget   Proseware.Json 9.1.2  [3 projects]
+  • dll     Litware.ChequeScanner 3.0.0.0
+  • com     FabrikamImagingLib 3.0
+  (Also read, not listed: 11 framework, 1 solution-internal.)
 ```
 
 The Markdown report renders it as a table with per-component project counts; the JSON exposes it

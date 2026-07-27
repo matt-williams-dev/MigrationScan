@@ -363,6 +363,28 @@ jobs:
       - name: Write release notes
         run: |
           cat > /tmp/notes.md <<'NOTES'
+          ## The summary you get on screen
+
+          The scan opens with the numbers you read first, aligned and inside 80 columns:
+
+          ```
+          MigrationScan · target net10.0
+
+          Projects scanned    3
+          Findings            23   blocker 3 · high 7 · medium 11 · low 2
+          Estimated effort    29.3–88 engineer-days
+          Needs decision      1    architectural, left unpriced
+          Not assessed        1    Woodgrove.Database (.sqlproj)
+          Third-party         6    distinct references, inventory only
+          Staying on Windows  17 findings · 23.8–72 days · 6 fewer, all in one project
+          ```
+
+          The last row is the change. One scan has always priced both futures, staying on Windows
+          and going cross-platform, but only one of them reached the screen and the other sat in
+          the JSON. Both are on screen now, with a note on where the difference sits, because six
+          findings in one project is an afternoon and six across six projects is a planning
+          problem.
+
           ## Which download do I want?
 
           **Assessing a solution?** Take `migrationscan-win-x64.exe`. One file, no .NET install,
