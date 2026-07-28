@@ -10,6 +10,11 @@ consumer change.
 
 ## [Unreleased]
 
+## [0.1.6]
+
+A front door for the rule catalog, and Windows downloads signed by the company rather than by its
+owner. Same rules, same findings, report schema stays at **1.6**.
+
 ### Added
 
 - **An index of the rule catalog at [`docs/rules/README.md`](docs/rules/README.md).** All 33 rules
@@ -25,6 +30,19 @@ consumer change.
   the exact row to add. It also pins every `docsUrl` to its canonical GitHub page, because those
   URLs are a permanent contract with every report already generated and both committed sample
   reports carry them.
+
+### Changed
+
+- **MW Creative LLC signs the Windows downloads.** The SmartScreen prompt named Matthew Williams
+  through 0.1.5 and names the company from this release on. The Azure Artifact Signing account,
+  the certificate authority and the timestamping stay where they were, so the name is the only
+  part that moved. macOS keeps Matthew Williams for now, because Apple will not convert an
+  individual developer account to an organization mid-term. That one changes at renewal in early
+  2027.
+
+  Releases through 0.1.5 still verify. Their signatures carry RFC 3161 timestamps, which fix each
+  signature at a moment the old certificate was valid, so retiring that certificate leaves them
+  alone.
 
 ## [0.1.5]
 
@@ -200,7 +218,9 @@ Report schema **1.6**.
 - The README no longer documents `--rules`, `--exclude` or `--verbosity`, which were never
   implemented.
 
-[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/matt-williams-dev/MigrationScan/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.6
+[0.1.5]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.5
 [0.1.4]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.4
 [0.1.3]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.3
 [0.1.2]: https://github.com/matt-williams-dev/MigrationScan/releases/tag/v0.1.2

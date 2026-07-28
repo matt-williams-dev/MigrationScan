@@ -32,7 +32,7 @@ underneath, with its tier, effort band, location and remediation.
 
 Already have the .NET 10 SDK? `dotnet tool install -g MigrationScan.Tool` gets you the same tool.
 
-Downloads are signed. Matthew Williams, owner of MW Creative LLC, the parent company of MW Consulting, holds both certificates, so that is the name Windows shows in the SmartScreen prompt and macOS shows when you open the installer. macOS ships as a `.pkg` that installs `migrationscan` into `/usr/local/bin`, because Apple staples a notarization ticket to a package and not to a bare executable, and a stapled ticket means Gatekeeper clears the tool without calling home. Every asset comes with a `.sha256` file, signed or not, to check your download against.
+Downloads are signed. MW Creative LLC holds the Windows certificate, so that is the name in the SmartScreen prompt. The macOS downloads carry Matthew Williams, who owns the company, until the Apple developer account converts to an organization at renewal in early 2027. macOS ships as a `.pkg` that installs `migrationscan` into `/usr/local/bin`, because Apple staples a notarization ticket to a package and not to a bare executable, and a stapled ticket means Gatekeeper clears the tool without calling home. Every asset comes with a `.sha256` file, signed or not, to check your download against.
 
 > **Status: early release.** 33 rules across 8 categories, both portability targets, and a redacted report format. Expect the rule catalog to keep growing. See the [roadmap](#roadmap).
 
