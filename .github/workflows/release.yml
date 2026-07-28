@@ -407,8 +407,9 @@ jobs:
 
           **Already have the .NET 10 SDK?** `dotnet tool install -g MigrationScan.Tool`
 
-          Matthew Williams, owner of MW Creative LLC, the parent company of MW Consulting,
-          signs the Windows and macOS downloads. Check any download against its `.sha256`
+          MW Creative LLC signs the Windows downloads, so that is the name in the SmartScreen
+          prompt. The macOS ones carry Matthew Williams, who owns the company, until the Apple
+          account converts at renewal in early 2027. Check any download against its `.sha256`
           file before you run it.
 
           ---
