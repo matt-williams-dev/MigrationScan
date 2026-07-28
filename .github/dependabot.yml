@@ -1,0 +1,18 @@
+version: 2
+
+# The workflows pin every action to a commit SHA rather than a tag, because a tag can be moved
+# and this repository holds a code-signing certificate. A pin that nobody updates goes stale
+# instead, so Dependabot watches the actions and opens a PR when one moves, rewriting the SHA
+# and the version comment together.
+#
+# Actions only. The NuGet dependency list is deliberately short (spec §4) and changes rarely
+# enough to be worth a deliberate decision each time.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
