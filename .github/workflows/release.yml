@@ -189,11 +189,14 @@ jobs:
 
       - name: Sign the Windows executable
         if: runner.os == 'Windows' && env.AZURE_SIGNING_CONFIGURED == 'true'
-        uses: azure/trusted-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2.0.0
+        # Microsoft renamed Trusted Signing to Artifact Signing at v1, taking the repository name
+        # with it. The old name still reaches here through a GitHub redirect, but the redirect is
+        # one more thing to depend on, so point at the name the action actually lives under.
+        uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2.0.0
         with:
           # No trailing slash. The service rejects the request if one is added here.
           endpoint: ${{ vars.SIGNING_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.SIGNING_ACCOUNT }}
+          signing-account-name: ${{ vars.SIGNING_ACCOUNT }}
           certificate-profile-name: ${{ vars.SIGNING_PROFILE }}
           files-folder: ${{ github.workspace }}\publish\${{ matrix.rid }}
           files-folder-filter: exe

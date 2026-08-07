@@ -85,9 +85,9 @@ environment named `release`, which the job declares, so create it under **Settin
 Environments** before the next tag. The Azure federated credential names that environment in its
 subject, so a job running without it gets a token Azure refuses.
 
-**Windows** goes through Azure Artifact Signing, formerly Trusted Signing, which is still the name
-on the GitHub Action. Authentication is an OIDC federated credential, so no client secret sits in
-the repository waiting to leak.
+**Windows** goes through Azure Artifact Signing, formerly Trusted Signing. The rename reached the
+GitHub Action too, so the workflow calls `azure/artifact-signing-action`. Authentication is an OIDC
+federated credential, so no client secret sits in the repository waiting to leak.
 
 | Secret | |
 | --- | --- |
@@ -98,7 +98,7 @@ the repository waiting to leak.
 | Variable | |
 | --- | --- |
 | `SIGNING_ENDPOINT` | Regional endpoint for the account, shaped like `https://eus.codesigning.azure.net`. No trailing slash, the service refuses the request with one. |
-| `SIGNING_ACCOUNT` | Trusted Signing account name. |
+| `SIGNING_ACCOUNT` | Signing account name. |
 | `SIGNING_PROFILE` | Certificate profile name. |
 
 Lose the Azure secrets and the Windows signing steps skip, leaving unsigned binaries and a green
